@@ -1,0 +1,12 @@
+.jira.d
+.idea
+.vscode
+.env
+.DS_Store
+
+__debug_bin
+
+/_ybin
+/_ybuild
+/_ylocal
+

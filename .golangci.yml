@@ -1,0 +1,326 @@
+version: "2"
+
+# noinspection SpellCheckingInspection
+linters:
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - canonicalheader
+    - containedctx
+    - contextcheck
+    - copyloopvar
+    - decorder
+    - depguard
+    - durationcheck
+    - err113
+    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - exhaustruct
+    - exptostd
+    - fatcontext
+    - forbidigo
+    - forcetypeassert
+    - ginkgolinter
+    - gocheckcompilerdirectives
+    - gochecksumtype
+    - gocritic
+    - godot
+    - goheader
+    - gomoddirectives
+    - goprintffuncname
+    - gosec
+    - ineffassign
+    - intrange
+    - lll
+    - loggercheck
+    - makezero
+    - mirror
+    - misspell
+    - musttag
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnesserr
+    - nilnil
+    - nlreturn
+    - noctx
+    - nolintlint
+    - nonamedreturns
+    - nosprintfhostport
+    - paralleltest
+    - perfsprint
+    - prealloc
+    - predeclared
+    - promlinter
+    - protogetter
+    - reassign
+    - recvcheck
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - sqlclosecheck
+    - staticcheck
+    - tagalign
+    - testableexamples
+    - testifylint
+    - testpackage
+    - thelper
+    - tparallel
+    - unconvert
+    - unused
+    - usestdlibvars
+    - usetesting
+    - wastedassign
+    - whitespace
+    - zerologlint
+
+  settings:
+    asasalint:
+      use-builtin-exclusions: false
+    copyloopvar:
+      check-alias: true
+    decorder:
+      dec-order:
+        - const
+        - var
+        - type
+        - func
+      ignore-underscore-vars: true
+      disable-dec-num-check: true
+      disable-type-dec-num-check: false
+      disable-const-dec-num-check: false
+      disable-var-dec-num-check: false
+      disable-dec-order-check: true
+      disable-init-func-first-check: false
+    depguard:
+      rules:
+        main:
+          list-mode: original
+          files:
+            - 'app/*.go'
+            - 'app/**/*.go'
+          allow:
+            - '$gostd'
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    errchkjson:
+      report-no-exported: true
+    exhaustive:
+      check:
+        - switch
+        - map
+    fatcontext:
+      check-struct-pointers: true
+    forbidigo:
+      exclude-godoc-examples: true
+      analyze-types: true
+      forbid:
+        - pattern: '^print(ln)?$'
+        - pattern: '^fmt\.Print.*$'
+          msg: Do not commit print statements.
+    gochecksumtype:
+      default-signifies-exhaustive: false
+    goconst:
+      min-len: 2
+      min-occurrences: 2
+      numbers: true
+      min: 2
+      max: 2
+      ignore-calls: false
+      ignore-string-values: 'todo|, |panic'
+    gocritic:
+      enable-all: true
+      disabled-checks:
+        - whyNoLint
+        - commentedOutCode
+      settings:
+        captLocal:
+          paramsOnly: false
+        elseif:
+          skipBalanced: false
+        ifElseChain:
+          minThreshold: 4
+        nestingReduce:
+          bodyWidth: 3
+        truncateCmp:
+          skipArchDependent: false
+        unnamedResult:
+          checkExported: true
+    godot:
+      scope: all
+      capital: true
+    govet:
+      enable-all: true
+    grouper:
+      import-require-single-import: true
+      import-require-grouping: true
+      const-require-single-const: false
+      const-require-grouping: false
+      type-require-single-type: false
+      type-require-grouping: false
+      var-require-single-var: false
+      var-require-grouping: false
+    lll:
+      line-length: 100
+      tab-width: 4
+    loggercheck:
+      kitlog: false
+      klog: false
+      logr: false
+      slog: false
+      zap: true
+      require-string-key: true
+      no-printf-like: true
+      rules:
+        - k8s.io/klog/v2.InfoS
+        - '(github.com/go-logr/logr.Logger).Error'
+        - '(*go.uber.org/zap.SugaredLogger).With'
+    mnd:
+      ignored-numbers:
+        - "0755"
+        - "0644"
+    nakedret:
+      max-func-lines: 15
+    nestif:
+      min-complexity: 3
+    nilnil:
+      detect-opposite: true
+    nolintlint:
+      require-explanation: false
+      require-specific: true
+      allow-unused: false
+    paralleltest:
+      ignore-missing: true
+    prealloc:
+      simple: false
+      for-loops: true
+    promlinter:
+      strict: true
+    reassign:
+      patterns:
+        - '.*'
+    spancheck:
+      checks:
+        - end
+        - record-error
+        - set-status
+    staticcheck:
+      checks:
+        - ST1000
+        - ST1001
+        - ST1005
+        - ST1006
+        - ST1008
+        - ST1011
+        - ST1012
+        - ST1013
+        - ST1015
+        - ST1016
+        - ST1017
+        - ST1018
+        - ST1019
+        - ST1020
+        - ST1021
+        - ST1022
+        - ST1023
+      dot-import-whitelist:
+        - github.com/hkoosha/giraffe/internal/dot
+        - github.com/hkoosha/giraffe/dot
+    tagalign:
+      order:
+        - json
+        - yaml
+        - yml
+        - toml
+        - mapstructure
+        - binding
+        - validate
+      strict: true
+    unconvert:
+      safe: true
+    unused:
+      field-writes-are-uses: false
+      local-variables-are-used: false
+    usestdlibvars:
+      time-month: true
+      time-layout: true
+      crypto-hash: true
+      default-rpc-path: true
+      sql-isolation-level: true
+      tls-signature-scheme: true
+      constant-kind: true
+    usetesting:
+      os-temp-dir: true
+    wsl:
+      allow-separated-leading-comment: true
+
+  exclusions:
+    generated: lax
+
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+
+    paths:
+      - 'third_party$'
+      - 'builtin$'
+      - 'examples$'
+
+    rules:
+      - path: '^internal/vendored/.*$'
+        text: '.*'
+      - linters:
+          - asasalint
+          - goconst
+        path: '(.+)_test\.go'
+      - linters:
+          - goconst
+        text: panic
+      - linters:
+          - err113
+        path: '.*_test\.go'
+
+# noinspection SpellCheckingInspection
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - localmodule
+        - dot
+      no-inline-comments: true
+      no-prefix-comments: true
+      custom-order: true
+    gofmt:
+      rewrite-rules:
+        - pattern: 'interface{}'
+          replacement: any
+        - pattern: 'a[b:len(a)]'
+          replacement: 'a[b:]'
+    gofumpt:
+      extra-rules: true
+    goimports:
+      local-prefixes:
+        - 'github.com/hkoosha/giraffe'
+
+  exclusions:
+    generated: lax
+    paths:
+      - 'third_party$'
+      - 'builtin$'
+      - 'examples$'
