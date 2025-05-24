@@ -3,6 +3,8 @@ package radix
 import (
 	"sort"
 	"strings"
+
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 // WalkFn is used when walking the tree. Takes a
@@ -59,7 +61,7 @@ func (n *node) updateEdge(label byte, node *node) {
 		n.edges[idx].node = node
 		return
 	}
-	panic("replacing missing edge")
+	panic(EF("replacing missing edge"))
 }
 
 func (n *node) getEdge(label byte) *node {
@@ -308,7 +310,7 @@ func (t *Tree) deletePrefix(parent, n *node, prefix string) int {
 	if len(prefix) == 0 {
 		// Remove the leaf node
 		subTreeSize := 0
-		//recursively walk from all edges of the node to be deleted
+		// recursively walk from all edges of the node to be deleted
 		recursiveWalk(n, func(s string, v interface{}) bool {
 			subTreeSize++
 			return false

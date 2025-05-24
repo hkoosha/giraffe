@@ -2,10 +2,10 @@ package tlru
 
 import (
 	"encoding/binary"
-	"fmt"
 	"sync"
 	"time"
 
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/internal/vendored/radix"
 	"github.com/hkoosha/giraffe/internal/vendored/tlru/doublelist"
 )
@@ -85,7 +85,7 @@ func (l *Cache[K, V]) delete(key K) int {
 	_, ok = l.ttlTrie.Delete(deadlineKey)
 	if !ok {
 		// Something is very, very wrong.
-		panic(fmt.Sprintf("key %q not deleted? cache corrupt", deadlineKey))
+		panic(EF("key %q not deleted? cache corrupt", deadlineKey))
 	}
 	delete(l.index, key)
 	return costSaving
@@ -175,7 +175,7 @@ func (l *Cache[K, V]) Set(key K, v V, ttl time.Duration) {
 	}
 	_, ok := l.ttlTrie.Insert(deadlineKey, key)
 	if ok {
-		panic(fmt.Sprintf("unexpected update of ttlTrie, cache corrupt: %+v", v))
+		panic(EF("unexpected update of ttlTrie, cache corrupt: %+v", v))
 	}
 	l.index[key] = l.lruList.Append(
 		dataWithKey[K, V]{

@@ -1,0 +1,5 @@
+Define error types or provide global error vars.
+No 'overwrite' and 'maybe' at the same time in Query.
+Better conflicting cmd checks in Query parser.
+
+Horrible toJson/fromJson redundancy for Datum

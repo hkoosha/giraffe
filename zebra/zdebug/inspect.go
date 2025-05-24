@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"github.com/hkoosha/giraffe"
-	. "github.com/hkoosha/giraffe/dot"
+	"github.com/hkoosha/giraffe/core/t11y"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 func Inspect(v any) string {
@@ -27,7 +28,7 @@ func Dump[V any](v V) V {
 }
 
 func DumpE[V any](v V, err error) V {
-	OK(err)
+	t11y.Ensure(err)
 
 	return Dump(v)
 }

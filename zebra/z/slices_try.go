@@ -102,3 +102,21 @@ func TryValBy[Slice ~[]U, U comparable, V any](
 
 	return mapped, nil
 }
+
+func TryMapBy[Slice ~[]U, U comparable, V any](
+	it Slice,
+	fn func(U) V,
+) (map[U]V, error) {
+	mapped := make(map[U]V, len(it))
+
+	for _, k := range it {
+		v := fn(k)
+		if _, ok := mapped[k]; ok {
+			return nil, errDuplicateKey
+		} else {
+			mapped[k] = v
+		}
+	}
+
+	return mapped, nil
+}

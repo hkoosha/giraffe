@@ -1,9 +1,10 @@
 package gdatum
 
 import (
-	"encoding/json"
 	"strconv"
 	"sync/atomic"
+
+	"github.com/hkoosha/giraffe/core/serdes/gson"
 )
 
 const debugNilId = "<nil>"
@@ -29,7 +30,7 @@ func (d *DatumDebug) String() string {
 		return debugNilId
 	}
 
-	serialized, err := json.Marshal(d)
+	serialized, err := gson.Marshal(d)
 	if err != nil {
 		panic(err)
 	}

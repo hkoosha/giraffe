@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func TupleOf[V SafeType1](
+func TupleOf[V Safe](
 	q Query,
 	v V,
 ) Tuple {

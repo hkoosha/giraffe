@@ -1,0 +1,14 @@
+go 1.25.3
+
+use (
+	core/t11y
+	core/inmem
+	core/serdes
+	core/gtesting
+	core/container
+	contrib/proto
+	contrib/redis
+	contrib/zap
+	contrib/gtestinghippo
+	.
+)

@@ -23,6 +23,7 @@ var (
 	_ Queried        = d
 	_ Modified       = d
 	_ DatumPub       = d
+	_ Dyn            = d
 )
 
 type (
@@ -30,6 +31,42 @@ type (
 	Datum = giraffe.Datum
 	Type  = giraffe.Type
 )
+
+// ====
+
+type Dyn interface {
+	Has(Query) (bool, error)
+	Set(Query, any) (Datum, error)
+	Get(Query) (Datum, error)
+}
+
+type TypedQuery interface {
+	QInt(Query) (*big.Int, error)
+	QFlt(Query) (*big.Float, error)
+	QBln(Query) (bool, error)
+	QStr(Query) (string, error)
+}
+
+type CastQuery interface {
+	QISz(Query) (int, error)
+	QI08(Query) (int8, error)
+	QI16(Query) (int16, error)
+	QI32(Query) (int32, error)
+	QI64(Query) (int64, error)
+	QUSz(Query) (uint, error)
+	QU08(Query) (uint8, error)
+	QU16(Query) (uint16, error)
+	QU32(Query) (uint32, error)
+	QU64(Query) (uint64, error)
+}
+
+type CastArrayQuery interface {
+	QStrs(Query) ([]string, error)
+	QISzs(Query) ([]int, error)
+	QI64s(Query) ([]int64, error)
+	QUSzs(Query) ([]uint, error)
+	QU64s(Query) ([]uint64, error)
+}
 
 type Typed interface {
 	Type() Type
@@ -63,54 +100,25 @@ type CastArray interface {
 	U64s() ([]uint64, error)
 }
 
-type TypedQuery interface {
-	QInt(Query) (*big.Int, error)
-	QFlt(Query) (*big.Float, error)
-	QBln(Query) (bool, error)
-	QStr(Query) (string, error)
-}
-
-type CastQuery interface {
-	QISz(Query) (int, error)
-	QI08(Query) (int8, error)
-	QI16(Query) (int16, error)
-	QI32(Query) (int32, error)
-	QI64(Query) (int64, error)
-	QUSz(Query) (uint, error)
-	QU08(Query) (uint8, error)
-	QU16(Query) (uint16, error)
-	QU32(Query) (uint32, error)
-	QU64(Query) (uint64, error)
-}
-
-type CastArrayQuery interface {
-	QStrs(Query) ([]string, error)
-	QISzs(Query) ([]int, error)
-	QI64s(Query) ([]int64, error)
-	QUSzs(Query) ([]uint, error)
-	QU64s(Query) ([]uint64, error)
-}
-
 type Queried interface {
 	Tree() []Query
 	Keys() ([]string, error)
+	Kv() (map[string]string, error)
 	Len() (int, error)
+	HasLen() bool
 	At(int) (Datum, error)
-	Has(query Query) bool
-	Get(Query) (Datum, error)
-	Query(q string) (Datum, error)
 }
 
 type Modified interface {
-	Set(Query, any) (Datum, error)
-	Merge(Datum) (Datum, error)
-	Append(value any) (Datum, error)
+	Merge(...Datum) (Datum, error)
+	Append(any) (Datum, error)
 }
 
 type Formatted interface {
 	fmt.Stringer
 	String() string
 	Pretty() string
+	Plain() (any, error)
 	MarshalJSON() ([]byte, error)
 	MarshalJSONTo(w io.Writer) error
 }
@@ -132,12 +140,14 @@ type Iter interface {
 }
 
 type DatumPub interface {
-	Typed
 	TypedQuery
-	Cast
 	CastQuery
-	CastArray
 	CastArrayQuery
+	Dyn
+
+	Typed
+	Cast
+	CastArray
 	Queried
 	Modified
 	Formatted

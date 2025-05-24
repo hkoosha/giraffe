@@ -1,5 +1,4 @@
 fix:
-  go mod tidy
   @./xscripts/shell/exe_fix.sh
 
 @lint:

@@ -1,0 +1,110 @@
+package gqdebug
+
+import (
+	"reflect"
+	"strconv"
+	"strings"
+	"sync/atomic"
+)
+
+const debugNilId = "<nil>"
+
+var (
+	debugId = atomic.Uint64{}
+
+	//nolint:exhaustruct
+	hasDebug = reflect.TypeOf(Query{}) == reflect.TypeOf(DebugT{})
+)
+
+// DebugImpl to enable debug, it is needed to switch this alias to DebugT.
+// It will require recompilation but allows Query.Debug to be typed and
+// have zero lengths when debug is not enabled (contrary to using pointers).
+type DebugImpl = struct{} // = DebugT.
+
+func init() {
+	debugId.Add(11)
+}
+
+func newDebug() DebugImpl {
+	if !hasDebug {
+		return DebugImpl{}
+	}
+
+	db := DebugT{
+		ID:   ref(debugId.Add(1)),
+		Root: ref("?"),
+		Str:  ref("?"),
+		Seq:  ref(-1),
+		All:  nil,
+	}
+
+	cast, ok := any(db).(DebugImpl)
+	if !ok {
+		panic("unreachable: query debug is not a DebugImpl: " +
+			reflect.TypeOf(db).String())
+	}
+
+	return cast
+}
+
+//goland:noinspection GoNameStartsWithPackageName
+type DebugT struct {
+	All  *[]string `json:"all"`
+	Root *string   `json:"root"`
+	Str  *string   `json:"str"`
+	ID   *uint64   `json:"id"`
+	Seq  *int      `json:"seq"`
+}
+
+func (d *DebugT) String() string {
+	if d == nil {
+		return debugNilId
+	}
+
+	props := []string{
+		"id=" + strconv.FormatUint(*d.ID, 10),
+		"root=" + *d.Root,
+		"str=" + *d.Str,
+		"seq=" + strconv.Itoa(*d.Seq),
+	}
+
+	return strings.Join(props, " | ")
+}
+
+func (d *DebugT) populate(q Query) string {
+	d.Root = ref(q.Root().String())
+	d.Str = ref(q.String())
+	d.Seq = ref(q.Flags().Seq())
+
+	return d.String()
+}
+
+func debugPopulateQueries(
+	path []Query,
+) {
+	if !hasDebug {
+		return
+	}
+
+	all := make([]string, len(path))
+
+	for i, q := range path {
+		if dDebug, ok := any(&path[i].Debug).(*DebugT); ok {
+			all[i] = dDebug.populate(q)
+		} else {
+			panic("unreachable: debug not enabled")
+		}
+	}
+
+	for i := range path {
+		if dDebug, ok := any(&path[i].Debug).(*DebugT); ok {
+			dDebug.All = &all
+		} else {
+			panic("unreachable: debug not enabled")
+		}
+	}
+}
+
+func ref[T any](t T) *T {
+	return &t
+}

@@ -6,7 +6,7 @@
 
 __debug_bin
 
-/_ybin
-/_ybuild
-/_ylocal
-
+_ybin
+_ybuild
+_ylocal
+_dumpster

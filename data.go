@@ -11,23 +11,33 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/hkoosha/giraffe/g11y"
+	"github.com/hkoosha/giraffe/cmd"
+	"github.com/hkoosha/giraffe/core/serdes/gson"
+	"github.com/hkoosha/giraffe/core/t11y"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/internal"
-	. "github.com/hkoosha/giraffe/internal/dot"
 	"github.com/hkoosha/giraffe/internal/gdatum"
-	"github.com/hkoosha/giraffe/internal/gquery"
+	"github.com/hkoosha/giraffe/internal/reflected"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
-func Make[V any](v V) (Datum, error) {
+func From[V any](v V) (Datum, error) {
 	return of(v)
 }
 
-func Of[V SafeType1](v V) Datum {
-	return M(Make(v))
+func FromJsonable(v any) (Datum, error) {
+	return ofJsonable(v)
 }
 
-func Of1[V SafeType1](
+func OfJsonable(v any) Datum {
+	return M(FromJsonable(v))
+}
+
+func Of[V Safe](v V) Datum {
+	return M(From(v))
+}
+
+func Of1[V Safe](
 	q Query,
 	v V,
 ) Datum {
@@ -53,6 +63,15 @@ func OfN(
 	return of(m)
 }
 
+func OfKV[V Safe](
+	k string,
+	v V,
+) Datum {
+	return OfJsonable(map[string]V{
+		k: v,
+	})
+}
+
 func OfEmpty() Datum {
 	return emptyObj
 }
@@ -65,13 +84,8 @@ func OfErr() Datum {
 	return errD
 }
 
-type SafeType0 interface {
-	// The string type is not safe for tier 0.
-	// Same for Query type.
-
-	Datum |
-		bool |
-		int |
+type Num interface {
+	int |
 		uint |
 		int8 |
 		int16 |
@@ -80,31 +94,46 @@ type SafeType0 interface {
 		uint8 |
 		uint16 |
 		uint32 |
-		uint64 |
-		*big.Int
+		uint64
 }
 
-type SafeType1 interface {
-	string |
-		SafeType0 |
-		[]Datum |
-		[]bool |
+type Ord interface {
+	Num | string
+}
+
+type Basic interface {
+	Ord | bool
+}
+
+type Seq interface {
+	[]bool |
 		[]string |
 		[]int |
 		[]int64 |
 		[]uint64 |
-		[][]Datum |
 		[][]bool |
 		[][]string |
 		[][]int |
 		[][]int64 |
 		[][]uint64 |
-		map[string]Datum |
 		map[string]bool |
 		map[string]string |
 		map[string]int |
 		map[string]int64 |
-		map[string]uint64 |
+		map[string][]bool |
+		map[string][]string |
+		map[string][]int |
+		map[string][]int64 |
+		map[string][]uint64
+}
+
+type Safe interface {
+	Basic | Seq |
+		*big.Int |
+		Datum |
+		[]Datum |
+		[][]Datum |
+		map[string]Datum |
 		map[Query]Datum |
 		map[Query]bool |
 		map[Query]string |
@@ -112,11 +141,6 @@ type SafeType1 interface {
 		map[Query]int64 |
 		map[Query]uint64 |
 		map[string][]Datum |
-		map[string][]bool |
-		map[string][]string |
-		map[string][]int |
-		map[string][]int64 |
-		map[string][]uint64 |
 		map[Query][]Datum |
 		map[Query][]bool |
 		map[Query][]string |
@@ -129,18 +153,44 @@ type Implode = map[Query]Datum
 
 // ============================================================================.
 
+//nolint:recvcheck
 type Datum struct {
 	val   *any
 	Debug gdatum.DatumDebug
 	typ   Type
 }
 
+func (d Datum) SimpleString() (string, error) {
+	switch {
+	case d.typ.IsObj(), d.typ.IsArr():
+
+	case d.typ.IsBln():
+		switch {
+		case M(d.Bln()):
+			return "true", nil
+		default:
+			return "false", nil
+		}
+
+	case d.typ.IsFlt():
+		return M(d.Flt()).String(), nil
+
+	case d.typ.IsInt():
+		return M(d.Int()).String(), nil
+
+	case d.typ.IsStr():
+		return M(d.Str()), nil
+	}
+
+	return "", EF("type does not support simple string formatting: %s", d.typ.String())
+}
+
 func (d Datum) String() string {
-	if g11y.IsDebugToString() {
+	if t11y.IsDebugToString() {
 		return fmt.Sprintf("Dat[%s]", d.typ.String())
 	}
 
-	return d.String0()
+	return d.string0()
 }
 
 func (d Datum) Pretty() string {
@@ -165,13 +215,21 @@ func (d Datum) Raw() (any, error) {
 	return d.raw()
 }
 
+func (d Datum) Plain() (any, error) {
+	return d.plain()
+}
+
 func (d Datum) MarshalJSON() ([]byte, error) {
 	n, err := d.raw()
 	if err != nil {
 		return nil, err
 	}
 
-	return json.Marshal(n)
+	return gson.Marshal(n)
+}
+
+func (d Datum) MarshalJsonString() string {
+	return string(M(gson.Marshal(M(d.raw()))))
 }
 
 func (d Datum) MarshalJSONTo(w io.Writer) error {
@@ -183,8 +241,11 @@ func (d Datum) MarshalJSONTo(w io.Writer) error {
 	return json.NewEncoder(w).Encode(n)
 }
 
-func (d Datum) UnmarshalJSON([]byte) error {
-	panic(EF("unimplemented: unmarshal json"))
+func (d *Datum) UnmarshalJSON(b []byte) error {
+	var err error
+
+	*d, err = ofJson(b)
+	return err
 }
 
 func (d Datum) Type() Type {
@@ -232,9 +293,9 @@ func (d Datum) Lte(other Datum) (bool, error) {
 }
 
 func (d Datum) Merge(
-	right Datum,
+	right ...Datum,
 ) (Datum, error) {
-	return d.merge(right, []string{})
+	return d.merge(right)
 }
 
 func (d Datum) Set(
@@ -248,26 +309,15 @@ func (d Datum) Append(
 	value any,
 ) (Datum, error) {
 	return d.Set(
-		Q(CmdAppend),
+		Q(cmd.Append.String()),
 		value,
 	)
-}
-
-func (d Datum) Query(
-	q string,
-) (Datum, error) {
-	query, err := Parse(q)
-	if err != nil {
-		return errD, err
-	}
-
-	return d.get(query.impl())
 }
 
 func (d Datum) Nest(
 	q Query,
 ) (Datum, error) {
-	return d.nest(q)
+	return d.nest(q.impl())
 }
 
 func (d Datum) Get(
@@ -302,7 +352,7 @@ func (d Datum) Iter2() (iter.Seq2[string, Datum], error) {
 func (d Datum) At(
 	index int,
 ) (Datum, error) {
-	k, err := Parse(strconv.Itoa(index))
+	k, err := GQParse(strconv.Itoa(index))
 	if err != nil {
 		return OfErr(), err
 	}
@@ -312,12 +362,12 @@ func (d Datum) At(
 
 func (d Datum) Has(
 	query Query,
-) bool {
+) (bool, error) {
 	return d.has(query.impl())
 }
 
 func (d Datum) Tree() []Query {
-	return z.Applied(d.tree(), func(it gquery.Query) Query {
+	return z.Applied(d.tree(), func(it queryT) Query {
 		return Query(it.String())
 	})
 }
@@ -331,8 +381,37 @@ func (d Datum) Keys() ([]string, error) {
 	return slices.Collect(maps.Keys(val)), nil
 }
 
+func (d Datum) Kv() (map[string]string, error) {
+	keys, err := d.Keys()
+	if err != nil {
+		return nil, err
+	}
+
+	kv := make(map[string]string, len(keys))
+
+	for _, k := range keys {
+		str, err := d.Get(Q(internal.Escaped(k)))
+		if err != nil {
+			return nil, err
+		}
+
+		v, err := str.Str()
+		if err != nil {
+			return nil, err
+		}
+
+		kv[k] = v
+	}
+
+	return kv, nil
+}
+
 func (d Datum) Len() (int, error) {
 	return d.tryLen()
+}
+
+func (d Datum) HasLen() bool {
+	return d.typ.IsObj() || d.typ.IsArr()
 }
 
 // =====================================.
@@ -395,6 +474,22 @@ func (d Datum) Str() (string, error) {
 	}
 }
 
+func (d Datum) FmtStr() (string, error) {
+	switch {
+	case d.typ.IsStr():
+		return cast[string](d), nil
+
+	case d.typ.IsBln():
+		return strconv.FormatBool(cast[bool](d)), nil
+
+	case d.typ.IsInt():
+		return M(d.Int()).String(), nil
+
+	default:
+		return "", EF("cannot format datatype as simple string: %v", d.String())
+	}
+}
+
 // =====================================.
 
 func (d Datum) I08() (int8, error) {
@@ -406,7 +501,7 @@ func (d Datum) I08() (int8, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < math.MinInt8 || math.MaxInt8 < vI {
-		return 0, newDataReadIntegerOverflowError(internal.TI8)
+		return 0, newDataReadIntegerOverflowError(reflected.TI8)
 	}
 
 	//nolint:gosec
@@ -422,7 +517,7 @@ func (d Datum) I16() (int16, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < math.MinInt16 || math.MaxInt16 < vI {
-		return 0, newDataReadIntegerOverflowError(internal.TI16)
+		return 0, newDataReadIntegerOverflowError(reflected.TI16)
 	}
 
 	//nolint:gosec
@@ -438,7 +533,7 @@ func (d Datum) I32() (int32, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < math.MinInt32 || math.MaxInt32 < vI {
-		return 0, newDataReadIntegerOverflowError(internal.TI32)
+		return 0, newDataReadIntegerOverflowError(reflected.TI32)
 	}
 
 	//nolint:gosec
@@ -454,7 +549,7 @@ func (d Datum) I64() (int64, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < math.MinInt64 || math.MaxInt64 < vI {
-		return 0, newDataReadIntegerOverflowError(internal.TI64)
+		return 0, newDataReadIntegerOverflowError(reflected.TI64)
 	}
 
 	return vI, nil
@@ -469,7 +564,7 @@ func (d Datum) U08() (uint8, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < 0 || vI > math.MaxUint8 {
-		return 0, newDataReadIntegerOverflowError(internal.TU8)
+		return 0, newDataReadIntegerOverflowError(reflected.TU8)
 	}
 
 	return uint8(vI), nil
@@ -484,7 +579,7 @@ func (d Datum) U16() (uint16, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < 0 || vI > math.MaxUint16 {
-		return 0, newDataReadIntegerOverflowError(internal.TU16)
+		return 0, newDataReadIntegerOverflowError(reflected.TU16)
 	}
 
 	return uint16(vI), nil
@@ -499,7 +594,7 @@ func (d Datum) U32() (uint32, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < 0 || vI > math.MaxUint32 {
-		return 0, newDataReadIntegerOverflowError(internal.TU32)
+		return 0, newDataReadIntegerOverflowError(reflected.TU32)
 	}
 
 	return uint32(vI), nil
@@ -514,7 +609,7 @@ func (d Datum) U64() (uint64, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < 0 {
-		return 0, newDataReadIntegerOverflowError(internal.TU64)
+		return 0, newDataReadIntegerOverflowError(reflected.TU64)
 	}
 
 	return uint64(vI), nil
@@ -529,7 +624,7 @@ func (d Datum) ISz() (int, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI > math.MaxInt {
-		return 0, newDataReadIntegerOverflowError(internal.TISize)
+		return 0, newDataReadIntegerOverflowError(reflected.TISize)
 	}
 
 	return int(vI), nil
@@ -544,7 +639,7 @@ func (d Datum) USz() (uint, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < 0 {
-		return 0, newDataReadIntegerOverflowError(internal.TUSize)
+		return 0, newDataReadIntegerOverflowError(reflected.TUSize)
 	}
 
 	return uint(vI), nil
@@ -741,4 +836,22 @@ func (d Datum) QStr(q Query) (string, error) {
 	}
 
 	return get.Str()
+}
+
+func (d Datum) QFmtStr(q Query) (string, error) {
+	get, err := d.Get(q)
+	if err != nil {
+		return "", err
+	}
+
+	return get.FmtStr()
+}
+
+func (d Datum) QKv(q Query) (map[string]string, error) {
+	get, err := d.Get(q)
+	if err != nil {
+		return nil, err
+	}
+
+	return get.Kv()
 }

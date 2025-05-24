@@ -1,4 +1,4 @@
-set shell := ['bash', '-c']
+set shell := ['bash', '-c', '-e', '-u', '-o', 'pipefail']
 set dotenv-filename := './local/env'
 set allow-duplicate-variables
 
@@ -17,8 +17,14 @@ import? './local/justfile'
 import? 'local/justfile'
 
 default:
-  just build test lint
+  just build test fix
 
 @path:
     echo "$PATH"
+
+
+fixall:
+   for i in $(cat go.work | grep -E $'^\t+(core|contrib)' | tr -d $'\t'); do echo "$i"; \
+       ( cd "./$i" && golangci-lint -c ./.golangci.yml run --fix; ); done
+   just fix
 

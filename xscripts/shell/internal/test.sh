@@ -9,14 +9,15 @@ function giraffe_test() {
 }
 
 function giraffe_test_dev() {
-  local tmp
-  tmp="$(mktemp)"
-  giraffe_test "$@" 2>&1 | tee "$tmp" || true
-
-  echo
-  echo
-  echo
-
-  grep -Ev '^ok|\?' < "$tmp" || true
+  giraffe_test "$@"
+  # local tmp
+  # tmp="$(mktemp)"
+  # giraffe_test "$@" 2>&1 | tee "$tmp"
+  #
+  # echo
+  # echo
+  # echo
+  #
+  # grep -Ev '^ok|\?' < "$tmp"
 }
 

@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hkoosha/giraffe/g11y"
-	. "github.com/hkoosha/giraffe/internal/dot"
+	"github.com/hkoosha/giraffe/core/t11y"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 // Types.
@@ -53,7 +53,7 @@ type Type uint64
 
 //goland:noinspection GoMixedReceiverTypes
 func (t Type) String() string {
-	if g11y.IsDebugToString() {
+	if t11y.IsDebugToString() {
 		return "Typ=0b" + strings.TrimPrefix(strconv.FormatUint(uint64(t), 2), "0")
 	}
 
