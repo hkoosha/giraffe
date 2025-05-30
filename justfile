@@ -17,7 +17,7 @@ import? './local/justfile'
 import? 'local/justfile'
 
 default:
-  just build test lint
+  just build test fix
 
 @path:
     echo "$PATH"

@@ -1,123 +1,125 @@
 package ghttp
 
 import (
-	"context"
 	"net/http"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
 	"github.com/hkoosha/giraffe/glog"
-	"github.com/hkoosha/giraffe/zebra/z"
 )
 
-func (g *GClient) WithLg(
-	lg glog.GLog,
-) *GClient {
-	return NewClient(g.cfg.WithLg(lg))
+func (c *Conn) WithLg(lg glog.GLog) *Conn {
+	return NewClient(c.cfg.WithLg(lg))
 }
 
-func (g *GClient) WithLogged() *GClient {
-	return NewClient(g.cfg.WithLogged())
+func (c *Conn) WithLogged() *Conn {
+	return NewClient(c.cfg.WithLogged())
 }
 
-func (g *GClient) WithoutLogged() *GClient {
-	return NewClient(g.cfg.WithoutLogged())
+func (c *Conn) WithoutLogged() *Conn {
+	return NewClient(c.cfg.WithoutLogged())
 }
 
-func (g *GClient) WithPlainLog() *GClient {
-	return NewClient(g.cfg.WithPlainLog())
+func (c *Conn) WithPlainLog() *Conn {
+	return NewClient(c.cfg.WithPlainLog())
 }
 
-func (g *GClient) WithoutPlainLog() *GClient {
-	return NewClient(g.cfg.WithoutPlainLog())
+func (c *Conn) WithoutPlainLog() *Conn {
+	return NewClient(c.cfg.WithoutPlainLog())
 }
 
-func (g *GClient) WithLgFilteredHeaders(
-	h z.Set[string],
-) *GClient {
-	return NewClient(g.cfg.WithLgFilteredHeaders(h))
+func (c *Conn) WithLgFilteredHeaders(f HeaderFilter) *Conn {
+	return NewClient(c.cfg.WithLgFilteredHeaders(f))
 }
 
-func (g *GClient) WithLgMaskedHeaders(
-	h z.Set[string],
-) *GClient {
-	return NewClient(g.cfg.WithLgMaskedHeaders(h))
+func (c *Conn) WithLgMaskedHeaders(f HeaderFilter) *Conn {
+	return NewClient(c.cfg.WithLgMaskedHeaders(f))
 }
 
-func (g *GClient) WithOtel() *GClient {
-	return NewClient(g.cfg.WithOtel())
-}
-
-func (g *GClient) WithoutOtel() *GClient {
-	return NewClient(g.cfg.WithoutOtel())
-}
-
-func (g *GClient) WithHeaderOverwrites(
+func (c *Conn) WithHeaderOverwrites(
 	withDefaults bool,
 	h map[string]string,
-) *GClient {
-	return NewClient(g.cfg.WithHeaderOverwrites(withDefaults, h))
+) *Conn {
+	return NewClient(c.cfg.WithHeaderOverwrites(withDefaults, h))
 }
 
-func (g *GClient) WithBearerToken(bt string) *GClient {
-	return NewClient(g.cfg.WithBearerToken(bt))
+func (c *Conn) WithBearerToken(bt string) *Conn {
+	return NewClient(c.cfg.WithBearerToken(bt))
 }
 
-func (g *GClient) WithBearerProvider(fn func(context.Context) string) *GClient {
-	return NewClient(g.cfg.WithBearerProvider(fn))
+func (c *Conn) WithBearerProvider(fn HeaderFn) *Conn {
+	return NewClient(c.cfg.WithBearerProvider(fn))
 }
 
-func (g *GClient) WithoutBearerProvider() *GClient {
-	return NewClient(g.cfg.WithoutBearerProvider())
+func (c *Conn) WithoutBearerProvider() *Conn {
+	return NewClient(c.cfg.WithoutBearerProvider())
 }
 
-func (g *GClient) WithLogReties() *GClient {
-	return NewClient(g.cfg.WithLogReties())
+func (c *Conn) WithExpecting2xx() *Conn {
+	return NewClient(c.cfg.WithExpecting2xx())
 }
 
-func (g *GClient) WithoutLogReties() *GClient {
-	return NewClient(g.cfg.WithoutLogReties())
+func (c *Conn) WithoutExpecting2xx() *Conn {
+	return NewClient(c.cfg.WithoutExpecting2xx())
 }
 
-func (g *GClient) SetLogReties(b bool) *GClient {
-	return NewClient(g.cfg.SetLogReties(b))
+func (c *Conn) WithEndpoint(e string) *Conn {
+	return NewClient(c.cfg.WithEndpoint(e))
 }
 
-func (g *GClient) WithMaxRetries(r uint) *GClient {
-	return NewClient(g.cfg.WithMaxRetries(r))
+func (c *Conn) WithoutEndpoint() *Conn {
+	return NewClient(c.cfg.WithoutEndpoint())
 }
 
-func (g *GClient) WithRetriedStatusCodes(sc ...int) *GClient {
-	return NewClient(g.cfg.WithRetriedStatusCodes(sc...))
+func (c *Conn) WithPathPrefix(p string) *Conn {
+	return NewClient(c.cfg.WithPathPrefix(p))
 }
 
-func (g *GClient) WithExpecting2xx() *GClient {
-	return NewClient(g.cfg.WithExpecting2xx())
+func (c *Conn) WithoutPathPrefix() *Conn {
+	return NewClient(c.cfg.WithoutPathPrefix())
 }
 
-func (g *GClient) WithoutExpecting2xx() *GClient {
-	return NewClient(g.cfg.WithoutExpecting2xx())
+func (c *Conn) AndPathPrefix(p string) *Conn {
+	return NewClient(c.cfg.AndPathPrefix(p))
 }
 
-func (g *GClient) SetExpecting2xx(b bool) *GClient {
-	return NewClient(g.cfg.SetExpecting2xx(b))
+func (c *Conn) WithTimeout(t time.Duration) *Conn {
+	return NewClient(c.cfg.WithTimeout(t))
 }
 
-func (g *GClient) WithEndpoint(e string) *GClient {
-	return NewClient(g.cfg.WithEndpoint(e))
+func (c *Conn) WithTransport(transport http.RoundTripper) *Conn {
+	return NewClient(c.cfg.WithTransport(transport))
 }
 
-func (g *GClient) WithPathPrefix(p string) *GClient {
-	return NewClient(g.cfg.WithPathPrefix(p))
+func (c *Conn) WithTraced() *Conn {
+	return NewClient(c.cfg.WithTraced())
 }
 
-func (g *GClient) AndPathPrefix(p string) *GClient {
-	return NewClient(g.cfg.AndPathPrefix(p))
+func (c *Conn) WithoutTraced() *Conn {
+	return NewClient(c.cfg.WithoutTraced())
 }
 
-func (g *GClient) WithTimeout(t time.Duration) *GClient {
-	return NewClient(g.cfg.WithTimeout(t))
+func (c *Conn) WithTraceOptions(
+	options ...otelhttp.Option,
+) *Conn {
+	return NewClient(c.cfg.WithTraceOptions(options...))
 }
 
-func (g *GClient) WithTransport(transport http.RoundTripper) *GClient {
-	return NewClient(g.cfg.WithTransport(transport))
+// =============================================================================.
+
+func (c *Conn) WithLogReties() *Conn {
+	return NewClient(c.cfg.WithLogReties())
+}
+
+func (c *Conn) WithoutLogReties() *Conn {
+	return NewClient(c.cfg.WithoutLogReties())
+}
+
+func (c *Conn) WithMaxRetries(r uint) *Conn {
+	return NewClient(c.cfg.WithMaxRetries(r))
+}
+
+func (c *Conn) WithRetriedStatusCodes(sc ...int) *Conn {
+	return NewClient(c.cfg.WithRetriedStatusCodes(sc...))
 }

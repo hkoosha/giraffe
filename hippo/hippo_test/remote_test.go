@@ -1,8 +1,7 @@
-package pipelines_test
+package hippo_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"math/big"
 	"net/http/httptest"
@@ -12,20 +11,25 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hkoosha/giraffe"
-	. "github.com/hkoosha/giraffe/dot"
 	"github.com/hkoosha/giraffe/g11y"
-	"github.com/hkoosha/giraffe/pipelines"
+	"github.com/hkoosha/giraffe/hippo"
+	"github.com/hkoosha/giraffe/hippo/remote"
+	. "github.com/hkoosha/giraffe/internal/dot0"
+	. "github.com/hkoosha/giraffe/internal/dot1"
 )
 
-func mkEkran() pipelines.Server {
+func mkEkran(
+	t *testing.T,
+) remote.Server {
+	t.Helper()
+
 	g11y.EnableTracer()
 	g11y.EnableUnsafeError()
 
 	mkStep := func(
 		step int,
-	) pipelines.Fn {
-		return func(
-			_ context.Context,
+	) *hippo.Fn_ {
+		fn := hippo.MustFnOf0(func(
 			dat giraffe.Datum,
 		) (giraffe.Datum, error) {
 			in := "m" + strconv.Itoa(step-1)
@@ -42,21 +46,25 @@ func mkEkran() pipelines.Server {
 				Q(out),
 				sum,
 			), nil
-		}
+		})
+		require.True(t, fn.IsValid())
+		return fn
 	}
 
-	reg := pipelines.FnRegistry{}.
+	reg := hippo.FnRegistry{}.
 		MustWithNamed("fn0", mkStep(0)).
 		MustWithNamed("fn1", mkStep(1)).
 		MustWithNamed("fn2", mkStep(2))
 
-	ekran := pipelines.NewServer(reg, map[string]pipelines.Plan{
-		"plan0": pipelines.Plan{}.
-			MergeRegistry(reg).
+	ekran, err := remote.NewServer(reg, map[string]*hippo.Plan{
+		"plan0": hippo.Plan_.
+			MustAndRegistry(reg).
 			MustWithNextNamed("fn0").
 			MustWithNextNamed("fn1").
 			MustWithNextNamed("fn2"),
 	})
+
+	require.NoError(t, err)
 
 	return ekran
 }
@@ -66,10 +74,10 @@ func TestServer_Ekran(t *testing.T) {
 	g11y.EnableUnsafeError()
 
 	t.Run("ekran", func(t *testing.T) {
-		ekran := mkEkran()
+		ekran := mkEkran(t)
 
 		out := bytes.Buffer{}
-		req := pipelines.Request{
+		req := remote.Request{
 			Compensations: nil,
 			Init:          map[string]any{"m-1": 123},
 			Plan:          "plan0",
@@ -89,8 +97,7 @@ func TestServer_Http(t *testing.T) {
 	g11y.EnableTracer()
 	g11y.EnableUnsafeError()
 
-	remote := func(
-		ctx context.Context,
+	remoteFn := hippo.MustFnOf0(func(
 		dat giraffe.Datum,
 	) (giraffe.Datum, error) {
 		u64, err := dat.QU64("meow")
@@ -99,23 +106,24 @@ func TestServer_Http(t *testing.T) {
 		}
 
 		return giraffe.Of1(Q("meow2"), u64*2), nil
-	}
+	})
 
-	local := func(
-		context.Context,
+	local := hippo.MustFnOf0(func(
 		giraffe.Datum,
 	) (giraffe.Datum, error) {
 		return giraffe.Of1(Q("fn0"), 111), nil
-	}
+	})
 
 	mkSrv := func() *httptest.Server {
-		reg := pipelines.FnRegistry{}.MustWithNamed("thingy", remote)
+		reg := hippo.FnRegistry{}.MustWithNamed("thingy", remoteFn)
 
-		pSrv := pipelines.NewServer(reg, map[string]pipelines.Plan{
-			"thingy": pipelines.Plan{}.
-				MergeRegistry(reg).
+		pSrv, err := remote.NewServer(reg, map[string]*hippo.Plan{
+			"thingy": hippo.Plan_.
+				MustAndRegistry(reg).
 				MustWithNextNamed("thingy"),
 		})
+
+		require.NoError(t, err)
 
 		srv := httptest.NewServer(pSrv)
 
@@ -124,16 +132,16 @@ func TestServer_Http(t *testing.T) {
 
 	mkCln := func(
 		srv *httptest.Server,
-	) *pipelines.RunnerFn {
-		plan := pipelines.Plan{}.
-			WithNext("fn0", local).
-			WithNext("rm", pipelines.Remote(
+	) *hippo.PipelineFn {
+		plan := hippo.Plan_.
+			MustWithNext("fn0", local).
+			MustWithNext("rm", remote.Remote(
 				srv.URL,
 				"thingy",
 				srv.Client(),
 			))
 
-		return M(pipelines.Runner(plan))
+		return M(hippo.Pipeline(plan))
 	}
 
 	t.Run("server", func(t *testing.T) {

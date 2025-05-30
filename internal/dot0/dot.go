@@ -1,4 +1,4 @@
-package dot
+package dot0
 
 import (
 	"errors"
@@ -31,8 +31,16 @@ func EF(format string, v ...any) error {
 }
 
 func Assert(condition bool) {
+	AssertF(condition, "unexpected state")
+}
+
+func AssertF(
+	condition bool,
+	format string,
+	v ...any,
+) {
 	if !condition {
-		panic(EF("unexpected state"))
+		panic(EF(format, v...))
 	}
 }
 
@@ -64,4 +72,10 @@ func Apply[U, V any](
 	fn func(U) V,
 ) []V {
 	return z.Applied(it, fn)
+}
+
+func OK(
+	err error,
+) {
+	g11y.Ensure(err)
 }

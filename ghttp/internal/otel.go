@@ -1,4 +1,4 @@
-package transport
+package internal
 
 import (
 	"errors"
@@ -26,8 +26,9 @@ type OtelTransportOption func(*OtelTransport)
 
 func NewOtelTransport(
 	base http.RoundTripper,
+	tracer trace.Tracer,
 ) *OtelTransport {
-	g11y.NonNil(base)
+	g11y.NonNil(base, tracer)
 
 	return &OtelTransport{
 		rt: otelhttp.NewTransport(base),

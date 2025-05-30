@@ -8,36 +8,41 @@ import (
 	"github.com/hkoosha/giraffe/g11y"
 )
 
-type GClient struct {
+type (
+	HeaderFilter = func(ctx context.Context, h, v string) bool
+	HeaderFn     = func(context.Context, *Config) string
+)
+
+type Conn struct {
 	cfg *Config
 	hc  *http.Client
 }
 
 func NewClient(
 	cfg *Config,
-) *GClient {
+) *Conn {
 	g11y.NonNil(cfg)
-	cfg.ensure()
+	cfg.Ensure()
 
-	return &GClient{
+	return &Conn{
 		cfg: cfg,
 		hc:  cfg.Std(),
 	}
 }
 
-func (g *GClient) Std() *http.Client {
-	return g.cfg.Std()
+func (c *Conn) Std() *http.Client {
+	return c.cfg.Std()
 }
 
-func (g *GClient) Cfg() *Config {
-	return g.cfg
+func (c *Conn) Cfg() *Config {
+	return c.cfg
 }
 
-func (g *GClient) Get(
+func (c *Conn) Get(
 	ctx context.Context,
 	opts ...GetOptions,
 ) (*http.Response, error) {
-	url := Join(g.cfg.endpoint, g.cfg.pathPrefix)
+	url := Join(c.cfg.Endpoint(), c.cfg.PathPrefix())
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return nil, err
@@ -49,7 +54,7 @@ func (g *GClient) Get(
 		}
 	}
 
-	resp, err := g.hc.Do(req)
+	resp, err := c.hc.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -57,12 +62,12 @@ func (g *GClient) Get(
 	return resp, nil
 }
 
-func (g *GClient) Post(
+func (c *Conn) Post(
 	ctx context.Context,
 	body io.Reader,
 	opts ...PostOptions,
 ) (*http.Response, error) {
-	url := Join(g.cfg.endpoint, g.cfg.pathPrefix)
+	url := Join(c.cfg.Endpoint(), c.cfg.PathPrefix())
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, body)
 	if err != nil {
 		return nil, err
@@ -74,7 +79,7 @@ func (g *GClient) Post(
 		}
 	}
 
-	resp, err := g.hc.Do(req)
+	resp, err := c.hc.Do(req)
 	if err != nil {
 		return nil, err
 	}

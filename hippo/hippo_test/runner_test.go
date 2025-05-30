@@ -1,7 +1,6 @@
-package pipelines_test
+package hippo_test
 
 import (
-	"context"
 	"errors"
 	"math/big"
 	"os"
@@ -13,12 +12,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hkoosha/giraffe"
-	. "github.com/hkoosha/giraffe/dot"
-	"github.com/hkoosha/giraffe/pipelines"
+	"github.com/hkoosha/giraffe/hippo"
+	. "github.com/hkoosha/giraffe/internal/dot0"
+	. "github.com/hkoosha/giraffe/internal/dot1"
 )
 
 func fn0(
-	context.Context,
 	giraffe.Datum,
 ) (giraffe.Datum, error) {
 	return giraffe.Of1(Q("ns0.my_out_fn0"), []uint64{
@@ -31,14 +30,12 @@ func fn0(
 }
 
 func fn1(
-	context.Context,
 	giraffe.Datum,
 ) (giraffe.Datum, error) {
 	return giraffe.Of1(Q("ns1.my_out_fn1"), []int{2, 4}), nil
 }
 
 func fn2(
-	_ context.Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	fn0Out, err := dat.QU64s("ns0.my_out_fn0")
@@ -64,9 +61,8 @@ func fn2(
 
 func mul(
 	step int,
-) pipelines.Fn {
-	return func(
-		_ context.Context,
+) *hippo.Fn_ {
+	return hippo.MustFnOf0(func(
 		dat giraffe.Datum,
 	) (giraffe.Datum, error) {
 		out := "m" + strconv.Itoa(step)
@@ -86,18 +82,17 @@ func mul(
 			Q(out),
 			sum,
 		), nil
-	}
+	})
 }
 
 func fail(
 	msg string,
-) pipelines.Fn {
-	return func(
-		context.Context,
+) *hippo.Fn_ {
+	return hippo.MustFnOf0(func(
 		giraffe.Datum,
 	) (giraffe.Datum, error) {
 		return giraffe.OfErr(), errors.New("I failed like this: " + msg)
-	}
+	})
 }
 
 func write(
@@ -121,12 +116,12 @@ func write(
 
 func TestRunner(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
-		plan := pipelines.Plan{}.
-			WithNext("my_fn0", fn0).
-			WithNext("my_fn1", fn1).
-			WithNext("my_fn2", fn2)
+		plan := hippo.Plan_.
+			MustWithNext("my_fn0", hippo.MustFnOf0(fn0)).
+			MustWithNext("my_fn1", hippo.MustFnOf0(fn1)).
+			MustWithNext("my_fn2", hippo.MustFnOf0(fn2))
 
-		pipeline, err := pipelines.Runner(plan)
+		pipeline, err := hippo.Pipeline(plan)
 		require.NoError(t, err)
 
 		state := M(pipeline.Ekran(t.Context(), giraffe.OfEmpty()))
@@ -156,18 +151,18 @@ func TestRunner(t *testing.T) {
 
 func TestRunner_Compensation(t *testing.T) {
 	t.Run("compensation by error message", func(t *testing.T) {
-		plan := pipelines.Plan{}.
-			WithNext("f_0", fail("thingy")).
-			WithNext("m_1", mul(1)).
-			WithCompensator(
-				pipelines.Compensator{}.
+		plan := hippo.Plan_.
+			MustWithNext("f_0", fail("thingy")).
+			MustWithNext("m_1", mul(1)).
+			AndCompensator(
+				hippo.Compensator{}.
 					ForErrorWith(
 						regexp.MustCompile("thingy"),
 						giraffe.Of1("m0", 101),
 					),
 			)
 
-		pipeline := M(pipelines.Runner(plan))
+		pipeline := M(hippo.Pipeline(plan))
 		state := M(pipeline.Ekran(t.Context(), giraffe.Of1("m", 33)))
 		fin := M(state.QU64("fin.m1"))
 
@@ -189,21 +184,21 @@ func TestRunner_Compensation(t *testing.T) {
 	})
 
 	t.Run("compensation by step", func(t *testing.T) {
-		plan := pipelines.Plan{}.
-			WithNext("m_0", mul(0)).
-			WithNext("m_1", mul(1)).
-			WithNext("m_2", mul(2)).
-			WithNext("f_0", fail("thingy")).
-			WithNext("m_4", mul(4)).
-			WithCompensator(
-				pipelines.Compensator{}.
+		plan := hippo.Plan_.
+			MustWithNext("m_0", mul(0)).
+			MustWithNext("m_1", mul(1)).
+			MustWithNext("m_2", mul(2)).
+			MustWithNext("f_0", fail("thingy")).
+			MustWithNext("m_4", mul(4)).
+			AndCompensator(
+				hippo.Compensator{}.
 					ForStepWith(
 						3,
 						giraffe.Of1("m3", 101),
 					),
 			)
 
-		pipeline := M(pipelines.Runner(plan))
+		pipeline := M(hippo.Pipeline(plan))
 		state := M(pipeline.Ekran(t.Context(), giraffe.Of1("m", 33)))
 		fin := M(state.QU64("fin.m4"))
 

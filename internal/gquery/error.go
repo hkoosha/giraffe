@@ -3,7 +3,7 @@ package gquery
 import (
 	"fmt"
 
-	. "github.com/hkoosha/giraffe/internal/dot"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 var ErrQ = newQuery(nil, "", QFlag(0))

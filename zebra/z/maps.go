@@ -6,6 +6,74 @@ import (
 	"slices"
 )
 
+func ItApply2AsV[K comparable, V, U any](
+	it iter.Seq2[K, V],
+	fn func(V) U,
+) iter.Seq[U] {
+	return func(yield func(U) bool) {
+		for _, v := range it {
+			if !yield(fn(v)) {
+				return
+			}
+		}
+	}
+}
+
+func ItApplied2AsV[K comparable, V, U any](
+	it iter.Seq2[K, V],
+	fn func(V) U,
+) []U {
+	return slices.Collect(ItApply2AsV(it, fn))
+}
+
+func Apply2AsV[Map ~map[K]V, K comparable, V, U any](
+	it Map,
+	fn func(V) U,
+) iter.Seq[U] {
+	return ItApply2AsV(maps.All(it), fn)
+}
+
+func Applied2AsV[Map ~map[K]V, K comparable, V, U any](
+	it Map,
+	fn func(V) U,
+) []U {
+	return slices.Collect(Apply2AsV(it, fn))
+}
+
+func ItApply2As[K comparable, V, U any](
+	it iter.Seq2[K, V],
+	fn func(K, V) U,
+) iter.Seq[U] {
+	return func(yield func(U) bool) {
+		for k, v := range it {
+			if !yield(fn(k, v)) {
+				return
+			}
+		}
+	}
+}
+
+func ItApplied2As[K comparable, V, U any](
+	it iter.Seq2[K, V],
+	fn func(K, V) U,
+) []U {
+	return slices.Collect(ItApply2As(it, fn))
+}
+
+func Apply2As[Map ~map[K]V, K comparable, V, U any](
+	it Map,
+	fn func(K, V) U,
+) iter.Seq[U] {
+	return ItApply2As(maps.All(it), fn)
+}
+
+func Applied2As[Map ~map[K]V, K comparable, V, U any](
+	it Map,
+	fn func(K, V) U,
+) []U {
+	return slices.Collect(Apply2As(it, fn))
+}
+
 func ItApply2[K comparable, V, U any](
 	it iter.Seq2[K, V],
 	fn func(K, V) U,
@@ -51,7 +119,7 @@ func Applied2V[Map ~map[K]V, K comparable, V, U any](
 	return maps.Collect(Apply2(it, fnV))
 }
 
-func Applies2Ref[Map ~map[K]V, K comparable, V any](
+func Applied2Ref[Map ~map[K]V, K comparable, V any](
 	it Map,
 ) map[K]*V {
 	m := make(map[K]*V, len(it))

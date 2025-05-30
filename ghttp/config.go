@@ -4,49 +4,46 @@ import (
 	"context"
 	"maps"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/ghttp/headers"
 	"github.com/hkoosha/giraffe/glog"
-	. "github.com/hkoosha/giraffe/internal/dot"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
 const (
 	UserAgent = "Giraffe/1.0"
-	Timeout   = 5 * time.Second
 )
 
-var defaultHeaders = map[string]string{
-	headers.UserAgent: UserAgent,
-}
+type RetryIfFn = func(
+	ctx context.Context,
+	resp *http.Response,
+	err error,
+	attempt uint,
+	cfg *Config,
+) (bool, error)
 
 func NewConfig(
 	lg glog.GLog,
+	timeout time.Duration,
 ) *Config {
 	cfg := &Config{
-		lg:                 lg,
-		isLogged:           true,
-		isPlainLog:         false,
-		lgFilteredHeaders:  map[string]z.NA{},
-		lgMaskedHeaders:    map[string]z.NA{},
-		isOtel:             true,
-		headerOverwrites:   map[string]string{},
-		bearerProvider:     nil,
-		isLogReties:        false,
-		retriedStatusCodes: []int{},
-		isExpecting2xx:     true,
-		endpoint:           "",
-		pathPrefix:         "",
-		timeout:            Timeout,
-		baseTransport:      http.DefaultTransport,
-		transport:          giraffeRoundTripper{cfg: nil},
-		sealed:             false,
+		base:   defaultTransport,
+		lg:     lg,
+		rt:     nil,
+		seal_:  seal{false},
+		resp:   mkResponseConfig(),
+		http:   mkHttpConfig(timeout),
+		header: mkHeaderConfig(),
+		log:    mkLogConfig(),
+		retry:  mkRetryConfig(),
+		otel:   mkOtelConfig(),
 	}
-
-	cfg.transport.cfg = cfg
 
 	cfg.seal()
 
@@ -63,87 +60,28 @@ func NewConfig(
 // This makes refactoring easier and more consistent, since all the methods
 // minus the getters are implemented in [Client] too.
 type Config struct {
-	baseTransport      http.RoundTripper
-	lg                 glog.GLog
-	bearerProvider     func(ctx context.Context) string
-	transport          giraffeRoundTripper
-	lgFilteredHeaders  z.Set[string]
-	lgMaskedHeaders    z.Set[string]
-	headerOverwrites   map[string]string
-	pathPrefix         string
-	endpoint           string
-	retriedStatusCodes []int
-	timeout            time.Duration
-	isLogReties        bool
-	isExpecting2xx     bool
-	isOtel             bool
-	isPlainLog         bool
-	isLogged           bool
-	sealed             bool
+	lg     glog.GLog //nolint:unused
+	base   http.RoundTripper
+	rt     http.RoundTripper
+	resp   *respConfig
+	http   *httpConfig
+	header *headerConfig
+	log    *logConfig
+	retry  *retryConfig
+	otel   *otelConfig
+	seal_  seal
 }
 
-func (c *Config) ensure() *Config {
-	if !c.sealed {
-		panic(EF("invalid config, did you use constructor to create one?"))
-	}
+// =============================================================================.
 
-	return c
-}
-
-func (c *Config) open() *Config {
+func (c *Config) Ensure() {
 	c.ensure()
-
-	return &Config{
-		lg:                 c.lg,
-		isLogged:           c.isLogged,
-		isPlainLog:         c.isPlainLog,
-		lgFilteredHeaders:  c.lgFilteredHeaders,
-		lgMaskedHeaders:    c.lgMaskedHeaders,
-		isOtel:             c.isOtel,
-		headerOverwrites:   c.headerOverwrites,
-		bearerProvider:     c.bearerProvider,
-		isLogReties:        c.isLogReties,
-		retriedStatusCodes: c.retriedStatusCodes,
-		isExpecting2xx:     c.isExpecting2xx,
-		endpoint:           c.endpoint,
-		pathPrefix:         c.pathPrefix,
-		timeout:            c.timeout,
-		baseTransport:      c.baseTransport,
-		transport:          giraffeRoundTripper{cfg: nil},
-		sealed:             false,
-	}
-}
-
-func (c *Config) seal() {
-	if c.sealed {
-		return
-	}
-
-	for k := range c.lgMaskedHeaders {
-		if _, ok := c.lgFilteredHeaders[k]; ok {
-			panic(EF("%s", "header cannot be both filtered and masked: "+k))
-		}
-	}
-
-	for k := range c.lgFilteredHeaders {
-		if _, ok := c.lgMaskedHeaders[k]; ok {
-			panic(EF("%s", "header cannot be both filtered and masked: "+k))
-		}
-	}
-
-	c.transport = giraffeRoundTripper{cfg: c}
-
-	c.sealed = true
 }
 
 func (c *Config) Std() *http.Client {
-	return c.ensure().std0()
-}
-
-func (c *Config) std0() *http.Client {
 	return &http.Client{
-		Transport:     c.transport,
-		Timeout:       c.timeout,
+		Transport:     c.mkTransport(),
+		Timeout:       c.http.timeout,
 		CheckRedirect: nil,
 		Jar:           nil,
 	}
@@ -160,7 +98,7 @@ func (c *Config) WithLg(lg glog.GLog) *Config {
 }
 
 func (c *Config) IsLogged() bool {
-	return c.ensure().isLogged
+	return c.ensure().log.isLogged
 }
 
 func (c *Config) WithLogged() *Config {
@@ -172,19 +110,20 @@ func (c *Config) WithoutLogged() *Config {
 }
 
 func (c *Config) SetLogged(b bool) *Config {
-	if c.sealed && c.isLogged == b {
+	if c.log.isLogged == b {
 		return c
 	}
 
 	cp := c.open()
-	cp.isLogged = b
+	cp.log = cp.log.shallow()
+	cp.log.isLogged = b
 	cp.seal()
 
 	return cp
 }
 
 func (c *Config) IsPlainLog() bool {
-	return c.ensure().isPlainLog
+	return c.ensure().log.isPlainLog
 }
 
 func (c *Config) WithPlainLog() *Config {
@@ -196,77 +135,46 @@ func (c *Config) WithoutPlainLog() *Config {
 }
 
 func (c *Config) SetPlainLog(b bool) *Config {
-	if c.sealed && c.isPlainLog == b {
+	if c.log.isPlainLog == b {
 		return c
 	}
 
 	cp := c.open()
-	cp.isPlainLog = b
+	cp.log = cp.log.shallow()
+	cp.log.isPlainLog = b
 	cp.seal()
 
 	return cp
 }
 
-func (c *Config) LgFilteredHeaders() z.Set[string] {
-	return maps.Clone(c.ensure().lgFilteredHeaders)
+func (c *Config) LgHeaderFilter() HeaderFilter {
+	return c.ensure().log.headerFilter
 }
 
-func (c *Config) WithLgFilteredHeaders(h z.Set[string]) *Config {
-	g11y.NonNil(h)
-	if c.sealed && z.MapEq(c.lgFilteredHeaders, h) {
-		return c
-	}
+func (c *Config) WithLgFilteredHeaders(f HeaderFilter) *Config {
+	g11y.NonNil(f)
 
 	cp := c.open()
-	cp.lgFilteredHeaders = maps.Clone(h)
+	cp.log = cp.log.shallow()
+	cp.log.headerFilter = f
 	cp.seal()
 
 	return cp
 }
 
-func (c *Config) LgMaskedHeaders() z.Set[string] {
-	return maps.Clone(c.ensure().lgMaskedHeaders)
+func (c *Config) LgHeaderMask() HeaderFilter {
+	return c.ensure().log.maskedHeaders
 }
 
-func (c *Config) WithLgMaskedHeaders(h z.Set[string]) *Config {
-	g11y.NonNil(h)
-	if c.sealed && z.MapEq(c.lgMaskedHeaders, h) {
-		return c
-	}
+func (c *Config) WithLgMaskedHeaders(f HeaderFilter) *Config {
+	g11y.NonNil(f)
 
 	cp := c.open()
-	cp.lgMaskedHeaders = maps.Clone(h)
+	cp.log = cp.log.shallow()
+	cp.log.maskedHeaders = f
 	cp.seal()
 
 	return cp
-}
-
-func (c *Config) IsOtel() bool {
-	return c.ensure().isOtel
-}
-
-func (c *Config) WithOtel() *Config {
-	return c.SetOtel(true)
-}
-
-func (c *Config) WithoutOtel() *Config {
-	return c.SetOtel(false)
-}
-
-func (c *Config) SetOtel(b bool) *Config {
-	if c.sealed && c.isOtel == b {
-		return c
-	}
-
-	cp := c.open()
-	cp.isOtel = b
-	cp.seal()
-
-	return cp
-}
-
-func (c *Config) HeaderOverwrites() map[string]string {
-	return maps.Clone(c.ensure().headerOverwrites)
 }
 
 func (c *Config) WithHeaderOverwrites(
@@ -274,18 +182,20 @@ func (c *Config) WithHeaderOverwrites(
 	h map[string]string,
 ) *Config {
 	g11y.NonNil(h)
+
 	if withDefaults {
 		h = z.UnionLeft(h, defaultHeaders)
+	} else {
+		h = maps.Clone(h)
 	}
 
-	if c.sealed && z.MapEq(c.headerOverwrites, h) {
+	if z.MapEq(c.header.overwrite, h) {
 		return c
 	}
 
-	h = maps.Clone(h)
-
 	cp := c.open()
-	cp.headerOverwrites = maps.Clone(h)
+	cp.header = cp.header.shallow()
+	cp.header.overwrite = h
 	cp.seal()
 
 	return cp
@@ -296,80 +206,53 @@ func (c *Config) WithBearerToken(bt string) *Config {
 		panic("empty bearer token")
 	}
 
-	fn := func(ctx context.Context) string {
-		return bt
-	}
+	bt = withBearerPrefix(bt)
 
-	return c.withBearerProvider0(fn)
-}
-
-func (c *Config) WithBearerProvider(fn func(context.Context) string) *Config {
-	g11y.NonNil(fn)
-
-	return c.withBearerProvider0(fn)
-}
-
-func (c *Config) WithoutBearerProvider() *Config {
-	return c.withBearerProvider0(nil)
-}
-
-func (c *Config) withBearerProvider0(fn func(context.Context) string) *Config {
-	if fn == nil && c.bearerProvider == nil {
+	if c.header.overwrite[headers.Authorization] == bt {
 		return c
 	}
 
 	cp := c.open()
-	cp.bearerProvider = fn
+	cp.header = cp.header.shallow()
+	cp.header.overwrite = maps.Clone(cp.header.overwrite)
+	cp.header.overwrite[headers.Authorization] = bt
+	cp.seal()
+	return cp
+}
+
+func (c *Config) WithBearerProvider(fn HeaderFn) *Config {
+	g11y.NonNil(fn)
+
+	fn = func(ctx context.Context, config *Config) string {
+		return withBearerPrefix(fn(ctx, config))
+	}
+
+	cp := c.open()
+	cp.header = cp.header.shallow()
+	cp.header.overwriteFns = maps.Clone(cp.header.overwriteFns)
+	cp.header.overwriteFns[headers.Authorization] = fn
 	cp.seal()
 
 	return cp
 }
 
-func (c *Config) IsLogReties() bool {
-	c.ensure()
-	panic("unimplemented")
-}
-
-func (c *Config) WithLogReties() *Config {
-	return c.SetLogReties(true)
-}
-
-func (c *Config) WithoutLogReties() *Config {
-	return c.SetLogReties(false)
-}
-
-func (c *Config) SetLogReties(_ bool) *Config {
-	panic("unimplemented")
-}
-
-func (c *Config) MaxRetries() uint {
-	c.ensure()
-	panic("unimplemented")
-}
-
-func (c *Config) WithMaxRetries(r uint) *Config {
-	c.ensure()
-
-	if r > 50 {
-		panic(EF("max retries too large: %d", r))
+func (c *Config) WithoutBearerProvider() *Config {
+	_, ok := c.header.overwriteFns[headers.Authorization]
+	if !ok {
+		return c
 	}
 
-	panic("unimplemented")
-}
+	cp := c.open()
+	cp.header = cp.header.shallow()
+	cp.header.overwriteFns = maps.Clone(cp.header.overwriteFns)
+	delete(cp.header.overwriteFns, headers.Authorization)
+	cp.seal()
 
-func (c *Config) RetriedStatusCodes() []int {
-	c.ensure()
-	panic("unimplemented")
-}
-
-func (c *Config) WithRetriedStatusCodes(sc ...int) *Config {
-	g11y.NonNil(sc)
-	c.ensure()
-	panic("unimplemented")
+	return cp
 }
 
 func (c *Config) IsExpecting2xx() bool {
-	return c.ensure().isExpecting2xx
+	return c.ensure().resp.isExpecting2xx
 }
 
 func (c *Config) WithExpecting2xx() *Config {
@@ -381,35 +264,54 @@ func (c *Config) WithoutExpecting2xx() *Config {
 }
 
 func (c *Config) SetExpecting2xx(b bool) *Config {
-	if c.sealed && c.isExpecting2xx == b {
+	if c.resp.isExpecting2xx == b {
 		return c
 	}
 
 	cp := c.open()
-	cp.isExpecting2xx = b
+	cp.resp = cp.resp.shallow()
+	cp.resp.isExpecting2xx = b
 	cp.seal()
 
-	return c
+	return cp
 }
 
 func (c *Config) Endpoint() string {
-	return c.ensure().endpoint
+	return c.ensure().http.endpoint
 }
 
 func (c *Config) WithEndpoint(e string) *Config {
-	if c.sealed && c.endpoint == e {
+	if e == "" || strings.TrimSpace(e) == "" {
+		panic("empty endpoint")
+	}
+
+	if c.http.endpoint == e {
 		return c
 	}
 
 	cp := c.open()
-	cp.endpoint = e
+	cp.http = cp.http.shallow()
+	cp.http.endpoint = e
+	cp.seal()
+
+	return cp
+}
+
+func (c *Config) WithoutEndpoint() *Config {
+	if c.http.endpoint == "" {
+		return c
+	}
+
+	cp := c.open()
+	cp.http = cp.http.shallow()
+	cp.http.endpoint = ""
 	cp.seal()
 
 	return cp
 }
 
 func (c *Config) PathPrefix() string {
-	return c.ensure().pathPrefix
+	return c.ensure().http.pathPrefix
 }
 
 func (c *Config) WithPathPrefix(p string) *Config {
@@ -418,12 +320,26 @@ func (c *Config) WithPathPrefix(p string) *Config {
 		panic("empty path prefix")
 	}
 
-	if c.sealed && c.pathPrefix == p {
+	if c.http.pathPrefix == p {
 		return c
 	}
 
 	cp := c.open()
-	cp.pathPrefix = p
+	cp.http = cp.http.shallow()
+	cp.http.pathPrefix = p
+	cp.seal()
+
+	return cp
+}
+
+func (c *Config) WithoutPathPrefix() *Config {
+	if c.http.pathPrefix == "" {
+		return c
+	}
+
+	cp := c.open()
+	cp.http = cp.http.shallow()
+	cp.http.pathPrefix = ""
 	cp.seal()
 
 	return cp
@@ -434,31 +350,138 @@ func (c *Config) AndPathPrefix(p string) *Config {
 		panic("empty path prefix")
 	}
 
-	return c.WithPathPrefix(Join(c.pathPrefix, p))
-}
-
-func (c *Config) Timeout() time.Duration {
-	return c.ensure().timeout
-}
-
-func (c *Config) WithTimeout(t time.Duration) *Config {
-	if c.sealed && c.timeout == t {
-		return c
-	}
-
-	cp := c.open()
-	cp.timeout = t
+	cp := c.WithPathPrefix(Join(c.http.pathPrefix, p))
 	cp.seal()
 
 	return cp
 }
 
-func (c *Config) WithTransport(transport http.RoundTripper) *Config {
-	g11y.NonNil(transport)
+func (c *Config) Timeout() time.Duration {
+	return c.ensure().http.timeout
+}
+
+func (c *Config) WithTimeout(t time.Duration) *Config {
+	if c.http.timeout == t {
+		return c
+	}
+
 	cp := c.open()
-	cp.baseTransport = transport
+	cp.http = cp.http.shallow()
+	cp.http.timeout = t
+	cp.seal()
 
 	return cp
 }
 
-type seal struct{}
+func (c *Config) WithTransport(t http.RoundTripper) *Config {
+	g11y.NonNil(t)
+
+	cp := c.open()
+	cp.base = t
+	cp.seal()
+
+	return cp
+}
+
+func (c *Config) WithTraced() *Config {
+	return c.SetTraced(true)
+}
+
+func (c *Config) WithoutTraced() *Config {
+	return c.SetTraced(false)
+}
+
+func (c *Config) SetTraced(b bool) *Config {
+	if c.otel.enabled == b {
+		return c
+	}
+
+	cp := c.open()
+	cp.otel = cp.otel.shallow()
+	cp.otel.enabled = b
+	cp.seal()
+
+	return cp
+}
+
+func (c *Config) WithTraceOptions(
+	options ...otelhttp.Option,
+) *Config {
+	if slices.Equal(c.otel.options, options) {
+		return c
+	}
+
+	cp := c.open()
+	cp.otel = cp.otel.shallow()
+	cp.otel.options = options
+	cp.seal()
+
+	return cp
+}
+
+func (c *Config) IsTraced() bool {
+	return c.otel.enabled
+}
+
+// =============================================================================.
+
+func (c *Config) IsLogReties() bool {
+	return c.ensure().retry.logged
+}
+
+func (c *Config) WithLogReties() *Config {
+	return c.SetLogReties(true)
+}
+
+func (c *Config) WithoutLogReties() *Config {
+	return c.SetLogReties(false)
+}
+
+func (c *Config) SetLogReties(b bool) *Config {
+	if c.retry.logged == b {
+		return c
+	}
+
+	cp := c.open()
+	cp.retry = cp.retry.shallow()
+	cp.retry.logged = b
+	cp.seal()
+
+	return cp
+}
+
+func (c *Config) RetryMax() uint {
+	return c.ensure().retry.maxRetries
+}
+
+func (c *Config) WithMaxRetries(r uint) *Config {
+	if c.retry.maxRetries == r {
+		return c
+	}
+
+	cp := c.open()
+	cp.retry = cp.retry.shallow()
+	cp.retry.maxRetries = r
+	cp.seal()
+
+	return cp
+}
+
+func (c *Config) RetriedStatusCodes() []int {
+	return slices.Clone(c.ensure().retry.retryIfStatuses)
+}
+
+func (c *Config) WithRetriedStatusCodes(sc ...int) *Config {
+	g11y.NonNil(sc)
+
+	if slices.Equal(c.retry.retryIfStatuses, sc) {
+		return c
+	}
+
+	cp := c.open()
+	cp.retry = cp.retry.shallow()
+	cp.retry.retryIfStatuses = slices.Clone(sc)
+	cp.seal()
+
+	return cp
+}

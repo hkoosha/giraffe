@@ -5,6 +5,40 @@ import (
 	"slices"
 )
 
+func ItFlatten[Slice ~[]U, U any](
+	it iter.Seq[Slice],
+) iter.Seq[U] {
+	return func(yield func(U) bool) {
+		for vs := range it {
+			for _, v := range vs {
+				if !yield(v) {
+					return
+				}
+			}
+		}
+	}
+}
+
+func ItFlattened[Slice ~[]U, U any](
+	it iter.Seq[Slice],
+) Slice {
+	return slices.Collect(ItFlatten(it))
+}
+
+func Flatten[Slice ~[]U, U any](
+	it []Slice,
+) iter.Seq[U] {
+	return ItFlatten(slices.Values(it))
+}
+
+func Flattened[Slice ~[]U, U any](
+	it []Slice,
+) Slice {
+	return slices.Collect(Flatten(it))
+}
+
+// =============================================================================.
+
 func ItApply[U, V any](
 	it iter.Seq[U],
 	fn func(U) V,
@@ -57,7 +91,25 @@ func GroupBy[Slice ~[]U, U any, K comparable](
 	return mapped
 }
 
-func GroupByKeyVal[Slice ~[]U, U any, K comparable, V any](
+func GroupByKey[Slice ~[]U, U comparable, V any](
+	it Slice,
+	fn func(U) V,
+) map[U][]V {
+	mapped := make(map[U][]V, len(it))
+
+	for _, k := range it {
+		v := fn(k)
+		if items, ok := mapped[k]; ok {
+			mapped[k] = append(items, v)
+		} else {
+			mapped[k] = []V{v}
+		}
+	}
+
+	return mapped
+}
+
+func GroupBy2[Slice ~[]U, U any, K comparable, V any](
 	it Slice,
 	fn func(U) (K, V),
 ) map[K][]V {

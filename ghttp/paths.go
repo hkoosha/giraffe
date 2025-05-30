@@ -32,15 +32,14 @@ func Join(parts ...string) string {
 
 	fin := prefix + strings.Join(parts, "/")
 
-	var probe string
-	if strings.HasPrefix(fin, "http://") {
-		probe = strings.TrimPrefix(fin, "http://")
-	} else {
-		probe = strings.TrimPrefix(fin, "https://")
+	//goland:noinspection HttpUrlsUsage
+	probe := strings.TrimPrefix(fin, "https://")
+	if probe == fin {
+		probe = strings.ReplaceAll(probe, "https://", "dummy/")
 	}
-
 	if strings.Contains(probe, "//") {
-		panic("http path has multiple consecutive fwd slashes: " + fin)
+		panic("the joined http path has multiple consecutive fwd slashes: " +
+			fin)
 	}
 
 	return fin
