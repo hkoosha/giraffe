@@ -7,7 +7,7 @@ import (
 	"reflect"
 
 	"github.com/hkoosha/giraffe/internal"
-	. "github.com/hkoosha/giraffe/internal/dot"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/gdatum"
 	"github.com/hkoosha/giraffe/internal/gquery"
 	"github.com/hkoosha/giraffe/zebra/z"

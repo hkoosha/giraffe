@@ -3,7 +3,7 @@ package giraffe
 import (
 	"reflect"
 
-	. "github.com/hkoosha/giraffe/internal/dot"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/gquery"
 )
 
@@ -32,10 +32,21 @@ func EscapedQ(
 	return Q(Escaped(spec))
 }
 
-func Q(
-	spec string,
+func Q[T QT](
+	spec T,
 ) Query {
-	return M(Parse(spec))
+	//nolint:gocritic
+	if asQ, ok := any(spec).(Query); ok {
+		return M(Parse(asQ.impl().Reconstructed()))
+	} else if asStr, ok := any(spec).(string); ok {
+		return M(Parse(asStr))
+	} else {
+		panic("unknown type for Q: " + reflect.TypeOf(spec).String())
+	}
+}
+
+type QT interface {
+	Query | string
 }
 
 func QErr() Query {

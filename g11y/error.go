@@ -31,7 +31,7 @@ func (e *TracedError) Add(stacktrace []byte) {
 
 func NonNil(values ...any) {
 	for _, value := range values {
-		if value != nil {
+		if value == nil {
 			panic("nil value")
 		}
 	}

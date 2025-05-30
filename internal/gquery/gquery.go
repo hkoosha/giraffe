@@ -3,7 +3,7 @@ package gquery
 import (
 	"strings"
 
-	. "github.com/hkoosha/giraffe/internal/dot"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 const (

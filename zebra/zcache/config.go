@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/hkoosha/giraffe/dot"
 	"github.com/hkoosha/giraffe/glog"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/typing"
 )
 

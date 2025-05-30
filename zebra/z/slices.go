@@ -57,7 +57,25 @@ func GroupBy[Slice ~[]U, U any, K comparable](
 	return mapped
 }
 
-func GroupByKeyVal[Slice ~[]U, U any, K comparable, V any](
+func GroupByKey[Slice ~[]U, U comparable, V any](
+	it Slice,
+	fn func(U) V,
+) map[U][]V {
+	mapped := make(map[U][]V, len(it))
+
+	for _, k := range it {
+		v := fn(k)
+		if items, ok := mapped[k]; ok {
+			mapped[k] = append(items, v)
+		} else {
+			mapped[k] = []V{v}
+		}
+	}
+
+	return mapped
+}
+
+func GroupBy2[Slice ~[]U, U any, K comparable, V any](
 	it Slice,
 	fn func(U) (K, V),
 ) map[K][]V {

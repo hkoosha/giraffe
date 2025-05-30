@@ -5,6 +5,7 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/g11y"
+	"github.com/hkoosha/giraffe/hippo"
 )
 
 // ================================================== ERROR MANAGEMENT SHORTCUTS.
@@ -82,4 +83,12 @@ func OfErr() giraffe.Datum {
 
 func OfEmpty() giraffe.Datum {
 	return giraffe.OfEmpty()
+}
+
+// ========================================================================= FN.
+
+func Fn(
+	exe hippo.Exe,
+) *hippo.Fn {
+	return hippo.Of(exe)
 }

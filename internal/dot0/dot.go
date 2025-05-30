@@ -1,4 +1,4 @@
-package dot
+package dot0
 
 import (
 	"errors"
@@ -64,4 +64,10 @@ func Apply[U, V any](
 	fn func(U) V,
 ) []V {
 	return z.Applied(it, fn)
+}
+
+func OK(
+	err error,
+) {
+	g11y.Ensure(err)
 }

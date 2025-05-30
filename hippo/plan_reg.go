@@ -1,28 +1,61 @@
-package pipelines
+package hippo
 
 import (
-	"errors"
 	"maps"
+	"strings"
 
 	"github.com/hkoosha/giraffe"
-	. "github.com/hkoosha/giraffe/dot"
+	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
+	"github.com/hkoosha/giraffe/hippo/internal/privnames"
+	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/internal/g"
 	"github.com/hkoosha/giraffe/typing"
+	"github.com/hkoosha/giraffe/zebra/z"
 )
 
-var errNoSuchFn = errors.New("no such function")
+var fnRegistryErr = FnRegistry{
+	scope:  nil,
+	byName: nil,
+	byType: nil,
+}
 
-func NewFnRegistry() FnRegistry {
-	return FnRegistry{
-		scope:  nil,
-		byName: make(map[string]Fn),
-		byType: make(map[typing.Type]Fn),
-	}
+//goland:noinspection GoUnusedGlobalVariable
+var FnRegistry_ = &FnRegistry{
+	scope:  nil,
+	byName: make(map[string]*Fn),
+	byType: make(map[typing.Type]*Fn),
 }
 
 type FnRegistry struct {
 	scope  *giraffe.Query
-	byName map[string]Fn
-	byType map[typing.Type]Fn
+	byName map[string]*Fn
+	byType map[typing.Type]*Fn
+}
+
+func (r FnRegistry) String() string {
+	const prefix = "FnRegistry["
+	const suffix = "]"
+
+	value := strings.Builder{}
+
+	value.WriteString("scope=")
+	if r.scope != nil {
+		value.WriteString(r.scope.String())
+	} else {
+		value.WriteString("nil")
+	}
+
+	value.WriteString(", names=[")
+	value.WriteString(g.JoinIt(maps.Keys(r.byName)))
+	value.WriteString("]")
+
+	value.WriteString(", types=[")
+	value.WriteString(g.Join(z.ItApplied(maps.Keys(r.byType), func(it typing.Type) string {
+		return it.String()
+	})...))
+	value.WriteString("]")
+
+	return prefix + value.String() + suffix
 }
 
 func (r FnRegistry) clone() FnRegistry {
@@ -33,10 +66,10 @@ func (r FnRegistry) clone() FnRegistry {
 	}
 
 	if cp.byName == nil {
-		cp.byName = make(map[string]Fn)
+		cp.byName = make(map[string]*Fn)
 	}
 	if cp.byType == nil {
-		cp.byType = make(map[typing.Type]Fn)
+		cp.byType = make(map[typing.Type]*Fn)
 	}
 
 	return cp
@@ -44,19 +77,19 @@ func (r FnRegistry) clone() FnRegistry {
 
 func (r FnRegistry) WithNamed(
 	name string,
-	fn Fn,
+	fn *Fn,
 ) (FnRegistry, error) {
 	if fn == nil {
 		panic(EF("nil fn"))
 	}
 
-	if !stepNameRe.MatchString(name) {
-		return fnRegistryErr, newPipelineInvalidStepName(name)
+	if !privnames.SimpleName.MatchString(name) {
+		return fnRegistryErr, hippoerr.NewPlanInvalidStepName(name)
 	}
 
 	cp := r.clone()
 	if _, ok := cp.byName[name]; ok {
-		return fnRegistryErr, newPipelineDuplicatedFnError(name)
+		return fnRegistryErr, hippoerr.NewPlanDuplicateFnError(name)
 	}
 
 	cp.byName[name] = fn
@@ -73,13 +106,13 @@ func (r FnRegistry) WithTypeNamedAs(
 		return fnRegistryErr, err
 	}
 
-	if !stepNameRe.MatchString(name) {
-		return fnRegistryErr, newPipelineInvalidStepName(name)
+	if !privnames.SimpleName.MatchString(name) {
+		return fnRegistryErr, hippoerr.NewPlanInvalidStepName(name)
 	}
 
 	cp := r.clone()
 	if _, ok := cp.byName[name]; ok {
-		return fnRegistryErr, newPipelineDuplicatedFnError(name)
+		return fnRegistryErr, hippoerr.NewPlanDuplicateFnError(name)
 	}
 
 	cp.byName[name] = fn
@@ -89,7 +122,7 @@ func (r FnRegistry) WithTypeNamedAs(
 
 func (r FnRegistry) WithTyped(
 	ty typing.Type,
-	fn Fn,
+	fn *Fn,
 ) (FnRegistry, error) {
 	if fn == nil {
 		panic(EF("nil fn"))
@@ -97,7 +130,7 @@ func (r FnRegistry) WithTyped(
 
 	cp := r.clone()
 	if _, ok := cp.byType[ty]; ok {
-		return fnRegistryErr, newPipelineDuplicatedFnError(ty.String())
+		return fnRegistryErr, hippoerr.NewPlanDuplicateFnError(ty.String())
 	}
 
 	cp.byType[ty] = fn
@@ -107,14 +140,14 @@ func (r FnRegistry) WithTyped(
 
 func (r FnRegistry) MustWithNamed(
 	name string,
-	fn Fn,
+	fn *Fn,
 ) FnRegistry {
 	return M(r.WithNamed(name, fn))
 }
 
 func (r FnRegistry) MustWithTyped(
 	ty typing.Type,
-	fn Fn,
+	fn *Fn,
 ) FnRegistry {
 	return M(r.WithTyped(ty, fn))
 }
@@ -128,30 +161,30 @@ func (r FnRegistry) MustWithTypeNamedAs(
 
 func (r FnRegistry) Get(
 	name string,
-) (Fn, error) {
+) (*Fn, error) {
 	if r.byName == nil {
-		return nil, E(errNoSuchFn)
+		return nil, hippoerr.NewPlanMissingFnError(nil, name)
 	}
 
 	if fn, ok := r.byName[name]; ok {
 		return fn, nil
 	}
 
-	return nil, E(errNoSuchFn)
+	return nil, hippoerr.NewPlanMissingFnError(nil, name)
 }
 
 func (r FnRegistry) GetTyped(
 	ty typing.Type,
-) (Fn, error) {
+) (*Fn, error) {
 	if r.byType == nil {
-		return nil, E(errNoSuchFn)
+		return nil, hippoerr.NewPlanMissingFnError(ty, "")
 	}
 
 	if fn, ok := r.byType[ty]; ok {
 		return fn, nil
 	}
 
-	return nil, E(errNoSuchFn)
+	return nil, hippoerr.NewPlanMissingFnError(ty, "")
 }
 
 func (r FnRegistry) Merge(

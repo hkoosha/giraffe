@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	. "github.com/hkoosha/giraffe/internal/dot"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/gquery"
 	"github.com/hkoosha/giraffe/zebra/z"
 )

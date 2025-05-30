@@ -1,0 +1,12 @@
+[env]
+
+# mise.file = ".env"
+mise.path = "./_ybin"
+
+[tools]
+go = '1.24.3'
+golangci-lint = 'v2.1.6'
+just = '1.40.0'
+jq = '1.7.1'
+yq = '4.45.4'
+

@@ -1,9 +1,9 @@
-package pipelines
+package remote
 
 import (
 	"net/http"
 
-	. "github.com/hkoosha/giraffe/dot"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 var (

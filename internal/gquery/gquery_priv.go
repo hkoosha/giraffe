@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	. "github.com/hkoosha/giraffe/internal/dot"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 // MaxQueryDepth must fit in the QFlag in the sequence part, i.e., 8 bits.
@@ -29,6 +29,12 @@ func (q Query) at(
 	seq int,
 ) Query {
 	return (*q.Path)[seq]
+}
+
+func (q Query) Reconstructed() string {
+	sb := strings.Builder{}
+	q.reconstructInAs(&sb, q.flags)
+	return sb.String()
 }
 
 func (q Query) reconstructedIn(

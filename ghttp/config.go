@@ -10,7 +10,7 @@ import (
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/ghttp/headers"
 	"github.com/hkoosha/giraffe/glog"
-	. "github.com/hkoosha/giraffe/internal/dot"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 

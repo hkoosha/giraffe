@@ -1,4 +1,4 @@
-package pipelines
+package remote
 
 import (
 	"bytes"
@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/hippo"
+	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
 )
 
 const EkranPath = "/ekran"
@@ -35,14 +36,14 @@ func Remote(
 	url string,
 	plan string,
 	hClient *http.Client,
-) Fn {
+) *hippo.Fn {
 	fn := remoteFn{
 		hClient: hClient,
 		plan:    plan,
 		url:     url,
 	}
 
-	return fn.Ekran
+	return hippo.Of(fn.Ekran)
 }
 
 type remoteFn struct {
@@ -52,7 +53,15 @@ type remoteFn struct {
 }
 
 func (m *remoteFn) String() string {
-	return reflect.TypeOf(m).Elem().String()
+	const prefix = "RemoteFn["
+	const suffix = "]"
+
+	value := ""
+	if m != nil {
+		value = m.plan + "@" + m.url
+	}
+
+	return prefix + value + suffix
 }
 
 func mkPayload(
@@ -110,7 +119,7 @@ func sendRequest(
 	}
 
 	if resp == nil || resp.Body == nil {
-		return nil, newRemoteError(
+		return nil, hippoerr.NewRemoteError(
 			"empty response",
 			nil,
 		)
@@ -125,7 +134,7 @@ func sendRequest(
 			body = string(b)
 		}
 
-		return nil, newRemoteError(
+		return nil, hippoerr.NewRemoteError(
 			fmt.Sprintf(
 				"unexpected status code: %d => %s",
 				resp.StatusCode,
@@ -146,7 +155,7 @@ func decode(
 	dec.UseNumber()
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&res); err != nil {
-		return giraffe.OfErr(), newRemoteError(
+		return giraffe.OfErr(), hippoerr.NewRemoteError(
 			"failed to decode response",
 			err,
 		)
@@ -154,7 +163,7 @@ func decode(
 
 	dat, err := giraffe.Make(res)
 	if err != nil {
-		return giraffe.OfErr(), newRemoteError(
+		return giraffe.OfErr(), hippoerr.NewRemoteError(
 			"failed to decode response",
 			err,
 		)

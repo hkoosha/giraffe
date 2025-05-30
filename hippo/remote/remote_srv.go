@@ -1,4 +1,4 @@
-package pipelines
+package remote
 
 import (
 	"context"
@@ -10,6 +10,9 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/g11y"
+	"github.com/hkoosha/giraffe/hippo"
+	"github.com/hkoosha/giraffe/hippo/internal/privnames"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 type Server func(context.Context, io.Reader, io.Writer) error
@@ -30,8 +33,8 @@ func (s Server) ServeHTTP(
 }
 
 type server struct {
-	reg       FnRegistry
-	templates map[string]Plan
+	reg       hippo.FnRegistry
+	templates map[string]*hippo.Plan
 }
 
 func (s *server) ekran(
@@ -52,7 +55,7 @@ func (s *server) ekran(
 		return newErrorParsingPayload(err)
 	}
 
-	var compensator Compensator
+	var compensator hippo.Compensator
 	if req.Compensations == nil {
 		req.Compensations = &[]RequestCompensations{}
 	}
@@ -78,7 +81,7 @@ func (s *server) ekran(
 			step = *comp.OnStep
 		}
 
-		var with Fn
+		var with *hippo.Fn
 		//nolint:nestif
 		if comp.WithFn != "" {
 			if with, err = s.reg.Get(comp.WithFn); err != nil {
@@ -89,7 +92,7 @@ func (s *server) ekran(
 			if mkErr != nil {
 				return newErrorParsingPayload(mkErr)
 			}
-			with = Static(withDatum)
+			with = hippo.Static(withDatum)
 		}
 
 		compensator = compensator.For(msgRe, nameRe, step, with)
@@ -100,13 +103,13 @@ func (s *server) ekran(
 		return newErrorMissingPlan(req.Plan)
 	}
 
-	plan = plan.WithCompensator(compensator)
+	plan = plan.AndCompensator(compensator)
 
 	if len(plan.Names()) == 0 {
 		return newErrorMissingPlan(req.Plan)
 	}
 
-	runner, err := Runner(plan)
+	runner, err := hippo.Pipeline(plan)
 	if err != nil {
 		return newUnknownError(err)
 	}
@@ -124,13 +127,25 @@ func (s *server) ekran(
 }
 
 func NewServer(
-	reg FnRegistry,
-	templates map[string]Plan,
-) Server {
-	s := server{
-		reg:       reg,
-		templates: maps.Clone(templates),
+	reg hippo.FnRegistry,
+	templates map[string]*hippo.Plan,
+) (Server, error) {
+	templates = maps.Clone(templates)
+
+	for name, plan := range templates {
+		if !privnames.SimpleName.MatchString(name) {
+			return nil, EF("invalid plan name: %s", name)
+		}
+
+		if plan == nil {
+			return nil, EF("nil plan: %s", name)
+		}
 	}
 
-	return s.ekran
+	s := server{
+		reg:       reg,
+		templates: templates,
+	}
+
+	return s.ekran, nil
 }

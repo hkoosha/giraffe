@@ -1,19 +1,20 @@
-package pipelines
+package hippo
 
 import (
 	"context"
 	"regexp"
 	"slices"
+	"strconv"
 
 	"github.com/hkoosha/giraffe"
-	. "github.com/hkoosha/giraffe/dot"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
 type compCondition struct {
 	onErr  *regexp.Regexp
 	onName *regexp.Regexp
-	fn     Fn
+	fn     *Fn
 	onStep int
 }
 
@@ -21,11 +22,11 @@ func (c compCondition) canCompensate(
 	sCtx *StepContext,
 	err error,
 ) bool {
-	if c.onStep >= 0 && c.onStep != sCtx.StepNo {
+	if c.onStep >= 0 && c.onStep != sCtx.stepNo {
 		return false
 	}
 
-	if c.onName != nil && !c.onName.MatchString(sCtx.StepName) {
+	if c.onName != nil && !c.onName.MatchString(sCtx.stepName) {
 		return false
 	}
 
@@ -36,14 +37,23 @@ func (c compCondition) canCompensate(
 	return true
 }
 
-func NewCompensator() Compensator {
-	return Compensator{
-		comp: nil,
-	}
-}
-
 type Compensator struct {
 	comp []compCondition
+}
+
+func (c Compensator) String() string {
+	const prefix = "Compensator["
+	const suffix = "]"
+
+	value := strconv.Itoa(len(c.comp))
+
+	return prefix + value + suffix
+}
+
+func (c Compensator) clone() Compensator {
+	return Compensator{
+		comp: slices.Clone(c.comp),
+	}
 }
 
 func (c Compensator) compensate(
@@ -53,7 +63,7 @@ func (c Compensator) compensate(
 ) (giraffe.Datum, bool) {
 	for _, comp := range c.comp {
 		if comp.canCompensate(sCtx, err) {
-			if next, err := comp.fn(ctx, sCtx.dat); err == nil {
+			if next, err := comp.fn.call(ctx, sCtx.dat); err == nil {
 				return next, true
 			}
 		}
@@ -66,7 +76,7 @@ func (c Compensator) For(
 	msg *regexp.Regexp,
 	name *regexp.Regexp,
 	step int,
-	with Fn,
+	with *Fn,
 ) Compensator {
 	c.comp = z.Appended(c.comp, compCondition{
 		onErr:  &*msg,
@@ -89,7 +99,7 @@ func (c Compensator) ForWith(
 
 func (c Compensator) ForError(
 	msg *regexp.Regexp,
-	with Fn,
+	with *Fn,
 ) Compensator {
 	c.comp = z.Appended(c.comp, compCondition{
 		onErr:  &*msg,
@@ -110,7 +120,7 @@ func (c Compensator) ForErrorWith(
 
 func (c Compensator) ForStep(
 	step int,
-	with Fn,
+	with *Fn,
 ) Compensator {
 	c.comp = z.Appended(c.comp, compCondition{
 		onErr:  nil,
@@ -131,7 +141,7 @@ func (c Compensator) ForStepWith(
 
 func (c Compensator) ForNamed(
 	name *regexp.Regexp,
-	with Fn,
+	with *Fn,
 	steps ...int,
 ) Compensator {
 	if len(steps) > 0 {
