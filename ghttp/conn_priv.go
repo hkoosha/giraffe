@@ -232,7 +232,7 @@ func partsOf(u *url.URL) (string, string) {
 }
 
 type giraffeRT struct {
-	cfg *Config
+	cfg *config
 	rt  http.RoundTripper
 }
 
@@ -245,7 +245,7 @@ func (u giraffeRT) modify(
 		req().Header.Set(h, v)
 	}
 
-	for h, fn := range u.cfg.header.overwriteFns {
+	for h, fn := range u.cfg.header.overwriters {
 		v := fn(ctx, u.cfg)
 		req().Header.Set(h, v)
 	}

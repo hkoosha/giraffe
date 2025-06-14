@@ -10,7 +10,7 @@ import (
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
-func (c *Config) ensure() *Config {
+func (c *config) ensure() *config {
 	if !c.seal_.sealed {
 		panic(EF("invalid config, did you use constructor to create one?"))
 	}
@@ -18,13 +18,13 @@ func (c *Config) ensure() *Config {
 	return c
 }
 
-func (c *Config) open() *Config {
+func (c *config) open() *config {
 	c.ensure()
 
 	return &*c
 }
 
-func (c *Config) seal() {
+func (c *config) seal() {
 	if c.seal_.sealed {
 		return
 	}
@@ -46,7 +46,7 @@ func (c *Config) seal() {
 	c.seal_.sealed = true
 }
 
-func (c *Config) mkTransport() http.RoundTripper {
+func (c *config) mkTransport() http.RoundTripper {
 	return giraffeRT{
 		cfg: c,
 		rt:  c.rt,
@@ -56,7 +56,7 @@ func (c *Config) mkTransport() http.RoundTripper {
 // =============================================================================.
 
 type retryConfig struct {
-	retryIf         *RetryIfFn
+	retryIf         RetryIfFn
 	retryIfStatuses []int
 	maxRetries      uint
 	backoffDuration time.Duration
@@ -165,36 +165,36 @@ func mkHttpConfig(
 }
 
 type respConfig struct {
-	isExpecting2xx bool
+	expectStatusCode int
 }
 
 func (c *respConfig) shallow() *respConfig {
 	return &respConfig{
-		isExpecting2xx: c.isExpecting2xx,
+		expectStatusCode: c.expectStatusCode,
 	}
 }
 
 func mkResponseConfig() *respConfig {
 	return &respConfig{
-		isExpecting2xx: false,
+		expectStatusCode: 0,
 	}
 }
 
 type headerConfig struct {
-	overwrite    map[string]string
-	overwriteFns map[string]HeaderFn
+	overwrite   map[string]string
+	overwriters map[string]HeaderProvider
 }
 
 func mkHeaderConfig() *headerConfig {
 	return &headerConfig{
-		overwrite:    nil,
-		overwriteFns: nil,
+		overwrite:   nil,
+		overwriters: nil,
 	}
 }
 
 func (c *headerConfig) shallow() *headerConfig {
 	return &headerConfig{
-		overwrite:    c.overwrite,
-		overwriteFns: c.overwriteFns,
+		overwrite:   c.overwrite,
+		overwriters: c.overwriters,
 	}
 }

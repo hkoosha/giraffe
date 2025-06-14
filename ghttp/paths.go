@@ -5,8 +5,11 @@ import (
 	"strings"
 )
 
-//goland:noinspection HttpUrlsUsage
 func Join(parts ...string) string {
+	return join(parts)
+}
+
+func join(parts []string) string {
 	if len(parts) == 0 {
 		panic("no parts to join")
 	}
