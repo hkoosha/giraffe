@@ -22,7 +22,7 @@ type FailedResponseError struct {
 }
 
 func (e *FailedResponseError) Error() string {
-	return "http request failed: " + strconv.Itoa(int(e.Reason))
+	return "http request failed: " + strconv.FormatUint(uint64(e.Reason), 10)
 }
 
 // =============================================================================.

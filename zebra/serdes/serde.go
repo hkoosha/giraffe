@@ -57,7 +57,9 @@ func (s jsonSerde[T]) ReadFrom(r io.Reader) (T, error) {
 // =============================================================================.
 
 func JsonConv[T any]() Conv[T, string] {
-	return &jsonConv[T]{}
+	return &jsonConv[T]{
+		j: jsonSerde[T]{},
+	}
 }
 
 type jsonConv[T any] struct {

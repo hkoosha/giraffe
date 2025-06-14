@@ -29,11 +29,13 @@ func newConn[T, U any](
 	g11y.NonNil(cfg, tSerde, uSerde)
 	cfg.Ensure()
 
+	var u U
 	return &conn[T, U]{
 		cfg:    cfg,
 		std:    cfg.Std(),
 		tSerde: tSerde,
 		uSerde: uSerde,
+		uErr:   u,
 	}
 }
 
@@ -42,7 +44,6 @@ type conn[T any, U any] struct {
 	std    *http.Client
 	tSerde serdes.Serde[T]
 	uSerde serdes.Serde[U]
-	tErr   T
 	uErr   U
 }
 
@@ -52,30 +53,6 @@ func (c *conn[T, U]) Std() *http.Client {
 
 func (c *conn[T, U]) Cfg() Config {
 	return c.cfg
-}
-
-func (c *conn[T, U]) mapErrResp(
-	resp *http.Response,
-) (*http.Response, error) {
-	if c.cfg.resp.expectStatusCode == 0 ||
-		resp.StatusCode == c.cfg.resp.expectStatusCode {
-		return resp, nil
-	}
-
-	var err error
-	var body []byte
-	if resp.Body != nil {
-		_ = resp.Body.Close()
-	}
-
-	_ = err
-	_ = body
-
-	_ = &FailedResponseError{
-		Reason: ReasonUnexpectedStatusCode,
-	}
-
-	panic("todo")
 }
 
 func (c *conn[T, U]) Patch(
@@ -138,20 +115,26 @@ func (c *conn[T, U]) call(
 ) (U, error) {
 	var b io.Reader
 
-	if body == nil || body == http.NoBody || body == nobody {
+	switch cast := body.(type) {
+	case nil:
 		b = nobody
-	} else if cast, ok := body.(io.Reader); ok {
+
+	case io.Reader:
 		b = cast
-	} else if cast, ok := body.([]byte); ok {
+
+	case []byte:
 		b = bytes.NewReader(cast)
-	} else if cast, ok := body.(T); ok {
+
+	case T:
 		serialized, err := c.tSerde.Write(cast)
 		if err != nil {
 			return c.uErr, err
 		}
 		b = bytes.NewReader(serialized)
-	} else {
-		panic("unreachable, unknown body type: " + reflect.TypeOf(body).String())
+
+	default:
+		panic("unreachable, unknown body type: " +
+			reflect.TypeOf(body).String())
 	}
 
 	resp, err := c.callRaw(ctx, method, b, path)

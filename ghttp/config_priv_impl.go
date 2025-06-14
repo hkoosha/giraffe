@@ -63,11 +63,7 @@ func cfgOf(
 	}
 
 	for header := range cfg.HeaderOverwriters() {
-		switch header {
-		case headers.Authorization:
-		// ok
-
-		default:
+		if header != headers.Authorization {
 			panic("invalid config, unsupported header overwriter: " + header)
 		}
 	}
@@ -157,10 +153,6 @@ func (c *config) IsLogged() bool {
 
 func (c *config) WithLogged() Config {
 	return c.SetLogged(true)
-}
-
-func (c *config) withLogged() *config {
-	return c.setLogged(true)
 }
 
 func (c *config) WithoutLogged() Config {
