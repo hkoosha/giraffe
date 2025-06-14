@@ -5,10 +5,21 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"reflect"
 
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
+
+type noBodyT struct{}
+
+func (noBodyT) Read([]byte) (int, error)         { return 0, io.EOF }
+func (noBodyT) Close() error                     { return nil }
+func (noBodyT) WriteTo(io.Writer) (int64, error) { return 0, nil }
+
+var nobody = noBodyT{}
+
+// ============================================================================.
 
 func newConn[T, U any](
 	cfg *config,
@@ -99,7 +110,7 @@ func (c *conn[T, U]) Get(
 	path ...string,
 ) (U, error) {
 	const m = http.MethodGet
-	return c.call(ctx, m, nil, path)
+	return c.call(ctx, m, nobody, path)
 }
 
 func (c *conn[T, U]) Delete(
@@ -122,19 +133,28 @@ func (c *conn[T, U]) Call(
 func (c *conn[T, U]) call(
 	ctx context.Context,
 	method string,
-	body T,
+	body any,
 	path []string,
 ) (U, error) {
-	b, ok := any(body).([]byte)
-	if !ok {
-		var err error
-		b, err = c.tSerde.Write(body)
+	var b io.Reader
+
+	if body == nil || body == http.NoBody || body == nobody {
+		b = nobody
+	} else if cast, ok := body.(io.Reader); ok {
+		b = cast
+	} else if cast, ok := body.([]byte); ok {
+		b = bytes.NewReader(cast)
+	} else if cast, ok := body.(T); ok {
+		serialized, err := c.tSerde.Write(cast)
 		if err != nil {
 			return c.uErr, err
 		}
+		b = bytes.NewReader(serialized)
+	} else {
+		panic("unreachable, unknown body type: " + reflect.TypeOf(body).String())
 	}
 
-	resp, err := c.callRaw(ctx, method, bytes.NewReader(b), path)
+	resp, err := c.callRaw(ctx, method, b, path)
 	if err != nil {
 		return c.uErr, err
 	}

@@ -1,4 +1,4 @@
-set shell := ['bash', '-c']
+set shell := ['bash', '-c', '-e', '-u', '-o', 'pipefail']
 set dotenv-filename := './local/env'
 set allow-duplicate-variables
 

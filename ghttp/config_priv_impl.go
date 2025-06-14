@@ -106,7 +106,7 @@ func newConfig(
 }
 
 type config struct {
-	lg     glog.GLog //nolint:unused
+	lg     glog.GLog
 	base   http.RoundTripper
 	rt     http.RoundTripper
 	resp   *respConfig

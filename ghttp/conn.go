@@ -12,23 +12,22 @@ const (
 	ReasonEmptyResponse        FailureReason = 3
 )
 
-// =============================================================================
+// =============================================================================.
 
 type FailureReason uint
 
 type FailedResponseError struct {
-	Reason FailureReason
 	Resp   ConnResponse
+	Reason FailureReason
 }
 
 func (e *FailedResponseError) Error() string {
 	return "http request failed: " + strconv.Itoa(int(e.Reason))
 }
 
-// =============================================================================
+// =============================================================================.
 
-type ConnResponse interface {
-}
+type ConnResponse any
 
 type Conn[T any, U any] interface {
 	Call(
@@ -67,7 +66,7 @@ type Conn[T any, U any] interface {
 	) (U, error)
 }
 
-// =============================================================================
+// =============================================================================.
 
 func NewConn[T, U any](
 	cfg Config,
