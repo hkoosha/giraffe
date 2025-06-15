@@ -6,6 +6,7 @@ import (
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/hippo"
+	"github.com/hkoosha/giraffe/zebra/zptr"
 )
 
 // ================================================== ERROR MANAGEMENT SHORTCUTS.
@@ -99,4 +100,18 @@ func Fn(
 	exe hippo.Exe,
 ) Fn_ {
 	return hippo.MustFnOf(exe)
+}
+
+// ======================================================================== PTR.
+
+func Ref[T any](
+	t T,
+) *T {
+	return zptr.Ref[T](t)
+}
+
+func Deref[T any](
+	t *T,
+) T {
+	return zptr.Deref[T](t)
 }

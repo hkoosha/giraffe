@@ -4,13 +4,24 @@ import (
 	"context"
 )
 
-type CacheClearedError struct{}
+const (
+	CacheOpSuccess CacheOpResult = iota + 1
+	CacheOpMiss
+	CacheOpHit
+	CacheOpBadKey
+	CacheOpBadValue
+	CacheOpBadData
+)
 
-func (*CacheClearedError) Error() string { return "cache cleared" }
+type CacheOpResult int
 
-var ErrClearedCache = &CacheClearedError{}
+type Adapter[K comparable, V any] interface {
+	Get(context.Context, K) (*Item[K, V], CacheOpResult, error)
 
-// =============================================================================.
+	Set(context.Context, K, V) (CacheOpResult, error)
+
+	Delete(context.Context, K) (CacheOpResult, error)
+}
 
 type Cache[K comparable, V any] interface {
 	Get(context.Context, K) *Item[K, V]

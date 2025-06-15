@@ -8,7 +8,7 @@ import (
 	"github.com/hkoosha/giraffe/glog"
 )
 
-func Of(lg *zap.Logger) glog.GLog {
+func Of(lg *zap.Logger) glog.Lg {
 	return &adapter{lg: lg}
 }
 
@@ -18,35 +18,77 @@ type adapter struct {
 	lg *zap.Logger
 }
 
-func (z adapter) Named(s string) glog.GLog {
+func (z adapter) Named(s string) glog.Lg {
 	return adapter{lg: z.lg.Named(s)}
 }
 
 func (z adapter) Debug(msg string, fields ...any) {
-	z.lg.Debug(msg, toZap(fields)...)
+	z.lg.Debug(msg, toZap("", fields)...)
 }
 
 func (z adapter) Info(msg string, fields ...any) {
-	z.lg.Info(msg, toZap(fields)...)
+	z.lg.Info(msg, toZap("", fields)...)
 }
 
 func (z adapter) Warn(msg string, fields ...any) {
-	z.lg.Warn(msg, toZap(fields)...)
+	z.lg.Warn(msg, toZap("", fields)...)
 }
 
 func (z adapter) Error(msg string, fields ...any) {
-	z.lg.Error(msg, toZap(fields)...)
+	z.lg.Error(msg, toZap("", fields)...)
 }
 
-func toZap(fields []any) []zap.Field {
-	zapFields := make([]zap.Field, len(fields))
+func (z adapter) Of(key string, value ...any) any {
+	return toZap(key, value)
+}
+
+func toZap(
+	key string,
+	fields []any,
+) []zap.Field {
+	hasKey := key != ""
+
+	list := make([]zap.Field, len(fields))
 	for i, f := range fields {
 		switch v := f.(type) {
 		case zap.Field:
-			zapFields[i] = v
+			list[i] = v
+
+		case error:
+			switch {
+			case hasKey && i > 0:
+				list[i] = zap.NamedError(key+"_"+strconv.Itoa(i), v)
+
+			case hasKey:
+				list[i] = zap.NamedError(key, v)
+
+			// case hasIndex:
+			//   Handled by default case.
+			//   TODO what does zap do on multiple unnamed err?
+
+			default:
+				list[i] = zap.Error(v)
+			}
+
 		default:
-			zapFields[i] = zap.Any("field"+strconv.Itoa(i), v)
+			var vKey string
+			switch {
+			case hasKey && i > 0:
+				vKey = key + "_" + strconv.Itoa(i)
+
+			case i > 0:
+				vKey = "f_" + strconv.Itoa(i)
+
+			case hasKey:
+				vKey = key
+
+			default:
+				vKey = "f0"
+			}
+
+			list[i] = zap.Any(vKey, v)
 		}
 	}
-	return zapFields
+
+	return list
 }

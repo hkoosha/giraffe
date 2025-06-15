@@ -73,14 +73,14 @@ func cfgOf(
 }
 
 func NewConfig(
-	lg glog.GLog,
+	lg glog.Lg,
 	timeout time.Duration,
 ) Config {
 	return newConfig(lg, timeout)
 }
 
 func newConfig(
-	lg glog.GLog,
+	lg glog.Lg,
 	timeout time.Duration,
 ) *config {
 	cfg := &config{
@@ -102,7 +102,7 @@ func newConfig(
 }
 
 type config struct {
-	lg     glog.GLog
+	lg     glog.Lg
 	base   http.RoundTripper
 	rt     http.RoundTripper
 	resp   *respConfig
@@ -120,7 +120,7 @@ func (c *config) Ensure() {
 	c.ensure()
 }
 
-func (c *config) Lg() glog.GLog {
+func (c *config) Lg() glog.Lg {
 	return c.lg
 }
 
@@ -133,11 +133,11 @@ func (c *config) Std() *http.Client {
 	}
 }
 
-func (c *config) WithLg(lg glog.GLog) Config {
+func (c *config) WithLg(lg glog.Lg) Config {
 	return c.withLg(lg)
 }
 
-func (c *config) withLg(lg glog.GLog) *config {
+func (c *config) withLg(lg glog.Lg) *config {
 	g11y.NonNil(lg)
 
 	cp := c.open()

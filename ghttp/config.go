@@ -30,7 +30,7 @@ type ConfigRead interface {
 	Ensure()
 	Std() *http.Client
 
-	Lg() glog.GLog
+	Lg() glog.Lg
 	IsLogged() bool
 	IsPlainLog() bool
 	LgHeaderFilter() HeaderFilter
@@ -79,7 +79,7 @@ type Config interface {
 	ConfigRetryWrite
 
 	WithLg(
-		glog.GLog,
+		glog.Lg,
 	) Config
 
 	WithLogged() Config

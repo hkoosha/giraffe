@@ -1,10 +1,10 @@
-package uptr
+package zptr
 
-func To[T any](t T) *T {
+func Ref[T any](t T) *T {
 	return &t
 }
 
-func From[V any](v *V) V {
+func Deref[V any](v *V) V {
 	if v == nil {
 		var res V
 

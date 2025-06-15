@@ -21,7 +21,7 @@ const (
 )
 
 func NewConfig(
-	lg glog.GLog,
+	lg glog.Lg,
 	domain string,
 	ttl time.Duration,
 ) *Config {
@@ -40,7 +40,7 @@ func NewConfig(
 }
 
 type Config struct {
-	lg             glog.GLog
+	lg             glog.Lg
 	domain         string
 	keyPrefix      string
 	namespaceParts []string
@@ -57,7 +57,7 @@ func (c *Config) clone() *Config {
 	}
 }
 
-func (c *Config) Lg() glog.GLog {
+func (c *Config) Lg() glog.Lg {
 	return c.lg
 }
 
