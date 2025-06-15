@@ -21,6 +21,40 @@ type Serde[T any] interface {
 
 // =============================================================================.
 
+func BytesSerde() Serde[[]byte] {
+	return &bytesSerde{}
+}
+
+type bytesSerde struct{}
+
+func (s bytesSerde) Write(b []byte) ([]byte, error) {
+	return b, nil
+}
+
+func (s bytesSerde) WriteTo(b []byte, w io.Writer) error {
+	n, err := io.Copy(w, bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+
+	if n != int64(len(b)) {
+		return errTruncatedStream
+	}
+
+	return nil
+}
+
+func (s bytesSerde) Read(b []byte) ([]byte, error) {
+	return b, nil
+}
+
+//goland:noinspection GoStandardMethods
+func (s bytesSerde) ReadFrom(r io.Reader) ([]byte, error) {
+	return io.ReadAll(r)
+}
+
+// =============================================================================.
+
 func JsonSerde[T any]() Serde[T] {
 	return &jsonSerde[T]{}
 }
@@ -103,7 +137,7 @@ func (s strSerde) WriteTo(t string, w io.Writer) error {
 	}
 
 	if n != len(t) {
-		panic("unreachable: not all of the string was written")
+		return errTruncatedStream
 	}
 
 	return nil

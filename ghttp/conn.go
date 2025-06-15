@@ -2,8 +2,10 @@ package ghttp
 
 import (
 	"context"
+	"net/http"
 	"strconv"
 
+	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
 
@@ -30,6 +32,9 @@ func (e *FailedResponseError) Error() string {
 type ConnResponse any
 
 type Conn[Q any, R any] interface {
+	Std() *http.Client
+	Cfg() Config
+
 	Call(
 		ctx context.Context,
 		method string,
@@ -82,4 +87,19 @@ func NewJsonConn[Q, R any](
 	cfg Config,
 ) Conn[Q, R] {
 	return NewConn[Q, R](cfg, serdes.JsonSerde[Q](), serdes.JsonSerde[R]())
+}
+
+// =============================================================================.
+
+func ToJsonType[T, U, Q, R any](
+	conn Conn[T, U],
+) Conn[Q, R] {
+	g11y.NonNil(conn)
+
+	cfg := conn.Cfg()
+	return NewConn[Q, R](
+		cfg,
+		serdes.JsonSerde[Q](),
+		serdes.JsonSerde[R](),
+	)
 }

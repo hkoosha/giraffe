@@ -14,6 +14,7 @@ import (
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/ghttp/headers"
 	"github.com/hkoosha/giraffe/glog"
+	"github.com/hkoosha/giraffe/zebra/serdes"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
@@ -115,6 +116,20 @@ type config struct {
 }
 
 // =============================================================================.
+
+func (c *config) Conn() Conn[any, []byte] {
+	return c.conn()
+}
+
+func (c *config) conn() Conn[any, []byte] {
+	c.ensure()
+
+	return newConn(
+		c,
+		serdes.JsonSerde[any](),
+		serdes.BytesSerde(),
+	)
+}
 
 func (c *config) Ensure() {
 	c.ensure()

@@ -7,10 +7,13 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
+	"github.com/hkoosha/giraffe/g11y"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 func (c *config) ensure() *config {
+	g11y.NonNil(c)
+
 	if !c.seal_.sealed {
 		panic(EF("invalid config, did you use constructor to create one?"))
 	}

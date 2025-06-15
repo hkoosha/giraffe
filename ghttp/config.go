@@ -74,6 +74,8 @@ type ConfigRetryWrite interface {
 // This makes refactoring easier and more consistent, since all the methods
 // minus the getters are implemented in [Client] too.
 type Config interface {
+	Conn() Conn[any, []byte]
+
 	ConfigRead
 	ConfigRetryRead
 	ConfigRetryWrite
