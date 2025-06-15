@@ -17,7 +17,7 @@ const (
 	BadKey
 	BadValue
 	BadData
-	Unknown
+	Bad
 )
 
 const (
@@ -44,7 +44,7 @@ func (o Outcome) String() string {
 		return "bad_value"
 	case BadData:
 		return "bad_data"
-	case Unknown:
+	case Bad:
 		return "unknown_error"
 	default:
 		panic("unreachable")
