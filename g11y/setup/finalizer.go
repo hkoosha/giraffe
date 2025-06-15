@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	. "github.com/hkoosha/giraffe/dot"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 type Finalizer = func(context.Context)
@@ -22,7 +22,8 @@ func NewFinalizerRegistry(
 }
 
 type FinalizerRegistry struct {
-	mu         *sync.Mutex
+	mu *sync.Mutex
+	//nolint:unused
 	name       string
 	finalizers []Finalizer
 }

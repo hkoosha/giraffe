@@ -7,7 +7,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 
-	. "github.com/hkoosha/giraffe/dot"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/typing"
 )
 
@@ -16,9 +16,9 @@ func baseAttrs(
 	service string,
 ) []attribute.KeyValue {
 	return []attribute.KeyValue{
-		attribute.String("datagen_domain", domain),
-		attribute.String("datagen_service", service),
-		attribute.Bool("datagen_custom", true),
+		attribute.String("giraffe_domain", domain),
+		attribute.String("giraffe_service", service),
+		attribute.Bool("giraffe_custom", true),
 
 		// Attribute.String(ubuild.TagRef, ubuild.DatagenRef),
 		// attribute.String(ubuild.TagVer, ubuild.DatagenVer),.

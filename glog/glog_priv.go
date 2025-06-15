@@ -30,6 +30,7 @@ func poorLog(
 	message string,
 	details any,
 ) {
+	//nolint:forbidigo
 	fmt.Printf(
 		`{"message": "%s", "details": "%s"}%s`,
 		poorJSON(message),
@@ -58,6 +59,10 @@ func (p poorManGLog) Warn(msg string, fields ...any) {
 
 func (p poorManGLog) Error(msg string, fields ...any) {
 	poorLog(msg, fields)
+}
+
+func (p poorManGLog) Err(msg string, err error, fields ...any) {
+	poorLog(msg, append(fields, err))
 }
 
 func (p poorManGLog) Of(key string, value ...any) any {

@@ -15,6 +15,8 @@ type Lg interface {
 
 	Error(msg string, fields ...any)
 
+	Err(msg string, err error, fields ...any)
+
 	Of(key string, value ...any) any
 }
 

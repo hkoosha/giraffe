@@ -38,6 +38,10 @@ func (z adapter) Error(msg string, fields ...any) {
 	z.lg.Error(msg, toZap("", fields)...)
 }
 
+func (z adapter) Err(msg string, err error, fields ...any) {
+	z.lg.Error(msg, toZap("", append(fields, err))...)
+}
+
 func (z adapter) Of(key string, value ...any) any {
 	return toZap(key, value)
 }

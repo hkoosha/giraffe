@@ -1,15 +1,17 @@
-package setup
+package setup_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/hkoosha/giraffe/g11y/setup"
 )
 
 func TestFinalizerRegistry_Execute(t *testing.T) {
 	t.Run("runs finalizers", func(t *testing.T) {
-		f := NewFinalizerRegistry("datagen_test")
+		f := setup.NewFinalizerRegistry("giraffe_test")
 
 		var timeline []string
 

@@ -8,9 +8,17 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 
-	. "github.com/hkoosha/giraffe/dot"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/typing"
 )
+
+func init() {
+	for s := range 1023 {
+		if http.StatusText(s) != "" {
+			httpStatusAttributes[s] = attribute.Int("giraffe_http_status_code", s)
+		}
+	}
+}
 
 func NewCounter(
 	meter metric.Meter,
@@ -47,19 +55,11 @@ func (c *Counter) Inc(
 // ==============================================================================.
 
 var (
-	httpStatusAttributeUnexpectedResponseData = attribute.Int("datagen_http_status_code", -2)
-	httpStatusAttributeNetworkFail            = attribute.Int("datagen_http_status_code", -1)
-	httpStatusAttributeInvalid                = attribute.Int("datagen_http_status_code", 0)
+	httpStatusAttributeUnexpectedResponseData = attribute.Int("giraffe_http_status_code", -2)
+	httpStatusAttributeNetworkFail            = attribute.Int("giraffe_http_status_code", -1)
+	httpStatusAttributeInvalid                = attribute.Int("giraffe_http_status_code", 0)
 	httpStatusAttributes                      = make(map[int]attribute.KeyValue)
 )
-
-func init() {
-	for s := range 1023 {
-		if http.StatusText(s) != "" {
-			httpStatusAttributes[s] = attribute.Int("datagen_http_status_code", s)
-		}
-	}
-}
 
 func NewHTTPCounter(
 	meter metric.Meter,
@@ -148,8 +148,8 @@ func NewOkCounter(
 	onInvalidOp func(ctx context.Context, details string),
 	label string,
 ) *OkCounter {
-	if !strings.HasPrefix(label, "datagen") {
-		label = "datagen_" + label
+	if !strings.HasPrefix(label, "giraffe") {
+		label = "giraffe_" + label
 	}
 
 	if !typing.IsMachineReadableName(label, 1, 32) {
@@ -209,8 +209,8 @@ func NewHitOrMissCounter(
 	onInvalidOp func(ctx context.Context, details string),
 	label string,
 ) *HitOrMissCounter {
-	if !strings.HasPrefix(label, "datagen") {
-		label = "datagen_" + label
+	if !strings.HasPrefix(label, "giraffe") {
+		label = "giraffe_" + label
 	}
 
 	if !typing.IsMachineReadableName(label, 1, 32) {
@@ -226,8 +226,8 @@ func NewHitOrMissCounter(
 			name,
 			description,
 			onInvalidOp,
-			attribute.Bool("datagen_hit", true),
-			attribute.Bool("datagen_hit", false),
+			attribute.Bool("giraffe_hit", true),
+			attribute.Bool("giraffe_hit", false),
 		),
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	. "github.com/hkoosha/giraffe/dot"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 const (

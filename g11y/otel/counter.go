@@ -7,10 +7,7 @@ import (
 )
 
 type Int64Counter interface {
-	Inc(
-		ctx context.Context,
-		attrs ...attribute.KeyValue,
-	)
+	Inc(context.Context, ...attribute.KeyValue)
 }
 
 type HTTPCounter interface {
@@ -26,31 +23,19 @@ type HTTPCounter interface {
 		httpStatus int,
 	)
 
-	NetworkFail(ctx context.Context)
+	NetworkFail(context.Context)
 
-	UnexpectedResponseData(ctx context.Context)
+	UnexpectedResponseData(context.Context)
 }
 
 type OkCounter interface {
-	Ok(
-		ctx context.Context,
-		attr ...attribute.KeyValue,
-	)
+	Ok(context.Context, ...attribute.KeyValue)
 
-	Fail(
-		ctx context.Context,
-		attr ...attribute.KeyValue,
-	)
+	Fail(context.Context, ...attribute.KeyValue)
 }
 
 type HitOrMissCounter interface {
-	Hit(
-		ctx context.Context,
-		attr ...attribute.KeyValue,
-	)
+	Hit(context.Context, ...attribute.KeyValue)
 
-	Miss(
-		ctx context.Context,
-		attr ...attribute.KeyValue,
-	)
+	Miss(context.Context, ...attribute.KeyValue)
 }
