@@ -66,7 +66,7 @@ type jsonConv[T any] struct {
 	j jsonSerde[T]
 }
 
-func (s jsonConv[T]) Write(t T) (string, error) {
+func (s *jsonConv[T]) Write(t T) (string, error) {
 	b, err := s.j.Write(t)
 	if err != nil {
 		return "", err
@@ -75,7 +75,7 @@ func (s jsonConv[T]) Write(t T) (string, error) {
 	return string(b), nil
 }
 
-func (s jsonConv[T]) Read(js string) (T, error) {
+func (s *jsonConv[T]) Read(js string) (T, error) {
 	var t T
 	if err := json.Unmarshal([]byte(js), &t); err != nil {
 		return t, err
