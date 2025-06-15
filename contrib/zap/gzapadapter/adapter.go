@@ -9,17 +9,49 @@ import (
 )
 
 func Of(lg *zap.Logger) glog.Lg {
-	return &adapter{lg: lg}
+	return Hooked(
+		lg,
+		nil,
+		nil,
+		nil,
+		nil,
+	)
+}
+
+func Hooked(
+	lg *zap.Logger,
+	debugHook Hook,
+	infoHook Hook,
+	warnHook Hook,
+	errorHook Hook,
+) glog.Lg {
+	return &adapter{
+		lg:        lg,
+		debugHook: debugHook,
+		infoHook:  infoHook,
+		warnHook:  warnHook,
+		errorHook: errorHook,
+	}
 }
 
 // ============================================================================.
 
 type adapter struct {
-	lg *zap.Logger
+	lg        *zap.Logger
+	debugHook Hook
+	infoHook  Hook
+	warnHook  Hook
+	errorHook Hook
 }
 
 func (z adapter) Named(s string) glog.Lg {
-	return adapter{lg: z.lg.Named(s)}
+	return Hooked(
+		z.lg.Named(s),
+		z.debugHook,
+		z.infoHook,
+		z.warnHook,
+		z.errorHook,
+	)
 }
 
 func (z adapter) Debug(msg string, fields ...any) {
@@ -57,6 +89,9 @@ func toZap(
 		switch v := f.(type) {
 		case zap.Field:
 			list[i] = v
+
+		case glog.KV:
+			list[i] = zap.Any(v.Key(), v.Val())
 
 		case error:
 			switch {
