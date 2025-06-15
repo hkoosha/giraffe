@@ -29,51 +29,57 @@ func (e *FailedResponseError) Error() string {
 
 type ConnResponse any
 
-type Conn[T any, U any] interface {
+type Conn[Q any, R any] interface {
 	Call(
 		ctx context.Context,
 		method string,
-		body T,
+		body Q,
 		path ...string,
-	) (U, error)
+	) (R, error)
 
 	Patch(
 		ctx context.Context,
-		body T,
+		body Q,
 		path ...string,
-	) (U, error)
+	) (R, error)
 
 	Put(
 		ctx context.Context,
-		body T,
+		body Q,
 		path ...string,
-	) (U, error)
+	) (R, error)
 
 	Post(
 		ctx context.Context,
-		body T,
+		body Q,
 		path ...string,
-	) (U, error)
+	) (R, error)
 
 	Get(
 		ctx context.Context,
 		path ...string,
-	) (U, error)
+	) (R, error)
 
 	Delete(
 		ctx context.Context,
 		path ...string,
-	) (U, error)
+	) (R, error)
 }
 
 // =============================================================================.
 
-func NewConn[T, U any](
+func NewConn[Q, R any](
 	cfg Config,
-	tSerde serdes.Serde[T],
-	uSerde serdes.Serde[U],
-) Conn[T, U] {
+	tSerde serdes.Serde[Q],
+	uSerde serdes.Serde[R],
+) Conn[Q, R] {
 	cloned := cfgOf(cfg)
 
-	return newConn[T, U](cloned, tSerde, uSerde)
+	return newConn[Q, R](cloned, tSerde, uSerde)
+}
+
+func NewJsonConn[Q, R any](
+	cfg Config,
+) Conn[Q, R] {
+	return NewConn[Q, R](cfg, serdes.JsonSerde[Q](), serdes.JsonSerde[R]())
 }

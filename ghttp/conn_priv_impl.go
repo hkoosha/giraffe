@@ -21,98 +21,98 @@ var nobody = noBodyT{}
 
 // ============================================================================.
 
-func newConn[T, U any](
+func newConn[Q, R any](
 	cfg *config,
-	tSerde serdes.Serde[T],
-	uSerde serdes.Serde[U],
-) *conn[T, U] {
+	tSerde serdes.Serde[Q],
+	uSerde serdes.Serde[R],
+) *conn[Q, R] {
 	g11y.NonNil(cfg, tSerde, uSerde)
 	cfg.Ensure()
 
-	var u U
-	return &conn[T, U]{
+	var r R
+	return &conn[Q, R]{
 		cfg:    cfg,
 		std:    cfg.Std(),
 		tSerde: tSerde,
 		uSerde: uSerde,
-		uErr:   u,
+		rErr:   r,
 	}
 }
 
-type conn[T any, U any] struct {
+type conn[Q any, R any] struct {
 	cfg    *config
 	std    *http.Client
-	tSerde serdes.Serde[T]
-	uSerde serdes.Serde[U]
-	uErr   U
+	tSerde serdes.Serde[Q]
+	uSerde serdes.Serde[R]
+	rErr   R
 }
 
-func (c *conn[T, U]) Std() *http.Client {
+func (c *conn[Q, R]) Std() *http.Client {
 	return c.cfg.Std()
 }
 
-func (c *conn[T, U]) Cfg() Config {
+func (c *conn[Q, R]) Cfg() Config {
 	return c.cfg
 }
 
-func (c *conn[T, U]) Patch(
+func (c *conn[Q, R]) Patch(
 	ctx context.Context,
-	body T,
+	body Q,
 	path ...string,
-) (U, error) {
+) (R, error) {
 	const m = http.MethodPatch
 	return c.call(ctx, m, body, path)
 }
 
-func (c *conn[T, U]) Put(
+func (c *conn[Q, R]) Put(
 	ctx context.Context,
-	body T,
+	body Q,
 	path ...string,
-) (U, error) {
+) (R, error) {
 	const m = http.MethodPut
 	return c.call(ctx, m, body, path)
 }
 
-func (c *conn[T, U]) Post(
+func (c *conn[Q, R]) Post(
 	ctx context.Context,
-	body T,
+	body Q,
 	path ...string,
-) (U, error) {
+) (R, error) {
 	const m = http.MethodPost
 	return c.call(ctx, m, body, path)
 }
 
-func (c *conn[T, U]) Get(
+func (c *conn[Q, R]) Get(
 	ctx context.Context,
 	path ...string,
-) (U, error) {
+) (R, error) {
 	const m = http.MethodGet
 	return c.call(ctx, m, nobody, path)
 }
 
-func (c *conn[T, U]) Delete(
+func (c *conn[Q, R]) Delete(
 	ctx context.Context,
 	path ...string,
-) (U, error) {
+) (R, error) {
 	const m = http.MethodDelete
 	return c.call(ctx, m, nil, path)
 }
 
-func (c *conn[T, U]) Call(
+func (c *conn[Q, R]) Call(
 	ctx context.Context,
 	method string,
-	body T,
+	body Q,
 	path ...string,
-) (U, error) {
+) (R, error) {
 	return c.call(ctx, method, body, path)
 }
 
-func (c *conn[T, U]) call(
+func (c *conn[Q, R]) call(
 	ctx context.Context,
 	method string,
 	body any,
 	path []string,
-) (U, error) {
+) (R, error) {
 	var b io.Reader
 
 	switch cast := body.(type) {
@@ -125,10 +125,10 @@ func (c *conn[T, U]) call(
 	case []byte:
 		b = bytes.NewReader(cast)
 
-	case T:
+	case Q:
 		serialized, err := c.tSerde.Write(cast)
 		if err != nil {
-			return c.uErr, err
+			return c.rErr, err
 		}
 		b = bytes.NewReader(serialized)
 
@@ -139,7 +139,7 @@ func (c *conn[T, U]) call(
 
 	resp, err := c.callRaw(ctx, method, b, path)
 	if err != nil {
-		return c.uErr, err
+		return c.rErr, err
 	}
 
 	if resp.Body == nil {
@@ -150,13 +150,13 @@ func (c *conn[T, U]) call(
 
 	u, err := c.uSerde.ReadFrom(resp.Body)
 	if err != nil {
-		return c.uErr, err
+		return c.rErr, err
 	}
 
 	return u, nil
 }
 
-func (c *conn[T, U]) callRaw(
+func (c *conn[Q, R]) callRaw(
 	ctx context.Context,
 	method string,
 	body io.Reader,
