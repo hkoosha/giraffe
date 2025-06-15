@@ -55,6 +55,7 @@ func NewForString(
 func NewForJson[V any](
 	cfg *Config,
 ) zcache.Adapter[string, V] {
+	// TODO remove hard dependency.
 	if reflect.TypeFor[V]().Implements(reflect.TypeFor[proto.Message]()) {
 		panic(EF(
 			"cannot use json serde for proto values, use proto serde instead",
