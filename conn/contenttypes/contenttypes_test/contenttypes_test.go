@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/tools/go/packages"
 
-	_ "github.com/hkoosha/giraffe/ghttp/contenttypes"
+	_ "github.com/hkoosha/giraffe/conn/contenttypes"
 )
 
 //goland:noinspection SpellCheckingInspection

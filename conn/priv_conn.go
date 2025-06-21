@@ -1,4 +1,4 @@
-package ghttp
+package conn
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hkoosha/giraffe/ghttp/headers"
+	"github.com/hkoosha/giraffe/conn/headers"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 

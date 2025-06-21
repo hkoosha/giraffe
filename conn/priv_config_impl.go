@@ -1,4 +1,4 @@
-package ghttp
+package conn
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
+	"github.com/hkoosha/giraffe/conn/headers"
 	"github.com/hkoosha/giraffe/g11y"
-	"github.com/hkoosha/giraffe/ghttp/headers"
 	"github.com/hkoosha/giraffe/glog"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 	"github.com/hkoosha/giraffe/zebra/z"
@@ -124,10 +124,10 @@ func (c *config) serde() serdes.Serde[any] {
 }
 
 func (c *config) Conn() Conn[[]byte] {
-	return c.conn()
+	return c.connection()
 }
 
-func (c *config) conn() Conn[[]byte] {
+func (c *config) connection() Conn[[]byte] {
 	c.ensure()
 
 	return newConn(c, serdes.Bytes())

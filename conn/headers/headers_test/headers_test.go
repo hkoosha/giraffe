@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/tools/go/packages"
 
-	_ "github.com/hkoosha/giraffe/ghttp/headers"
+	_ "github.com/hkoosha/giraffe/conn/headers"
 )
 
 //goland:noinspection SpellCheckingInspection

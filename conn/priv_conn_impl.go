@@ -1,4 +1,4 @@
-package ghttp
+package conn
 
 import (
 	"bytes"
@@ -23,12 +23,12 @@ var nobody = noBodyT{}
 func newConn[R any](
 	cfg *config,
 	serde serdes.Serde[R],
-) *conn[R] {
+) *connImpl[R] {
 	g11y.NonNil(cfg, serde)
 	cfg.Ensure()
 
 	var r R
-	return &conn[R]{
+	return &connImpl[R]{
 		cfg:   cfg,
 		std:   cfg.Std(),
 		serde: serde,
@@ -36,7 +36,7 @@ func newConn[R any](
 	}
 }
 
-type conn[R any] struct {
+type connImpl[R any] struct {
 	cfg    *config
 	std    *http.Client
 	tSerde serdes.Serde[any]
@@ -44,19 +44,19 @@ type conn[R any] struct {
 	rErr   R
 }
 
-func (c *conn[R]) Std() *http.Client {
+func (c *connImpl[R]) Std() *http.Client {
 	return c.cfg.Std()
 }
 
-func (c *conn[R]) Raw() Conn[[]byte] {
+func (c *connImpl[R]) Raw() Conn[[]byte] {
 	return newConn[[]byte](c.cfg, serdes.Bytes())
 }
 
-func (c *conn[R]) Cfg() Config {
+func (c *connImpl[R]) Cfg() Config {
 	return c.cfg
 }
 
-func (c *conn[R]) Patch(
+func (c *connImpl[R]) Patch(
 	ctx context.Context,
 	body any,
 	path ...string,
@@ -65,7 +65,7 @@ func (c *conn[R]) Patch(
 	return c.call(ctx, m, body, path)
 }
 
-func (c *conn[R]) Put(
+func (c *connImpl[R]) Put(
 	ctx context.Context,
 	body any,
 	path ...string,
@@ -74,7 +74,7 @@ func (c *conn[R]) Put(
 	return c.call(ctx, m, body, path)
 }
 
-func (c *conn[R]) Post(
+func (c *connImpl[R]) Post(
 	ctx context.Context,
 	body any,
 	path ...string,
@@ -83,7 +83,7 @@ func (c *conn[R]) Post(
 	return c.call(ctx, m, body, path)
 }
 
-func (c *conn[R]) Get(
+func (c *connImpl[R]) Get(
 	ctx context.Context,
 	path ...string,
 ) (R, error) {
@@ -91,7 +91,7 @@ func (c *conn[R]) Get(
 	return c.call(ctx, m, nobody, path)
 }
 
-func (c *conn[R]) Delete(
+func (c *connImpl[R]) Delete(
 	ctx context.Context,
 	path ...string,
 ) (R, error) {
@@ -99,7 +99,7 @@ func (c *conn[R]) Delete(
 	return c.call(ctx, m, nil, path)
 }
 
-func (c *conn[R]) Call(
+func (c *connImpl[R]) Call(
 	ctx context.Context,
 	method string,
 	body any,
@@ -108,7 +108,7 @@ func (c *conn[R]) Call(
 	return c.call(ctx, method, body, path)
 }
 
-func (c *conn[R]) call(
+func (c *connImpl[R]) call(
 	ctx context.Context,
 	method string,
 	body any,
@@ -153,7 +153,7 @@ func (c *conn[R]) call(
 	return u, nil
 }
 
-func (c *conn[R]) callRaw(
+func (c *connImpl[R]) callRaw(
 	ctx context.Context,
 	method string,
 	body io.Reader,

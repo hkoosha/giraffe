@@ -1,4 +1,4 @@
-package ghttp
+package conn
 
 import (
 	"slices"
