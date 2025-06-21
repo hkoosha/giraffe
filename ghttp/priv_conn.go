@@ -53,6 +53,7 @@ var (
 
 func defaultHeaderFilter(
 	_ context.Context,
+	_ Config,
 	h string,
 	_ string,
 ) bool {
@@ -62,6 +63,7 @@ func defaultHeaderFilter(
 
 func defaultHeaderMasked(
 	_ context.Context,
+	_ Config,
 	h string,
 	_ string,
 ) bool {

@@ -5,7 +5,6 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"reflect"
 
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/zebra/serdes"
@@ -21,68 +20,70 @@ var nobody = noBodyT{}
 
 // ============================================================================.
 
-func newConn[Q, R any](
+func newConn[R any](
 	cfg *config,
-	tSerde serdes.Serde[Q],
-	uSerde serdes.Serde[R],
-) *conn[Q, R] {
-	g11y.NonNil(cfg, tSerde, uSerde)
+	serde serdes.Serde[R],
+) *conn[R] {
+	g11y.NonNil(cfg, serde)
 	cfg.Ensure()
 
 	var r R
-	return &conn[Q, R]{
-		cfg:    cfg,
-		std:    cfg.Std(),
-		tSerde: tSerde,
-		uSerde: uSerde,
-		rErr:   r,
+	return &conn[R]{
+		cfg:   cfg,
+		std:   cfg.Std(),
+		serde: serde,
+		rErr:  r,
 	}
 }
 
-type conn[Q any, R any] struct {
+type conn[R any] struct {
 	cfg    *config
 	std    *http.Client
-	tSerde serdes.Serde[Q]
-	uSerde serdes.Serde[R]
+	tSerde serdes.Serde[any]
+	serde  serdes.Serde[R]
 	rErr   R
 }
 
-func (c *conn[Q, R]) Std() *http.Client {
+func (c *conn[R]) Std() *http.Client {
 	return c.cfg.Std()
 }
 
-func (c *conn[Q, R]) Cfg() Config {
+func (c *conn[R]) Raw() Conn[[]byte] {
+	return newConn[[]byte](c.cfg, serdes.Bytes())
+}
+
+func (c *conn[R]) Cfg() Config {
 	return c.cfg
 }
 
-func (c *conn[Q, R]) Patch(
+func (c *conn[R]) Patch(
 	ctx context.Context,
-	body Q,
+	body any,
 	path ...string,
 ) (R, error) {
 	const m = http.MethodPatch
 	return c.call(ctx, m, body, path)
 }
 
-func (c *conn[Q, R]) Put(
+func (c *conn[R]) Put(
 	ctx context.Context,
-	body Q,
+	body any,
 	path ...string,
 ) (R, error) {
 	const m = http.MethodPut
 	return c.call(ctx, m, body, path)
 }
 
-func (c *conn[Q, R]) Post(
+func (c *conn[R]) Post(
 	ctx context.Context,
-	body Q,
+	body any,
 	path ...string,
 ) (R, error) {
 	const m = http.MethodPost
 	return c.call(ctx, m, body, path)
 }
 
-func (c *conn[Q, R]) Get(
+func (c *conn[R]) Get(
 	ctx context.Context,
 	path ...string,
 ) (R, error) {
@@ -90,7 +91,7 @@ func (c *conn[Q, R]) Get(
 	return c.call(ctx, m, nobody, path)
 }
 
-func (c *conn[Q, R]) Delete(
+func (c *conn[R]) Delete(
 	ctx context.Context,
 	path ...string,
 ) (R, error) {
@@ -98,16 +99,16 @@ func (c *conn[Q, R]) Delete(
 	return c.call(ctx, m, nil, path)
 }
 
-func (c *conn[Q, R]) Call(
+func (c *conn[R]) Call(
 	ctx context.Context,
 	method string,
-	body Q,
+	body any,
 	path ...string,
 ) (R, error) {
 	return c.call(ctx, method, body, path)
 }
 
-func (c *conn[Q, R]) call(
+func (c *conn[R]) call(
 	ctx context.Context,
 	method string,
 	body any,
@@ -125,16 +126,12 @@ func (c *conn[Q, R]) call(
 	case []byte:
 		b = bytes.NewReader(cast)
 
-	case Q:
+	default:
 		serialized, err := c.tSerde.Write(cast)
 		if err != nil {
 			return c.rErr, err
 		}
 		b = bytes.NewReader(serialized)
-
-	default:
-		panic("unreachable, unknown body type: " +
-			reflect.TypeOf(body).String())
 	}
 
 	resp, err := c.callRaw(ctx, method, b, path)
@@ -143,12 +140,12 @@ func (c *conn[Q, R]) call(
 	}
 
 	if resp.Body == nil {
-		return c.uSerde.Read([]byte{})
+		return c.serde.Read([]byte{})
 	}
 
 	defer resp.Body.Close()
 
-	u, err := c.uSerde.ReadFrom(resp.Body)
+	u, err := c.serde.ReadFrom(resp.Body)
 	if err != nil {
 		return c.rErr, err
 	}
@@ -156,7 +153,7 @@ func (c *conn[Q, R]) call(
 	return u, nil
 }
 
-func (c *conn[Q, R]) callRaw(
+func (c *conn[R]) callRaw(
 	ctx context.Context,
 	method string,
 	body io.Reader,

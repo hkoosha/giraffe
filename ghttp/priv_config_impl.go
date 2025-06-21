@@ -27,7 +27,7 @@ func cfgOf(
 		return cast
 	}
 
-	cast := newConfig(cfg.Lg(), cfg.Timeout()).
+	cast := newConfig(cfg.Lg(), cfg.Timeout(), cfg.Serde()).
 		setPlainLog(cfg.IsPlainLog()).
 		setLogged(cfg.IsLogged()).
 		setLogReties(cfg.IsRetryLog()).
@@ -73,16 +73,10 @@ func cfgOf(
 	return cast
 }
 
-func NewConfig(
-	lg glog.Lg,
-	timeout time.Duration,
-) Config {
-	return newConfig(lg, timeout)
-}
-
 func newConfig(
 	lg glog.Lg,
 	timeout time.Duration,
+	serde serdes.Serde[any],
 ) *config {
 	cfg := &config{
 		base:   defaultTransport,
@@ -95,6 +89,7 @@ func newConfig(
 		log:    mkLogConfig(),
 		retry:  mkRetryConfig(),
 		otel:   mkOtelConfig(),
+		serde_: serde,
 	}
 
 	cfg.seal()
@@ -113,22 +108,29 @@ type config struct {
 	retry  *retryConfig
 	otel   *otelConfig
 	seal_  seal
+	serde_ serdes.Serde[any]
 }
 
 // =============================================================================.
 
-func (c *config) Conn() Conn[any, []byte] {
+func (c *config) Serde() serdes.Serde[any] {
+	return c.serde()
+}
+
+func (c *config) serde() serdes.Serde[any] {
+	c.ensure()
+
+	return c.serde_
+}
+
+func (c *config) Conn() Conn[[]byte] {
 	return c.conn()
 }
 
-func (c *config) conn() Conn[any, []byte] {
+func (c *config) conn() Conn[[]byte] {
 	c.ensure()
 
-	return newConn(
-		c,
-		serdes.JsonSerde[any](),
-		serdes.BytesSerde(),
-	)
+	return newConn(c, serdes.Bytes())
 }
 
 func (c *config) Ensure() {

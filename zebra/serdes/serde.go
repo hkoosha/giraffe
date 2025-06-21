@@ -12,16 +12,15 @@ type Conv[T any, U any] interface {
 }
 
 type Serde[T any] interface {
-	Write(T) ([]byte, error)
-	WriteTo(T, io.Writer) error
+	Conv[T, []byte]
 
-	Read([]byte) (T, error)
+	WriteTo(T, io.Writer) error
 	ReadFrom(io.Reader) (T, error)
 }
 
 // =============================================================================.
 
-func BytesSerde() Serde[[]byte] {
+func Bytes() Serde[[]byte] {
 	return &bytesSerde{}
 }
 
@@ -55,7 +54,7 @@ func (s bytesSerde) ReadFrom(r io.Reader) ([]byte, error) {
 
 // =============================================================================.
 
-func JsonSerde[T any]() Serde[T] {
+func Json[T any]() Serde[T] {
 	return &jsonSerde[T]{}
 }
 
@@ -91,17 +90,15 @@ func (s jsonSerde[T]) ReadFrom(r io.Reader) (T, error) {
 // =============================================================================.
 
 func JsonConv[T any]() Conv[T, string] {
-	return &jsonConv[T]{
-		j: jsonSerde[T]{},
-	}
+	return &jsonStr[T]{jsonSerde[T]{}}
 }
 
-type jsonConv[T any] struct {
-	j jsonSerde[T]
+type jsonStr[T any] struct {
+	jsonSerde[T]
 }
 
-func (s *jsonConv[T]) Write(t T) (string, error) {
-	b, err := s.j.Write(t)
+func (s *jsonStr[T]) Write(t T) (string, error) {
+	b, err := s.jsonSerde.Write(t)
 	if err != nil {
 		return "", err
 	}
@@ -109,28 +106,23 @@ func (s *jsonConv[T]) Write(t T) (string, error) {
 	return string(b), nil
 }
 
-func (s *jsonConv[T]) Read(js string) (T, error) {
-	var t T
-	if err := json.Unmarshal([]byte(js), &t); err != nil {
-		return t, err
-	}
-
-	return t, nil
+func (s *jsonStr[T]) Read(js string) (T, error) {
+	return s.jsonSerde.Read([]byte(js))
 }
 
 // =====================================.
 
-func StringSerde() Serde[string] {
-	return &strSerde{}
+func String() Serde[string] {
+	return &stringSerde{}
 }
 
-type strSerde struct{}
+type stringSerde struct{}
 
-func (s strSerde) Write(t string) ([]byte, error) {
+func (s stringSerde) Write(t string) ([]byte, error) {
 	return []byte(t), nil
 }
 
-func (s strSerde) WriteTo(t string, w io.Writer) error {
+func (s stringSerde) WriteTo(t string, w io.Writer) error {
 	n, err := io.WriteString(w, t)
 	if err != nil {
 		return err
@@ -143,12 +135,12 @@ func (s strSerde) WriteTo(t string, w io.Writer) error {
 	return nil
 }
 
-func (s strSerde) Read(b []byte) (string, error) {
+func (s stringSerde) Read(b []byte) (string, error) {
 	return string(b), nil
 }
 
 //goland:noinspection GoStandardMethods
-func (s strSerde) ReadFrom(r io.Reader) (string, error) {
+func (s stringSerde) ReadFrom(r io.Reader) (string, error) {
 	b, err := io.ReadAll(r)
 	if err != nil {
 		return "", err
@@ -160,15 +152,15 @@ func (s strSerde) ReadFrom(r io.Reader) (string, error) {
 // =====================================.
 
 func StringConv() Conv[string, string] {
-	return &strConv{}
+	return &stringConv{}
 }
 
-type strConv struct{}
+type stringConv struct{}
 
-func (s strConv) Write(t string) (string, error) {
+func (s stringConv) Write(t string) (string, error) {
 	return t, nil
 }
 
-func (s strConv) Read(t string) (string, error) {
+func (s stringConv) Read(t string) (string, error) {
 	return t, nil
 }

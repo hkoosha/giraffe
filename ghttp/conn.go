@@ -4,22 +4,28 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"time"
 
-	"github.com/hkoosha/giraffe/g11y"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
+	"github.com/hkoosha/giraffe/glog"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
 
+const UserAgent = "Giraffe/1.0"
+
+//goland:noinspection GoUnusedConst
 const (
 	ReasonUnexpectedStatusCode FailureReason = 2
 	ReasonEmptyResponse        FailureReason = 3
 )
 
-// =============================================================================.
-
 type FailureReason uint
 
+// ============================================================================.
+
 type FailedResponseError struct {
-	Resp   ConnResponse
+	Resp   any
 	Reason FailureReason
 }
 
@@ -27,36 +33,163 @@ func (e *FailedResponseError) Error() string {
 	return "http request failed: " + strconv.FormatUint(uint64(e.Reason), 10)
 }
 
-// =============================================================================.
+// ============================================================================.
 
-type ConnResponse any
+type HeaderFilter = func(
+	context.Context,
+	Config,
+	string,
+	string,
+) bool
 
-type Conn[Q any, R any] interface {
+type HeaderProvider = func(
+	context.Context,
+	Config,
+) string
+
+type RetryIfFn = func(
+	ctx context.Context,
+	resp *http.Response,
+	err error,
+	attempt uint,
+	cfg Config,
+) (bool, error)
+
+type ConfigLgRead interface {
+	Lg() glog.Lg
+	IsLogged() bool
+	IsPlainLog() bool
+	LgHeaderFilter() HeaderFilter
+	LgHeaderMask() HeaderFilter
+}
+
+type ConfigLgWrite interface {
+	WithLg(glog.Lg) Config
+
+	WithLogged() Config
+	WithoutLogged() Config
+	SetLogged(bool) Config
+
+	WithPlainLog() Config
+	WithoutPlainLog() Config
+	SetPlainLog(bool) Config
+
+	WithLgFilteredHeaders(HeaderFilter) Config
+
+	WithLgMaskedHeaders(HeaderFilter) Config
+}
+
+type ConfigRetryRead interface {
+	IsRetryLog() bool
+	RetryMax() uint
+	RetryStatusCodes() []int
+	RetryIf() RetryIfFn
+	RetryBackoffDuration() time.Duration
+}
+
+type ConfigRetryWrite interface {
+	WithRetryLogged() Config
+	WithoutRetryLogged() Config
+	SetRetryLogged(bool) Config
+	WithMaxRetries(uint) Config
+	WithRetryStatusCodes(...int) Config
+	WithRetryIf(fn RetryIfFn) Config
+	WithoutRetryIf() Config
+	WithRetryBackoffDuration(time.Duration) Config
+}
+
+type ConfigRead interface {
+	ConfigLgRead
+	ConfigRetryRead
+
+	Ensure()
+	Std() *http.Client
+
+	HeaderOverwrites() map[string]string
+	HeaderOverwriters() map[string]HeaderProvider
+	ExpectingStatusCode() int
+	Endpoint() string
+	PathPrefix() string
+	Timeout() time.Duration
+	TraceOptions() []otelhttp.Option
+	IsTraced() bool
+}
+
+type ConfigWrite interface {
+	ConfigLgWrite
+	ConfigRetryWrite
+
+	WithBearerToken(string) Config
+	WithBearerProvider(HeaderProvider) Config
+	WithoutBearerProvider() Config
+
+	WithExpectingStatusCode(int) Config
+	WithoutExpectingStatusCode() Config
+
+	WithEndpoint(string) Config
+	WithoutEndpoint() Config
+	WithPathPrefix(string) Config
+	WithoutPathPrefix() Config
+	AndPathPrefix(string) Config
+
+	WithTimeout(time.Duration) Config
+
+	WithTransport(http.RoundTripper) Config
+
+	WithTraced() Config
+	WithoutTraced() Config
+	SetTraced(bool) Config
+	WithTraceOptions(...otelhttp.Option) Config
+
+	WithHeaderOverwrites(
+		includeDefaults bool,
+		h map[string]string,
+	) Config
+}
+
+// Config
+// Keep all setter methods prefixed with either of:
+// - With
+// - Without
+// - Set
+// - And
+// This makes refactoring easier and more consistent, since all the methods
+// minus the getters are implemented in [Client] too.
+type Config interface {
+	Conn() Conn[[]byte]
+	Serde() serdes.Serde[any]
+
+	ConfigRead
+	ConfigWrite
+}
+
+type Conn[R any] interface {
 	Std() *http.Client
 	Cfg() Config
+	Raw() Conn[[]byte]
 
 	Call(
 		ctx context.Context,
 		method string,
-		body Q,
+		body any,
 		path ...string,
 	) (R, error)
 
 	Patch(
 		ctx context.Context,
-		body Q,
+		body any,
 		path ...string,
 	) (R, error)
 
 	Put(
 		ctx context.Context,
-		body Q,
+		body any,
 		path ...string,
 	) (R, error)
 
 	Post(
 		ctx context.Context,
-		body Q,
+		body any,
 		path ...string,
 	) (R, error)
 
@@ -71,35 +204,36 @@ type Conn[Q any, R any] interface {
 	) (R, error)
 }
 
-// =============================================================================.
+// ============================================================================.
 
-func NewConn[Q, R any](
+func Of[R any](
 	cfg Config,
-	tSerde serdes.Serde[Q],
-	uSerde serdes.Serde[R],
-) Conn[Q, R] {
+	serde serdes.Serde[R],
+) Conn[R] {
 	cloned := cfgOf(cfg)
 
-	return newConn[Q, R](cloned, tSerde, uSerde)
+	return newConn[R](cloned, serde)
 }
 
-func NewJsonConn[Q, R any](
+func OfJson[R any](
 	cfg Config,
-) Conn[Q, R] {
-	return NewConn[Q, R](cfg, serdes.JsonSerde[Q](), serdes.JsonSerde[R]())
+) Conn[R] {
+	return Of[R](cfg, serdes.Json[R]())
 }
 
-// =============================================================================.
+// ====================================.
 
-func ToJsonType[T, U, Q, R any](
-	conn Conn[T, U],
-) Conn[Q, R] {
-	g11y.NonNil(conn)
+func To(
+	lg glog.Lg,
+	timeout time.Duration,
+	serde serdes.Serde[any],
+) Config {
+	return newConfig(lg, timeout, serde)
+}
 
-	cfg := conn.Cfg()
-	return NewConn[Q, R](
-		cfg,
-		serdes.JsonSerde[Q](),
-		serdes.JsonSerde[R](),
-	)
+func ToJson(
+	lg glog.Lg,
+	timeout time.Duration,
+) Config {
+	return To(lg, timeout, serdes.Json[any]())
 }
