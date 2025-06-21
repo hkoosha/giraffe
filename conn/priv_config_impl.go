@@ -101,6 +101,7 @@ type config struct {
 	lg     glog.Lg
 	base   http.RoundTripper
 	rt     http.RoundTripper
+	serde_ serdes.Serde[any]
 	resp   *respConfig
 	http   *httpConfig
 	header *headerConfig
@@ -108,7 +109,6 @@ type config struct {
 	retry  *retryConfig
 	otel   *otelConfig
 	seal_  seal
-	serde_ serdes.Serde[any]
 }
 
 // =============================================================================.

@@ -37,11 +37,10 @@ func newConn[R any](
 }
 
 type connImpl[R any] struct {
-	cfg    *config
-	std    *http.Client
-	tSerde serdes.Serde[any]
-	serde  serdes.Serde[R]
-	rErr   R
+	cfg   *config
+	std   *http.Client
+	serde serdes.Serde[R]
+	rErr  R
 }
 
 func (c *connImpl[R]) Std() *http.Client {
@@ -127,7 +126,7 @@ func (c *connImpl[R]) call(
 		b = bytes.NewReader(cast)
 
 	default:
-		serialized, err := c.tSerde.Write(cast)
+		serialized, err := c.cfg.serde_.Write(cast)
 		if err != nil {
 			return c.rErr, err
 		}
