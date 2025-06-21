@@ -307,7 +307,7 @@ func (c *config) withHeaderOverwrites(
 		h = maps.Clone(h)
 	}
 
-	if z.MapEq(c.header.overwrite, h) {
+	if z.Eq2(c.header.overwrite, h) {
 		return c
 	}
 

@@ -136,13 +136,27 @@ func Values[Map ~map[K]V, K comparable, V any](
 	return slices.Collect(maps.Values(it))
 }
 
-func MapEq[K, V comparable](m1, m2 map[K]V) bool {
+func Eq2[Map ~map[K]V, K, V comparable](
+	m1 Map,
+	m2 Map,
+) bool {
 	if len(m1) != len(m2) {
 		return false
 	}
 
-	for k1, v1 := range m1 {
-		if v2, ok := m2[k1]; !ok || v1 != v2 {
+	return IsSuperSetOf(m1, m2)
+}
+
+func IsSuperSetOf[Map ~map[K]V, K, V comparable](
+	bigger Map,
+	smaller Map,
+) bool {
+	if len(bigger) < len(smaller) {
+		return false
+	}
+
+	for kS, vS := range smaller {
+		if vB, ok := bigger[kS]; !ok || vS != vB {
 			return false
 		}
 	}

@@ -1,8 +1,6 @@
 package glog
 
 import (
-	"time"
-
 	"github.com/hkoosha/giraffe/g11y/setup"
 )
 
@@ -33,43 +31,6 @@ type Lg interface {
 	Of(key string, value ...any) any
 }
 
-type KVSafe interface {
-	bool |
-		string |
-		[]byte |
-		float32 |
-		float64 |
-		int |
-		int8 |
-		int16 |
-		int32 |
-		int64 |
-		uint |
-		uint8 |
-		uint16 |
-		uint32 |
-		uint64 |
-		time.Time |
-		time.Duration |
-		*bool |
-		*string |
-		*[]byte |
-		*float32 |
-		*float64 |
-		*int |
-		*int8 |
-		*int16 |
-		*int32 |
-		*int64 |
-		*uint |
-		*uint8 |
-		*uint16 |
-		*uint32 |
-		*uint64 |
-		*time.Time |
-		*time.Duration
-}
-
 type KV struct {
 	val any
 	key string
@@ -83,9 +44,9 @@ func (k *KV) Val() any {
 	return k.val
 }
 
-func Of[V KVSafe](
+func Of(
 	key string,
-	v V,
+	v any,
 ) KV {
 	return KV{key: key, val: v}
 }

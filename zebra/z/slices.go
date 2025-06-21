@@ -73,6 +73,46 @@ func Applied[Slice ~[]U, U, V any](
 	return slices.Collect(Apply(it, fn))
 }
 
+// =============================================================================.
+
+func ItFilter[V any](
+	it iter.Seq[V],
+	fn func(V) bool,
+) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for u := range it {
+			if fn(u) {
+				if !yield(u) {
+					return
+				}
+			}
+		}
+	}
+}
+
+func ItFiltered[V any](
+	it iter.Seq[V],
+	fn func(V) bool,
+) []V {
+	return slices.Collect(ItFilter(it, fn))
+}
+
+func Filter[Slice ~[]V, V any](
+	it Slice,
+	fn func(V) bool,
+) iter.Seq[V] {
+	return ItFilter(slices.Values(it), fn)
+}
+
+func Filtered[Slice ~[]V, V any](
+	it Slice,
+	fn func(V) bool,
+) []V {
+	return slices.Collect(Filter(it, fn))
+}
+
+// =============================================================================.
+
 func GroupBy[Slice ~[]U, U any, K comparable](
 	it Slice,
 	fn func(U) K,
@@ -85,6 +125,25 @@ func GroupBy[Slice ~[]U, U any, K comparable](
 			mapped[conv] = append(items, each)
 		} else {
 			mapped[conv] = []U{each}
+		}
+	}
+
+	return mapped
+}
+
+func GroupByIf[Slice ~[]U, U any, K comparable](
+	it Slice,
+	fn func(U) (K, bool),
+) map[K][]U {
+	mapped := make(map[K][]U, len(it))
+
+	for _, each := range it {
+		if conv, ok0 := fn(each); ok0 {
+			if items, ok1 := mapped[conv]; ok1 {
+				mapped[conv] = append(items, each)
+			} else {
+				mapped[conv] = []U{each}
+			}
 		}
 	}
 
@@ -109,7 +168,7 @@ func GroupByKey[Slice ~[]U, U comparable, V any](
 	return mapped
 }
 
-func GroupBy2[Slice ~[]U, U any, K comparable, V any](
+func GroupByWith[Slice ~[]U, U any, K comparable, V any](
 	it Slice,
 	fn func(U) (K, V),
 ) map[K][]V {
@@ -125,6 +184,26 @@ func GroupBy2[Slice ~[]U, U any, K comparable, V any](
 	}
 
 	return mapped
+}
+
+func GroupByWithIf[Slice ~[]U, U any, K comparable, V any](
+	it Slice,
+	fn func(U) (K, V, bool),
+) map[K][]V {
+	mapped := make(map[K][]V, len(it))
+
+	for _, each := range it {
+		if k, v, ok0 := fn(each); ok0 {
+			if items, ok1 := mapped[k]; ok1 {
+				mapped[k] = append(items, v)
+			} else {
+				mapped[k] = []V{v}
+			}
+		}
+	}
+
+	return mapped
+
 }
 
 func Appended[S ~[]E, E any](s S, e ...E) S {
