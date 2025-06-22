@@ -54,18 +54,18 @@ func Q(
 }
 
 // P pair.
-func P[V giraffe.SafeType1](
+func P[V giraffe.Safe](
 	q giraffe.Query,
 	v V,
 ) giraffe.Tuple {
 	return giraffe.TupleOf(q, v)
 }
 
-func Of0[V giraffe.SafeType1](v V) giraffe.Datum {
+func Of0[V giraffe.Safe](v V) giraffe.Datum {
 	return giraffe.Of(v)
 }
 
-func Of1[V giraffe.SafeType1](
+func Of1[V giraffe.Safe](
 	q giraffe.Query,
 	v V,
 ) giraffe.Datum {

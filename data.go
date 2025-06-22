@@ -23,11 +23,11 @@ func Make[V any](v V) (Datum, error) {
 	return of(v)
 }
 
-func Of[V SafeType1](v V) Datum {
+func Of[V Safe](v V) Datum {
 	return M(Make(v))
 }
 
-func Of1[V SafeType1](
+func Of1[V Safe](
 	q Query,
 	v V,
 ) Datum {
@@ -65,13 +65,8 @@ func OfErr() Datum {
 	return errD
 }
 
-type SafeType0 interface {
-	// The string type is not safe for tier 0.
-	// Same for Query type.
-
-	Datum |
-		bool |
-		int |
+type Num interface {
+	int |
 		uint |
 		int8 |
 		int16 |
@@ -80,31 +75,46 @@ type SafeType0 interface {
 		uint8 |
 		uint16 |
 		uint32 |
-		uint64 |
-		*big.Int
+		uint64
 }
 
-type SafeType1 interface {
-	string |
-		SafeType0 |
-		[]Datum |
-		[]bool |
+type Ord interface {
+	Num | string
+}
+
+type Basic interface {
+	Ord | bool
+}
+
+type Seq interface {
+	[]bool |
 		[]string |
 		[]int |
 		[]int64 |
 		[]uint64 |
-		[][]Datum |
 		[][]bool |
 		[][]string |
 		[][]int |
 		[][]int64 |
 		[][]uint64 |
-		map[string]Datum |
 		map[string]bool |
 		map[string]string |
 		map[string]int |
 		map[string]int64 |
-		map[string]uint64 |
+		map[string][]bool |
+		map[string][]string |
+		map[string][]int |
+		map[string][]int64 |
+		map[string][]uint64
+}
+
+type Safe interface {
+	Basic | Seq |
+		*big.Int |
+		Datum |
+		[]Datum |
+		[][]Datum |
+		map[string]Datum |
 		map[Query]Datum |
 		map[Query]bool |
 		map[Query]string |
@@ -112,11 +122,6 @@ type SafeType1 interface {
 		map[Query]int64 |
 		map[Query]uint64 |
 		map[string][]Datum |
-		map[string][]bool |
-		map[string][]string |
-		map[string][]int |
-		map[string][]int64 |
-		map[string][]uint64 |
 		map[Query][]Datum |
 		map[Query][]bool |
 		map[Query][]string |

@@ -203,7 +203,6 @@ func GroupByWithIf[Slice ~[]U, U any, K comparable, V any](
 	}
 
 	return mapped
-
 }
 
 func Appended[S ~[]E, E any](s S, e ...E) S {

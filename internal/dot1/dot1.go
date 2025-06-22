@@ -12,7 +12,7 @@ func OfEmpty() giraffe.Datum {
 	return giraffe.OfEmpty()
 }
 
-func Of0[V giraffe.SafeType1](v V) giraffe.Datum {
+func Of0[V giraffe.Safe](v V) giraffe.Datum {
 	return giraffe.Of(v)
 }
 
@@ -28,7 +28,7 @@ func Q(
 	return giraffe.Q(q)
 }
 
-func P[V giraffe.SafeType1](
+func P[V giraffe.Safe](
 	q giraffe.Query,
 	v V,
 ) giraffe.Tuple {
