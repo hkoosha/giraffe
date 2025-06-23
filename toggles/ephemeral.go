@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/hkoosha/giraffe/g11y"
-	"github.com/hkoosha/giraffe/glog"
+	"github.com/hkoosha/giraffe/g11y/glog"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 

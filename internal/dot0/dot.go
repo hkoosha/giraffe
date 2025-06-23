@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/hkoosha/giraffe/g11y"
+	"github.com/hkoosha/giraffe/g11y/named"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
@@ -28,6 +29,10 @@ func E(err ...error) error {
 
 func EF(format string, v ...any) error {
 	return g11y.TracedFmt(format, v...)
+}
+
+func N(name string, v any) named.Named {
+	return named.Of(name, v)
 }
 
 func Assert(condition bool) {

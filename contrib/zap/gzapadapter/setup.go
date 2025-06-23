@@ -11,7 +11,7 @@ func DefaultEncoderConfig() *zapcore.EncoderConfig {
 		NameKey:        "logger",
 		TimeKey:        "at",
 		CallerKey:      "caller",
-		StacktraceKey:  "stack",
+		StacktraceKey:  "stacktrace",
 		FunctionKey:    "fn",
 		EncodeLevel:    zapcore.LowercaseLevelEncoder,
 		EncodeTime:     zapcore.ISO8601TimeEncoder,

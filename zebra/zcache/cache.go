@@ -6,8 +6,9 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/hkoosha/giraffe/g11y"
+	"github.com/hkoosha/giraffe/g11y/glog"
 	"github.com/hkoosha/giraffe/g11y/otel"
-	"github.com/hkoosha/giraffe/glog"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 const (
@@ -206,9 +207,9 @@ func (c *Cache[K, V]) Get(
 	if err != nil && c.lg != nil {
 		c.lg.Error(
 			"cache error",
-			c.lg.Of("op", op),
-			c.lg.Of("result", result),
-			c.lg.Of("key", k),
+			N("op", op),
+			N("result", result),
+			N("key", k),
 			err,
 		)
 	}
@@ -231,9 +232,9 @@ func (c *Cache[K, V]) Set(
 	if err != nil && c.lg != nil {
 		c.lg.Error(
 			"cache error",
-			c.lg.Of("op", op),
-			c.lg.Of("result", result),
-			c.lg.Of("key", k),
+			N("op", op),
+			N("result", result),
+			N("key", k),
 			err,
 		)
 	}
@@ -254,9 +255,9 @@ func (c *Cache[K, V]) Unset(
 	if err != nil && c.lg != nil {
 		c.lg.Error(
 			"cache error",
-			c.lg.Of("op", op),
-			c.lg.Of("result", result),
-			c.lg.Of("key", k),
+			N("op", op),
+			N("result", result),
+			N("key", k),
 			err,
 		)
 	}

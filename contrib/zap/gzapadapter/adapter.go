@@ -5,77 +5,92 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/hkoosha/giraffe/glog"
+	"github.com/hkoosha/giraffe/g11y/glog"
 )
 
 func Of(lg *zap.Logger) glog.Lg {
-	return Hooked(
-		lg,
-		nil,
-		nil,
-		nil,
-		nil,
-	)
-}
+	var level glog.Level
+	switch {
+	case lg.Check(zap.DebugLevel, "") != nil:
+		level = glog.Debug
 
-func Hooked(
-	lg *zap.Logger,
-	debugHook Hook,
-	infoHook Hook,
-	warnHook Hook,
-	errorHook Hook,
-) glog.Lg {
+	case lg.Check(zap.InfoLevel, "") != nil:
+		level = glog.Info
+
+	case lg.Check(zap.WarnLevel, "") != nil:
+		level = glog.Warn
+
+	case lg.Check(zap.ErrorLevel, "") != nil:
+		level = glog.Error
+
+	default:
+		level = glog.Disabled
+	}
+
 	return &adapter{
-		lg:        lg,
-		debugHook: debugHook,
-		infoHook:  infoHook,
-		warnHook:  warnHook,
-		errorHook: errorHook,
+		lg:  lg,
+		max: level,
 	}
 }
 
-// ============================================================================.
-
 type adapter struct {
-	lg        *zap.Logger
-	debugHook Hook
-	infoHook  Hook
-	warnHook  Hook
-	errorHook Hook
+	lg  *zap.Logger
+	max glog.Level
 }
 
 func (z adapter) Named(s string) glog.Lg {
-	return Hooked(
-		z.lg.Named(s),
-		z.debugHook,
-		z.infoHook,
-		z.warnHook,
-		z.errorHook,
-	)
+	return &adapter{
+		lg:  z.lg.Named(s),
+		max: z.max,
+	}
 }
 
 func (z adapter) Debug(msg string, fields ...any) {
+	if !z.IsDebug() {
+		return
+	}
+
 	z.lg.Debug(msg, toZap("", fields)...)
 }
 
 func (z adapter) Info(msg string, fields ...any) {
+	if !z.IsInfo() {
+		return
+	}
+
 	z.lg.Info(msg, toZap("", fields)...)
 }
 
 func (z adapter) Warn(msg string, fields ...any) {
+	if !z.IsWarn() {
+		return
+	}
+
 	z.lg.Warn(msg, toZap("", fields)...)
 }
 
 func (z adapter) Error(msg string, fields ...any) {
+	if !z.IsError() {
+		return
+	}
+
 	z.lg.Error(msg, toZap("", fields)...)
 }
 
-func (z adapter) Err(msg string, err error, fields ...any) {
-	z.lg.Error(msg, toZap("", append(fields, err))...)
+func (z adapter) IsDebug() bool {
+	return z.max >= glog.Debug
 }
 
-func (z adapter) Of(key string, value ...any) any {
-	return toZap(key, value)
+func (z adapter) IsInfo() bool {
+	return z.max >= glog.Info
+}
+
+func (z adapter) IsWarn() bool {
+	return z.max >= glog.Warn
+}
+
+func (z adapter) IsError() bool {
+	return z.max >= glog.Error
 }
 
 func toZap(

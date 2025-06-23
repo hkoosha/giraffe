@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hkoosha/giraffe"
-	"github.com/hkoosha/giraffe/glog"
+	"github.com/hkoosha/giraffe/g11y/glog"
 	"github.com/hkoosha/giraffe/toggles/internal"
 )
 

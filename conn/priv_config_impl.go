@@ -13,7 +13,7 @@ import (
 
 	"github.com/hkoosha/giraffe/conn/headers"
 	"github.com/hkoosha/giraffe/g11y"
-	"github.com/hkoosha/giraffe/glog"
+	"github.com/hkoosha/giraffe/g11y/glog"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 	"github.com/hkoosha/giraffe/zebra/z"
 )

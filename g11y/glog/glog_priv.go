@@ -41,6 +41,22 @@ func poorLog(
 
 type poorManGLog struct{}
 
+func (p poorManGLog) IsDebug() bool {
+	return true
+}
+
+func (p poorManGLog) IsInfo() bool {
+	return true
+}
+
+func (p poorManGLog) IsWarn() bool {
+	return true
+}
+
+func (p poorManGLog) IsError() bool {
+	return true
+}
+
 func (p poorManGLog) Named(string) Lg {
 	return p
 }
@@ -63,13 +79,6 @@ func (p poorManGLog) Error(msg string, fields ...any) {
 
 func (p poorManGLog) Err(msg string, err error, fields ...any) {
 	poorLog(msg, append(fields, err))
-}
-
-func (p poorManGLog) Of(key string, value ...any) any {
-	value = append(value, "")
-	copy(value[1:], value[:len(value)-1])
-	value[0] = key
-	return value
 }
 
 var global Lg = &poorManGLog{}

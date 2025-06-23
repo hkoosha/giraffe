@@ -5,6 +5,7 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/g11y"
+	"github.com/hkoosha/giraffe/g11y/named"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/zebra/zptr"
 )
@@ -36,6 +37,14 @@ func M[A any](
 	err error,
 ) A {
 	return g11y.Must(a, err)
+}
+
+// N Named.
+func N(
+	name string,
+	v any,
+) named.Named {
+	return named.Of(name, v)
 }
 
 func OK(

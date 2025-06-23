@@ -5,7 +5,8 @@ import (
 	"maps"
 	"net/http"
 
-	"github.com/hkoosha/giraffe/glog"
+	"github.com/hkoosha/giraffe/g11y/glog"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 const (
@@ -56,7 +57,7 @@ func (p *probes) ServeHTTP(
 	if err == nil {
 		p.say(w, true)
 	} else {
-		p.lg.Warn("probe failed", p.lg.Of("probe", name), err)
+		p.lg.Warn("probe failed", N("probe", name), err)
 		p.say(w, false)
 	}
 }

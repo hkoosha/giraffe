@@ -19,16 +19,14 @@ type Lg interface {
 	Named(string) Lg
 
 	Debug(msg string, fields ...any)
-
 	Info(msg string, fields ...any)
-
 	Warn(msg string, fields ...any)
-
 	Error(msg string, fields ...any)
 
-	Err(msg string, err error, fields ...any)
-
-	Of(key string, value ...any) any
+	IsDebug() bool
+	IsInfo() bool
+	IsWarn() bool
+	IsError() bool
 }
 
 type KV struct {
