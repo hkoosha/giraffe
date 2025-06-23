@@ -36,13 +36,7 @@ func (r *router) Query(
 
 	for _, t := range r.togglers {
 		var en *bool
-		var clone Values
-		if len(r.togglers) > 1 {
-			clone = slices.Clone(values)
-		} else {
-			clone = values
-		}
-		if en, err = t.Get(ctx, name, clone); err == nil && en != nil && *en {
+		if en, err = t.Get(ctx, name, slices.Clone(values)); err == nil && en != nil && *en {
 			return true, nil
 		}
 	}
