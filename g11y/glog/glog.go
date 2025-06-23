@@ -13,8 +13,6 @@ func SetGlobal(lg Lg) {
 	global = lg
 }
 
-// ============================================================================.
-
 type Lg interface {
 	Named(string) Lg
 
@@ -28,24 +26,4 @@ type Lg interface {
 	IsInfo() bool
 	IsWarn() bool
 	IsError() bool
-}
-
-type KV struct {
-	val any
-	key string
-}
-
-func (k *KV) Key() string {
-	return k.key
-}
-
-func (k *KV) Val() any {
-	return k.val
-}
-
-func Of(
-	key string,
-	v any,
-) KV {
-	return KV{key: key, val: v}
 }

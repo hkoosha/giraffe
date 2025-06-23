@@ -122,9 +122,6 @@ func toZap(
 		case zap.Field:
 			list[i] = v
 
-		case glog.KV:
-			list[i] = zap.Any(v.Key(), v.Val())
-
 		case error:
 			switch {
 			case hasKey && i > 0:
