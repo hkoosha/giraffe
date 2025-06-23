@@ -4,10 +4,13 @@ import (
 	"context"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/glog"
 	"github.com/hkoosha/giraffe/toggles/internal"
 )
 
 type Toggler interface {
+	internal.Sealed
+
 	Query(
 		context.Context,
 		string,
@@ -18,19 +21,19 @@ type Toggler interface {
 		context.Context,
 		string,
 		bool,
-		...Condition,
+		Condition,
 	) error
 
 	Enable(
 		context.Context,
 		string,
-		...Condition,
+		Condition,
 	) error
 
 	Disable(
 		context.Context,
 		string,
-		...Condition,
+		Condition,
 	) error
 }
 
@@ -48,7 +51,63 @@ type Value interface {
 
 	Name() string
 	Value() any
+
+	Str() (string, bool)
+	Bln() (bool, bool)
+	I64() (int64, bool)
+	U64() (uint64, bool)
 }
+
+type Storage interface {
+	Get(
+		context.Context,
+		string,
+		Values,
+	) (*bool, error)
+
+	Set(
+		context.Context,
+		string,
+		bool,
+		Condition,
+	) error
+}
+
+// ====================================.
+
+type Values []Value
+
+func (v Values) Assoc() map[string]any {
+	m := make(map[string]any, len(v))
+	for _, val := range v {
+		m[val.Name()] = val.Value()
+	}
+	return m
+}
+
+// ====================================.
+
+func Router(
+	defaultCase Condition,
+	togglers ...Storage,
+) Toggler {
+	return newRouter(defaultCase, togglers)
+}
+
+func InMemory(
+	lg glog.Lg,
+) Storage {
+	return newInMemory(lg)
+}
+
+func Constant(
+	lg glog.Lg,
+	enabled bool,
+) Storage {
+	return newConstant(lg, enabled)
+}
+
+// ====================================.
 
 //goland:noinspection GoUnusedExportedFunction
 func Always() Condition {
@@ -88,12 +147,4 @@ func Of[V giraffe.Basic](
 	v V,
 ) Value {
 	return valueOf(name, v)
-}
-
-func Router(
-	t ...Toggler,
-) Toggler {
-	return &router{
-		togglers: t,
-	}
 }

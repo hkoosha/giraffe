@@ -7,12 +7,10 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
-	"strings"
 
 	"github.com/hkoosha/giraffe"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/toggles/internal"
-	"github.com/hkoosha/giraffe/zebra/z"
 )
 
 func andOf(rest []Condition) Condition {
@@ -74,14 +72,12 @@ func orOf(rest []Condition) Condition {
 func condOf(
 	name string,
 	op string,
-	args ...any,
+	args string,
 ) cond {
-	str := z.Applied(args, func(v any) string { return fmt.Sprint(v) })
-
 	return cond{
 		Sealer: internal.Sealer{},
 		name:   name,
-		uid_:   op + "(" + strings.Join(str, ",") + ")",
+		uid_:   fmt.Sprintf("%s(%s)", op, args),
 	}
 }
 
@@ -114,12 +110,14 @@ func inOf[V giraffe.Ord](
 		return eqOf(name, v[0])
 
 	case len(v) < 8:
+		//goland:noinspection GoPrintFunctions
 		return &in[V]{
 			val:  v,
 			cond: condOf(name, "in", uidOf(v)),
 		}
 
 	default:
+		//goland:noinspection GoPrintFunctions
 		return &search[V]{
 			val:  v,
 			cond: condOf(name, "search", uidOf(v)),
@@ -133,7 +131,7 @@ func eqOf[V giraffe.Basic](
 ) Condition {
 	return &eq{
 		val:  v,
-		cond: condOf(name, "eq", name, v),
+		cond: condOf(name, "eq", fmt.Sprintf("%s=%v", name, v)),
 	}
 }
 
@@ -143,7 +141,7 @@ func gtOf[V giraffe.Num](
 ) Condition {
 	return &gt[V]{
 		val:  v,
-		cond: condOf(name, "gt", name, v),
+		cond: condOf(name, "gt", fmt.Sprintf("%s>%v", name, v)),
 	}
 }
 
@@ -153,7 +151,7 @@ func ltOf[V giraffe.Num](
 ) Condition {
 	return &lt[V]{
 		val:  v,
-		cond: condOf(name, "lt", name, v),
+		cond: condOf(name, "lt", fmt.Sprintf("%s<%v", name, v)),
 	}
 }
 
@@ -289,7 +287,7 @@ func (q *not) Or(rest ...Condition) Condition {
 
 // ====================================.
 
-var no_ Condition = &no{condOf("", "no")}
+var no_ Condition = &no{condOf("", "no", "")}
 
 type no struct {
 	cond
@@ -317,7 +315,7 @@ func (q *no) isNo() bool {
 
 // ====================================.
 
-var yes_ Condition = &yes{condOf("", "yes")}
+var yes_ Condition = &yes{condOf("", "yes", "")}
 
 type yes struct {
 	cond
@@ -422,6 +420,38 @@ type value struct {
 
 	val  any
 	name string
+}
+
+func (q *value) Str() (string, bool) {
+	if v, ok := q.val.(string); ok {
+		return v, true
+	}
+
+	return "", false
+}
+
+func (q *value) Bln() (v, ok bool) { //nolint:nonamedreturns
+	if v, ok = q.val.(bool); ok {
+		return v, true
+	}
+
+	return false, false
+}
+
+func (q *value) I64() (int64, bool) {
+	if v, ok := q.val.(int64); ok {
+		return v, true
+	}
+
+	return 0, false
+}
+
+func (q *value) U64() (uint64, bool) {
+	if v, ok := q.val.(uint64); ok {
+		return v, true
+	}
+
+	return 0, false
 }
 
 func (q *value) Name() string {

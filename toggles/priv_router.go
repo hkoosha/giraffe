@@ -2,14 +2,29 @@ package toggles
 
 import (
 	"context"
+	"slices"
 
 	"golang.org/x/sync/errgroup"
+
+	"github.com/hkoosha/giraffe/toggles/internal"
 )
 
-var _ Toggler = (*router)(nil)
+func newRouter(
+	defaultCase Condition,
+	togglers []Storage,
+) Toggler {
+	return &router{
+		Sealer: internal.Sealer{},
+
+		defaultCase: defaultCase,
+		togglers:    togglers,
+	}
+}
 
 type router struct {
-	togglers []Toggler
+	internal.Sealer
+	defaultCase Condition
+	togglers    []Storage
 }
 
 func (r *router) Query(
@@ -20,41 +35,47 @@ func (r *router) Query(
 	var err error
 
 	for _, t := range r.togglers {
-		var en bool
-		if en, err = t.Query(ctx, name, values...); err == nil && en {
+		var en *bool
+		var clone Values
+		if len(r.togglers) > 1 {
+			clone = slices.Clone(values)
+		} else {
+			clone = values
+		}
+		if en, err = t.Get(ctx, name, clone); err == nil && en != nil && *en {
 			return true, nil
 		}
 	}
 
-	return false, err
+	return r.defaultCase.test(values), err
 }
 
 func (r *router) Enable(
 	ctx context.Context,
 	name string,
-	rest ...Condition,
+	c Condition,
 ) error {
-	return r.Set(ctx, name, true, rest...)
+	return r.Set(ctx, name, true, c)
 }
 
 func (r *router) Disable(
 	ctx context.Context,
 	name string,
-	rest ...Condition,
+	c Condition,
 ) error {
-	return r.Set(ctx, name, false, rest...)
+	return r.Set(ctx, name, false, c)
 }
 
 func (r *router) Set(
 	ctx context.Context,
 	name string,
 	enable bool,
-	rest ...Condition,
+	c Condition,
 ) error {
 	var eg errgroup.Group
 	for _, t := range r.togglers {
 		eg.Go(func() error {
-			return t.Set(ctx, name, enable, rest...)
+			return t.Set(ctx, name, enable, c)
 		})
 	}
 
