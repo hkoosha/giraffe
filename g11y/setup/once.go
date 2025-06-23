@@ -8,10 +8,13 @@ func FixateOnceChecks(enabled bool) {
 
 func Once(
 	domain string,
-	service string,
 	what ...string,
 ) {
-	key := toKey(domain, service, what...)
+	for i := len(what) - 1; i >= 0; i-- {
+		EnsureOpen(domain, what[:i]...)
+	}
+
+	key := toKey(domain, what...)
 
 	locks.mu.Lock()
 	defer locks.mu.Unlock()
@@ -22,10 +25,9 @@ func Once(
 
 func EnsureOpen(
 	domain string,
-	service string,
 	what ...string,
 ) {
-	key := toKey(domain, service, what...)
+	key := toKey(domain, what...)
 
 	locks.mu.Lock()
 	defer locks.mu.Unlock()
@@ -35,10 +37,9 @@ func EnsureOpen(
 
 func EnsureDone(
 	domain string,
-	service string,
 	what ...string,
 ) {
-	key := toKey(domain, service, what...)
+	key := toKey(domain, what...)
 
 	locks.mu.Lock()
 	defer locks.mu.Unlock()

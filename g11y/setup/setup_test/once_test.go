@@ -10,48 +10,92 @@ import (
 
 func TestOnce(t *testing.T) {
 	t.Run("blocks second - level 1 nesting", func(t *testing.T) {
-		setup.Once("giraffe", "setup_once_test", "level1")
+		setup.Once(
+			"giraffe_once_test1",
+			"level1",
+		)
 
 		assert.Panics(t, func() {
-			setup.Once("giraffe", "setup_once_test", "level1")
+			setup.Once(
+				"giraffe_once_test1",
+				"level1",
+			)
 		})
 	})
 
 	t.Run("blocks second - level 2 nesting", func(t *testing.T) {
-		setup.Once("giraffe", "setup_once_test", "level1", "level2")
+		setup.Once(
+			"giraffe_once_test2",
+			"level1",
+			"level2",
+		)
 
 		assert.Panics(t, func() {
-			setup.Once("giraffe", "setup_once_test", "level1", "level2")
+			setup.Once(
+				"giraffe_once_test2",
+				"level1",
+				"level2",
+			)
 		})
 	})
 
 	t.Run("blocks second - level 3 nesting", func(t *testing.T) {
-		setup.Once("giraffe", "setup_once_test", "level1", "level2", "level3")
+		setup.Once(
+			"giraffe_once_test3",
+			"level1",
+			"level2",
+			"level3",
+		)
 
 		assert.Panics(t, func() {
-			setup.Once("giraffe", "setup_once_test", "level1", "level2", "level3")
-		})
-	})
-
-	t.Run("blocks second - level 4 nesting", func(t *testing.T) {
-		setup.Once("giraffe", "setup_once_test", "level1", "level2", "level3", "level4")
-
-		assert.Panics(t, func() {
-			setup.Once("giraffe", "setup_once_test", "level1", "level2", "level3", "level4")
-		})
-	})
-
-	t.Run("blocks second - level 5 nesting", func(t *testing.T) {
-		setup.Once("giraffe", "setup_once_test", "level1", "level2", "level3", "level4", "level5")
-
-		assert.Panics(t, func() {
-			setup.Once("giraffe",
-				"setup_once_test",
+			setup.Once(
+				"giraffe_once_test3",
 				"level1",
 				"level2",
 				"level3",
-				"level4",
-				"level5")
+			)
 		})
+	})
+
+	t.Run("waterfall", func(t *testing.T) {
+		setup.Once(
+			"giraffe_once_test_waterfall",
+			"level1",
+			"level2",
+			"level3",
+		)
+		setup.EnsureDone(
+			"giraffe_once_test_waterfall",
+			"level1",
+			"level2",
+			"level3",
+		)
+
+		setup.Once(
+			"giraffe_once_test_waterfall",
+			"level1",
+			"level2",
+		)
+		setup.EnsureDone(
+			"giraffe_once_test_waterfall",
+			"level1",
+			"level2",
+		)
+
+		setup.Once(
+			"giraffe_once_test_waterfall",
+			"level1",
+		)
+		setup.EnsureDone(
+			"giraffe_once_test_waterfall",
+			"level1",
+		)
+
+		setup.Once(
+			"giraffe_once_test_waterfall",
+		)
+		setup.EnsureDone(
+			"giraffe_once_test_waterfall",
+		)
 	})
 }

@@ -1,7 +1,6 @@
 package setup
 
 import (
-	"fmt"
 	"runtime/debug"
 	"strings"
 	"sync"
@@ -77,14 +76,7 @@ func check(
 
 func toKey(
 	domain string,
-	service string,
 	what ...string,
 ) string {
-	key := fmt.Sprintf("%s|%s", domain, service)
-
-	if len(what) > 0 {
-		key += "|" + strings.Join(what, ".")
-	}
-
-	return key
+	return strings.Join(append([]string{domain}, what...), ".")
 }
