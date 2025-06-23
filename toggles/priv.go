@@ -1,7 +1,7 @@
 package toggles
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -11,148 +11,156 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/toggles/internal"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
-const (
-	opFirst binOp = iota + 1
-
-	opEq
-	opGt
-	opLt
-
-	opAnd
-	opOr
-
-	opIn
-
-	opLast
-)
-
-type binOp uint
-
-func (o binOp) String() string {
-	switch o {
-	case opEq:
-		return "="
-
-	case opGt:
-		return ">"
-
-	case opLt:
-		return "<"
-
-	case opAnd:
-		return "&"
-
-	case opOr:
-		return "|"
-
-	case opIn:
-		return "~"
-
-	default:
-		return fmt.Sprintf("op[invalid=%d]", o)
-	}
-}
-
-func join(
-	rest []Condition,
-	op binOp,
-) Condition {
-	if op == opAnd {
-		rest = z.Filtered(rest, func(it Condition) bool {
-			return !it.isYes()
-		})
-		if slices.ContainsFunc(rest, func(it Condition) bool { return it.isNo() }) {
+func andOf(rest []Condition) Condition {
+	uids := make([]string, 0, len(rest))
+	filtered := make([]Condition, 0, len(rest))
+	for _, it := range rest {
+		if it.isNo() {
 			return no_
-		}
-	} else if op == opOr {
-		rest = z.Filtered(rest, func(it Condition) bool {
-			return !it.isNo()
-		})
-		if slices.ContainsFunc(rest, func(it Condition) bool { return it.isYes() }) {
-			return yes_
+		} else if !it.isYes() {
+			filtered = append(filtered, it)
+			uids = append(uids, it.uid())
 		}
 	}
 
 	if len(rest) == 0 {
-		return &yes{}
+		return yes_
 	} else if len(rest) == 1 {
 		return rest[0]
 	}
 
-	var uid string
-	{
-		uids := z.Applied(rest, func(it Condition) string { return it.uid() })
-		slices.Sort(uids)
-		uid = "(" + strings.Join(uids, op.String()) + ")"
+	return &and{
+		rest: rest,
+		cond: cond{
+			Sealer: internal.Sealer{},
+			name:   "",
+			uid_:   fmt.Sprintf("and(%d, %s)", len(uids), uidOf(uids)),
+		},
 	}
-
-	switch op {
-	case opAnd:
-		return &and{
-			rest: rest,
-			cond: cond{
-				uid_: uid,
-			},
-		}
-
-	case opOr:
-		return &or{
-			rest: rest,
-			cond: cond{
-				uid_: uid,
-			},
-		}
-
-	default:
-		panic(EF("unknown operation '%s'", op))
-	}
-}
-
-func andOf(rest []Condition) Condition {
-	return join(rest, opAnd)
 }
 
 func orOf(rest []Condition) Condition {
-	return join(rest, opOr)
-}
-
-func notOf(c Condition) Condition {
-	return &not{rest: c}
-}
-
-func (o binOp) ensure() binOp {
-	if o <= opFirst || opLast <= o {
-		panic(EF("invalid op: %s", o))
+	uids := make([]string, 0, len(rest))
+	filtered := make([]Condition, 0, len(rest))
+	for _, it := range rest {
+		if it.isYes() {
+			return yes_
+		} else if !it.isNo() {
+			filtered = append(filtered, it)
+			uids = append(uids, it.uid())
+		}
 	}
 
-	return o
+	if len(rest) == 0 {
+		return yes_
+	} else if len(rest) == 1 {
+		return rest[0]
+	}
+
+	return &or{
+		rest: rest,
+		cond: cond{
+			Sealer: internal.Sealer{},
+			name:   "",
+			uid_:   fmt.Sprintf("or(%d, %s)", len(uids), uidOf(uids)),
+		},
+	}
+}
+
+func condOf(
+	name string,
+	op string,
+	args ...any,
+) cond {
+	str := z.Applied(args, func(v any) string { return fmt.Sprint(v) })
+
+	return cond{
+		Sealer: internal.Sealer{},
+		name:   name,
+		uid_:   op + "(" + strings.Join(str, ",") + ")",
+	}
 }
 
 func uidOf(v any) string {
-	sum := md5.Sum(M(json.Marshal(v)))
+	sum := sha256.Sum256(M(json.Marshal(v)))
 	uid := hex.EncodeToString(sum[:])
 	return uid
 }
 
-type seal struct{}
-
-type sealed interface {
-	seal() seal
+func valueOf(
+	name string,
+	v any,
+) Value {
+	return &value{
+		Sealer: internal.Sealer{},
+		name:   name,
+		val:    v,
+	}
 }
 
-type sealer struct{}
+func inOf[V giraffe.Ord](
+	name string,
+	v []V,
+) Condition {
+	switch {
+	case len(v) == 0:
+		return no_
 
-func (q *sealer) seal() seal {
-	panic("do not call")
+	case len(v) == 1:
+		return eqOf(name, v[0])
+
+	case len(v) < 8:
+		return &in[V]{
+			val:  v,
+			cond: condOf(name, "in", uidOf(v)),
+		}
+
+	default:
+		return &search[V]{
+			val:  v,
+			cond: condOf(name, "search", uidOf(v)),
+		}
+	}
+}
+
+func eqOf[V giraffe.Basic](
+	name string,
+	v V,
+) Condition {
+	return &eq{
+		val:  v,
+		cond: condOf(name, "eq", name, v),
+	}
+}
+
+func gtOf[V giraffe.Num](
+	name string,
+	v V,
+) Condition {
+	return &gt[V]{
+		val:  v,
+		cond: condOf(name, "gt", name, v),
+	}
+}
+
+func ltOf[V giraffe.Num](
+	name string,
+	v V,
+) Condition {
+	return &lt[V]{
+		val:  v,
+		cond: condOf(name, "lt", name, v),
+	}
 }
 
 // ============================================================================.
 
 type condition interface {
-	sealed
+	internal.Sealed
 
 	test([]Value) bool
 	test0(Value) bool
@@ -164,7 +172,7 @@ type condition interface {
 // ====================================.
 
 type cond struct {
-	sealer
+	internal.Sealer
 
 	name string
 	uid_ string
@@ -183,7 +191,11 @@ func (q *cond) Or(rest ...Condition) Condition {
 }
 
 func (q *cond) Not() Condition {
-	return notOf(q)
+	//goland:noinspection GoPrintFunctions
+	return &not{
+		rest: q,
+		cond: condOf("", "not", q.uid_),
+	}
 }
 
 func (q *cond) uid() string {
@@ -277,7 +289,7 @@ func (q *not) Or(rest ...Condition) Condition {
 
 // ====================================.
 
-var no_ Condition = &no{cond{uid_: "no"}}
+var no_ Condition = &no{condOf("", "no")}
 
 type no struct {
 	cond
@@ -296,7 +308,7 @@ func (q *no) Or(rest ...Condition) Condition {
 }
 
 func (q *no) Not() Condition {
-	return &yes{}
+	return yes_
 }
 
 func (q *no) isNo() bool {
@@ -305,7 +317,7 @@ func (q *no) isNo() bool {
 
 // ====================================.
 
-var yes_ Condition = &yes{cond{uid_: "yes"}}
+var yes_ Condition = &yes{condOf("", "yes")}
 
 type yes struct {
 	cond
@@ -324,7 +336,7 @@ func (q *yes) Or(...Condition) Condition {
 }
 
 func (q *yes) Not() Condition {
-	return &no{}
+	return no_
 }
 
 func (q *yes) isYes() bool {
@@ -406,7 +418,8 @@ func (q *search[V]) test0(v Value) bool {
 // ====================================.
 
 type value struct {
-	sealer
+	internal.Sealer
+
 	val  any
 	name string
 }
@@ -416,5 +429,5 @@ func (q *value) Name() string {
 }
 
 func (q *value) value() any {
-	return q.value
+	return q.val
 }

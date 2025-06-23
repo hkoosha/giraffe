@@ -2,9 +2,9 @@ package toggles
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/toggles/internal"
 )
 
 type Toggler interface {
@@ -44,7 +44,7 @@ type Condition interface {
 }
 
 type Value interface {
-	sealed
+	internal.Sealed
 
 	Name() string
 	value() any
@@ -59,76 +59,35 @@ func Eq[V giraffe.Basic](
 	name string,
 	v V,
 ) Condition {
-	return &eq{
-		val: v,
-		cond: cond{
-			name: name,
-			uid_: fmt.Sprintf("eq(%s, %v)", name, v),
-		},
-	}
+	return eqOf(name, v)
 }
 
 func Gt[V giraffe.Num](
 	name string,
 	v V,
 ) Condition {
-	return &gt[V]{
-		val: v,
-		cond: cond{
-			name: name,
-			uid_: fmt.Sprintf("gt(%s, %v)", name, v),
-		},
-	}
+	return gtOf(name, v)
 }
 
 func Lt[V giraffe.Num](
 	name string,
 	v V,
 ) Condition {
-	return &lt[V]{
-		val: v,
-		cond: cond{
-			name: name,
-			uid_: fmt.Sprintf("lt(%s, %v)", name, v),
-		},
-	}
+	return ltOf(name, v)
 }
 
 func In[V giraffe.Ord](
 	name string,
 	v ...V,
 ) Condition {
-	if len(v) == 0 {
-		return no_
-	} else if len(v) == 1 {
-		return Eq(name, v[0])
-	} else if len(v) < 8 {
-		return &in[V]{
-			val: v,
-			cond: cond{
-				name: name,
-				uid_: fmt.Sprintf("in(%s, %s)", name, uidOf(v)),
-			},
-		}
-	} else {
-		return &search[V]{
-			val: v,
-			cond: cond{
-				name: name,
-				uid_: fmt.Sprintf("search(%s, %s)", name, uidOf(v)),
-			},
-		}
-	}
+	return inOf(name, v)
 }
 
 func Of[V giraffe.Basic](
 	name string,
 	v V,
 ) Value {
-	return &value{
-		name: name,
-		val:  v,
-	}
+	return valueOf(name, v)
 }
 
 func Router(
