@@ -86,6 +86,11 @@ func Always() Condition {
 	return yes_
 }
 
+//goland:noinspection GoUnusedExportedFunction
+func Never() Condition {
+	return no_
+}
+
 func Eq[V giraffe.Basic](
 	name string,
 	v V,
