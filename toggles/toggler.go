@@ -16,25 +16,6 @@ type Toggler interface {
 		string,
 		...Value,
 	) (bool, error)
-
-	Set(
-		context.Context,
-		string,
-		bool,
-		Condition,
-	) error
-
-	Enable(
-		context.Context,
-		string,
-		Condition,
-	) error
-
-	Disable(
-		context.Context,
-		string,
-		Condition,
-	) error
 }
 
 type Condition interface {
@@ -64,16 +45,7 @@ type Storage interface {
 		string,
 		Values,
 	) (*bool, error)
-
-	Set(
-		context.Context,
-		string,
-		bool,
-		Condition,
-	) error
 }
-
-// ====================================.
 
 type Values []Value
 
@@ -94,9 +66,9 @@ func Router(
 	return newRouter(defaultCase, togglers)
 }
 
-func InMemory(
+func Ephemeral(
 	lg glog.Lg,
-) Storage {
+) *InMemory {
 	return newInMemory(lg)
 }
 

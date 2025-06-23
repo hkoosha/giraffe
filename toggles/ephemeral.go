@@ -9,22 +9,24 @@ import (
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
-func newInMemory(lg glog.Lg) Storage {
+var _ Storage = (*InMemory)(nil)
+
+func newInMemory(lg glog.Lg) *InMemory {
 	g11y.NonNil(lg)
 	_ = lg
 
-	return &inMemory{
+	return &InMemory{
 		lock:  &sync.Mutex{},
 		store: make(map[string]Condition),
 	}
 }
 
-type inMemory struct {
+type InMemory struct {
 	lock  *sync.Mutex
 	store map[string]Condition
 }
 
-func (i *inMemory) get(
+func (i *InMemory) get(
 	name string,
 	values Values,
 ) *bool {
@@ -43,7 +45,7 @@ func (i *inMemory) get(
 	return Ref(c.test(values))
 }
 
-func (i *inMemory) set(
+func (i *InMemory) set(
 	name string,
 	enabled bool,
 	req Condition,
@@ -63,7 +65,7 @@ func (i *inMemory) set(
 	i.store[name] = c.And(req)
 }
 
-func (i *inMemory) Get(
+func (i *InMemory) Get(
 	_ context.Context,
 	name string,
 	values Values,
@@ -71,7 +73,7 @@ func (i *inMemory) Get(
 	return i.get(name, values), nil
 }
 
-func (i *inMemory) Set(
+func (i *InMemory) Set(
 	_ context.Context,
 	name string,
 	enabled bool,
@@ -103,13 +105,4 @@ func (i *constant) Get(
 	// Make a copy first.
 	en := i.enabled
 	return &en, nil
-}
-
-func (i *constant) Set(
-	context.Context,
-	string,
-	bool,
-	Condition,
-) error {
-	return nil
 }

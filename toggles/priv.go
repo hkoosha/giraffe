@@ -1,6 +1,7 @@
 package toggles
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -460,4 +461,41 @@ func (q *value) Name() string {
 
 func (q *value) Value() any {
 	return q.val
+}
+
+// ====================================.
+
+func newRouter(
+	defaultCase Condition,
+	togglers []Storage,
+) Toggler {
+	return &router{
+		Sealer: internal.Sealer{},
+
+		defaultCase: defaultCase,
+		togglers:    togglers,
+	}
+}
+
+type router struct {
+	internal.Sealer
+	defaultCase Condition
+	togglers    []Storage
+}
+
+func (r *router) Query(
+	ctx context.Context,
+	name string,
+	values ...Value,
+) (bool, error) {
+	var err error
+
+	for _, t := range r.togglers {
+		var en *bool
+		if en, err = t.Get(ctx, name, slices.Clone(values)); err == nil && en != nil && *en {
+			return true, nil
+		}
+	}
+
+	return r.defaultCase.test(values), err
 }
