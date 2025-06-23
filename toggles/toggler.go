@@ -47,7 +47,7 @@ type Value interface {
 	internal.Sealed
 
 	Name() string
-	value() any
+	Value() any
 }
 
 //goland:noinspection GoUnusedExportedFunction

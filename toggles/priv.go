@@ -362,7 +362,7 @@ type gt[V giraffe.Ord] struct {
 }
 
 func (q *gt[V]) test0(v Value) bool {
-	if vv, ok := v.value().(V); ok {
+	if vv, ok := v.Value().(V); ok {
 		return q.val > vv
 	}
 
@@ -377,7 +377,7 @@ type lt[V giraffe.Ord] struct {
 }
 
 func (q *lt[V]) test0(v Value) bool {
-	if vv, ok := v.value().(V); ok {
+	if vv, ok := v.Value().(V); ok {
 		return q.val < vv
 	}
 
@@ -392,7 +392,7 @@ type in[V comparable] struct {
 }
 
 func (q *in[V]) test0(v Value) bool {
-	if vv, ok := v.value().(V); !ok || !slices.Contains(q.val, vv) {
+	if vv, ok := v.Value().(V); !ok || !slices.Contains(q.val, vv) {
 		return false
 	}
 
@@ -428,6 +428,6 @@ func (q *value) Name() string {
 	return q.name
 }
 
-func (q *value) value() any {
+func (q *value) Value() any {
 	return q.val
 }
