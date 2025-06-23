@@ -45,6 +45,23 @@ func (z adapter) Named(s string) glog.Lg {
 	}
 }
 
+func (z adapter) Log(level glog.Level, msg string, fields ...any) {
+	switch level {
+	case glog.Debug:
+		z.Debug(msg, fields...)
+	case glog.Info:
+		z.Info(msg, fields...)
+	case glog.Warn:
+		z.Warn(msg, fields...)
+	case glog.Error:
+		z.Error(msg, fields...)
+	case glog.Disabled:
+		// Nothing
+	default:
+		z.Error(msg, fields...)
+	}
+}
+
 func (z adapter) Debug(msg string, fields ...any) {
 	if !z.IsDebug() {
 		return

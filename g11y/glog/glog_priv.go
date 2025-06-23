@@ -41,6 +41,23 @@ func poorLog(
 
 type poorManGLog struct{}
 
+func (p poorManGLog) Log(level Level, msg string, fields ...any) {
+	switch level {
+	case Debug:
+		p.Debug(msg, fields...)
+	case Info:
+		p.Info(msg, fields...)
+	case Warn:
+		p.Warn(msg, fields...)
+	case Error:
+		p.Error(msg, fields...)
+	case Disabled:
+		// Nothing.
+	default:
+		p.Error(msg, fields...)
+	}
+}
+
 func (p poorManGLog) IsDebug() bool {
 	return true
 }

@@ -18,6 +18,7 @@ func SetGlobal(lg Lg) {
 type Lg interface {
 	Named(string) Lg
 
+	Log(level Level, msg string, fields ...any)
 	Debug(msg string, fields ...any)
 	Info(msg string, fields ...any)
 	Warn(msg string, fields ...any)
