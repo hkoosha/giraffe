@@ -99,8 +99,6 @@ func newConfig(
 
 type config struct {
 	internal.Sealer
-
-	sealed bool
 	lg     glog.Lg
 	base   http.RoundTripper
 	rt     http.RoundTripper
@@ -111,6 +109,7 @@ type config struct {
 	log    *logConfig
 	retry  *retryConfig
 	otel   *otelConfig
+	sealed bool
 }
 
 // =============================================================================.

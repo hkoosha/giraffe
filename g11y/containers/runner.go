@@ -3,6 +3,7 @@ package containers
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
@@ -16,14 +17,13 @@ type Runner interface {
 
 	Register(...Container)
 
-	Finalize(
-		context.Context,
-		...Container,
-	)
+	Finalize(context.Context, ...Container)
 
-	Wait(context.Context)
+	Wait(context.Context) error
 
-	Close(context.Context)
+	Stop(ctx context.Context, timeout time.Duration) error
+
+	Close(ctx context.Context, timeout time.Duration)
 }
 
 // ====================================.

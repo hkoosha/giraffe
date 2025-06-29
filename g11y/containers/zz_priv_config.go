@@ -9,16 +9,14 @@ import (
 
 type config struct {
 	internal.Sealer
-
-	debug         bool
-	level         glog.Level
-	humanReadable bool
 	appRef        string
-
-	otel         bool
-	listenO11y   string
-	otelEndpoint string
-	otelInsecure bool
+	listenO11y    string
+	otelEndpoint  string
+	level         glog.Level
+	debug         bool
+	humanReadable bool
+	otel          bool
+	otelInsecure  bool
 }
 
 func (r *config) shallow() *config {

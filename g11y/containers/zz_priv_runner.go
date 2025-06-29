@@ -2,12 +2,12 @@ package containers
 
 import (
 	"context"
+	"slices"
 	"sync"
 	"time"
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
 	. "github.com/hkoosha/giraffe/internal/dot0"
@@ -18,7 +18,12 @@ const (
 	stateWaitingFinalize = "waiting_finalize"
 	stateWaitingActive   = "waiting_active"
 	stateActive          = "active"
+	stateTryingRunning   = "trying_running"
+	stateRunning         = "running"
+	stateStopping        = "stopping"
+	stateClosing         = "closing"
 	stateClosed          = "closed"
+	stateErr             = "err"
 )
 
 // TODO broken implementation.
@@ -33,10 +38,33 @@ type runner struct {
 	containers []Container
 }
 
+func (r *runner) goToFrom(
+	to string,
+	from ...string,
+) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if slices.Contains(from, to) {
+		panic(EF("cannot go from same state to itself, current=%v, from%v, to=%v",
+			r.state,
+			from,
+			to))
+	}
+	if slices.Contains(from, r.state) {
+		panic(EF("invalid state transition, current=%v, from=%v, to=%v", r.state, from, to))
+	}
+
+	r.state = to
+}
+
 func (r *runner) goTo(
 	from string,
 	to string,
 ) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	if from == to {
 		panic(EF("cannot go from same state to itself, current=%v, from=to=%v", r.state, from))
 	}
@@ -47,14 +75,30 @@ func (r *runner) goTo(
 	r.state = to
 }
 
+// Return dummy error, so it's more obvious there's an unlock fn that should be
+// called via defer. By not returning error, the call looks
+// like `defer r.stayIn(foo)()` while the second parentheses are easy to miss.
+func (r *runner) stayIn(
+	state string,
+) (func(), error) {
+	r.mu.Lock()
+	r.mustBeIn(state)
+	return r.mu.Unlock, nil
+}
+
+func (r *runner) mustBeIn(
+	state string,
+) {
+	if r.state != state {
+		panic(EF("invalid state, current=%v, expecting=%v", r.state, state))
+	}
+}
+
 // Open
 // TODO: log, otel.
 func (r *runner) Open(
 	context.Context,
 ) glog.Lg {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
 	r.goTo(stateWaitingOpen, stateWaitingFinalize)
 
 	return r.lg
@@ -63,12 +107,7 @@ func (r *runner) Open(
 func (r *runner) Register(
 	c ...Container,
 ) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if r.state != stateWaitingFinalize {
-		panic(EF("invalid state, current=%v, expecting=%v", r.state, stateWaitingFinalize))
-	}
+	defer M(r.stayIn(stateWaitingFinalize))
 
 	r.containers = append(r.containers, c...)
 }
@@ -80,9 +119,6 @@ func (r *runner) Finalize(
 	c ...Container,
 ) {
 	r.Register(c...)
-
-	r.mu.Lock()
-	defer r.mu.Unlock()
 
 	r.goTo(stateWaitingFinalize, stateWaitingActive)
 
@@ -99,11 +135,8 @@ func (r *runner) Finalize(
 
 func (r *runner) Wait(
 	ctx context.Context,
-) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	r.goTo(stateWaitingActive, stateActive)
+) error {
+	r.goToFrom(stateActive, stateTryingRunning)
 
 	wg, ctx := errgroup.WithContext(ctx)
 	for _, c := range r.containers {
@@ -112,48 +145,51 @@ func (r *runner) Wait(
 		})
 	}
 
-	err := wg.Wait()
-	g11y.DieIf(err)
+	r.goToFrom(stateTryingRunning, stateRunning)
+
+	return wg.Wait()
 }
 
+// Stop
+// TODO timeout.
+func (r *runner) Stop(
+	ctx context.Context,
+	timeout time.Duration,
+) error {
+	_ = timeout
+
+	r.goTo(stateRunning, stateStopping)
+
+	var wg errgroup.Group
+	for _, c := range r.containers {
+		wg.Go(func() error {
+			return c.Stop(ctx)
+		})
+	}
+
+	if err := wg.Wait(); err != nil {
+		r.goTo(stateStopping, stateErr)
+		return err
+	}
+
+	return nil
+}
+
+// Close
+// TODO implement
+// TODO: o11y.Shutdown().
+// TODO timeout.
 func (r *runner) Close(
 	ctx context.Context,
+	timeout time.Duration,
 ) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	_ = timeout
 
-	r.goTo(stateActive, stateClosed)
-
-	ch := make(chan error)
+	r.goTo(stateActive, stateClosing)
 
 	for _, c := range r.containers {
-		launch(ctx, ch, c.Stop)
+		c.Close(ctx)
 	}
 
-	select {
-	case err := <-ch:
-		var err2 any = err
-
-		g11y.DieIf(err2)
-	case <-time.After(200 * time.Millisecond):
-	}
-
-	// TODO
-	// o11y.Shutdown().
-}
-
-func launch(
-	ctx context.Context,
-	ch chan error,
-	fn func(context.Context),
-) {
-	go func() {
-		defer func() {
-			g11y.DieIf(recover())
-		}()
-
-		fn(ctx)
-
-		ch <- nil
-	}()
+	r.goTo(stateClosing, stateClosed)
 }

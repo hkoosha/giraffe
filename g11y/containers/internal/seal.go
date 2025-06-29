@@ -1,14 +1,12 @@
 package internal
 
-type Seal struct {
-}
+type Seal struct{}
 
 type Sealed interface {
 	private() Seal
 }
 
-type Sealer struct {
-}
+type Sealer struct{}
 
 func (s Sealer) private() Seal {
 	panic("do not call")

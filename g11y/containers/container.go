@@ -13,5 +13,5 @@ type Container interface {
 
 	Stop(context.Context) error
 
-	Close(context.Context) error
+	Close(context.Context)
 }
