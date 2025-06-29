@@ -80,6 +80,8 @@ func newConfig(
 	serde serdes.Serde[any],
 ) *config {
 	cfg := &config{
+		Sealer: internal.Sealer{},
+		sealed: false,
 		base:   defaultTransport,
 		lg:     lg,
 		rt:     nil,

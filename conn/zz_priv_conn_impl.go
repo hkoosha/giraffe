@@ -30,10 +30,11 @@ func newConn[R any](
 
 	var r R
 	return &connImpl[R]{
-		cfg:   cfg,
-		std:   cfg.Std(),
-		serde: serde,
-		rErr:  r,
+		Sealer: internal.Sealer{},
+		cfg:    cfg,
+		std:    cfg.Std(),
+		serde:  serde,
+		rErr:   r,
 	}
 }
 

@@ -150,6 +150,12 @@ func (r *runner) Wait(
 	return wg.Wait()
 }
 
+func (r *runner) MustWait(
+	ctx context.Context,
+) {
+	E(r.Wait(ctx))
+}
+
 // Stop
 // TODO timeout.
 func (r *runner) Stop(

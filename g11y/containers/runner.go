@@ -21,6 +21,8 @@ type Runner interface {
 
 	Wait(context.Context) error
 
+	MustWait(context.Context)
+
 	Stop(ctx context.Context, timeout time.Duration) error
 
 	Close(ctx context.Context, timeout time.Duration)
