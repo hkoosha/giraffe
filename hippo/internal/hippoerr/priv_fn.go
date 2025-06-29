@@ -17,7 +17,7 @@ func (e *FnMissingKeysErrorState) String(_ *HippoError) string {
 
 // NewFnMissingKeysError Private function, do not call outside hippo package.
 func NewFnMissingKeysError(
-	missing []giraffe.Query,
+	missing ...giraffe.Query,
 ) error {
 	return NewHippoError(
 		ErrCodeMissingKeys,

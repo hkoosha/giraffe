@@ -24,16 +24,14 @@ type Flag struct {
 	description string
 	envVar      string
 	sensitive   bool
-	typ         int
+	typ         int //nolint:unused // TODO
 }
 
 type FlagStore struct {
-	lg        glog.Lg
 	setup     setup.Registry
 	get       setup.Registry
 	mu        *sync.Mutex
 	vp        *viper.Viper
-	name      string
 	envPrefix string
 	flags     []*Flag
 }
@@ -61,6 +59,7 @@ func (s *FlagStore) define(
 		description: description,
 		envVar:      strings.ToUpper(strings.ReplaceAll(name, "-", "_")),
 		sensitive:   sensitive,
+		typ:         0,
 	}
 
 	s.flags = append(s.flags, f)
@@ -148,7 +147,7 @@ func (s *FlagStore) Dump() []string {
 			v = strconv.Itoa(s.vp.GetInt(name))
 
 		case uint:
-			v = strconv.Itoa(int(s.vp.GetUint(name)))
+			v = strconv.FormatUint(uint64(s.vp.GetUint(name)), 10)
 
 		case uint16:
 			v = strconv.Itoa(int(s.vp.GetUint16(name)))
@@ -233,7 +232,8 @@ func (s *FlagStore) GetDuration(
 
 	if v < minAccepted {
 		panic(EF(
-			"duration not in valid range, flag=%s, accepted_range=%s~%s, adjusted: %s => %s",
+			"duration not in valid range, flag=%s, "+
+				"accepted_range=%s~%s, adjusted: %s => %s",
 			flag.name,
 			minAccepted,
 			maxAccepted,
@@ -243,7 +243,9 @@ func (s *FlagStore) GetDuration(
 	}
 
 	if v > maxAccepted {
-		panic(EF("ERROR: duration not in valid range, flag=%s, accepted_range=%s~%s, adjusted: %s => %s\n",
+		panic(EF(
+			"ERROR: duration not in valid range, flag=%s, "+
+				"accepted_range=%s~%s, adjusted: %s => %s\n",
 			flag.name,
 			minAccepted,
 			maxAccepted,
@@ -259,17 +261,16 @@ func (s *FlagStore) GetDuration(
 
 func NewFlagStore(
 	lg glog.Lg,
-	name string,
 	envPrefix string,
 	vp *viper.Viper,
 	reg setup.Registry,
 ) *FlagStore {
+	_ = lg.Named("flag_store")
+
 	return &FlagStore{
-		lg:        lg,
 		setup:     reg,
 		get:       setup.New(),
 		mu:        &sync.Mutex{},
-		name:      name,
 		vp:        vp,
 		flags:     make([]*Flag, 0),
 		envPrefix: envPrefix,

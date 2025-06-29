@@ -1,7 +1,6 @@
 package conn
 
 import (
-	"context"
 	"maps"
 	"net/http"
 	"slices"
@@ -15,6 +14,7 @@ import (
 	"github.com/hkoosha/giraffe/conn/internal"
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
@@ -80,6 +80,8 @@ func newConfig(
 	serde serdes.Serde[any],
 ) *config {
 	cfg := &config{
+		Sealer: internal.Sealer{},
+		sealed: false,
 		base:   defaultTransport,
 		lg:     lg,
 		rt:     nil,
@@ -372,7 +374,7 @@ func (c *config) withBearerProvider(
 ) *config {
 	g11y.NonNil(fn)
 
-	fn = func(ctx context.Context, config Config) string {
+	fn = func(ctx gtx.Context, config Config) string {
 		return withBearerPrefix(fn(ctx, config))
 	}
 

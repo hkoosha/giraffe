@@ -2,12 +2,12 @@ package conn
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"net/http"
 
 	"github.com/hkoosha/giraffe/conn/internal"
 	"github.com/hkoosha/giraffe/g11y"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
 
@@ -30,10 +30,11 @@ func newConn[R any](
 
 	var r R
 	return &connImpl[R]{
-		cfg:   cfg,
-		std:   cfg.Std(),
-		serde: serde,
-		rErr:  r,
+		Sealer: internal.Sealer{},
+		cfg:    cfg,
+		std:    cfg.Std(),
+		serde:  serde,
+		rErr:   r,
 	}
 }
 
@@ -59,7 +60,7 @@ func (c *connImpl[R]) Cfg() Config {
 }
 
 func (c *connImpl[R]) Patch(
-	ctx context.Context,
+	ctx gtx.Context,
 	body any,
 	path ...string,
 ) (R, error) {
@@ -68,7 +69,7 @@ func (c *connImpl[R]) Patch(
 }
 
 func (c *connImpl[R]) Put(
-	ctx context.Context,
+	ctx gtx.Context,
 	body any,
 	path ...string,
 ) (R, error) {
@@ -77,7 +78,7 @@ func (c *connImpl[R]) Put(
 }
 
 func (c *connImpl[R]) Post(
-	ctx context.Context,
+	ctx gtx.Context,
 	body any,
 	path ...string,
 ) (R, error) {
@@ -86,7 +87,7 @@ func (c *connImpl[R]) Post(
 }
 
 func (c *connImpl[R]) Get(
-	ctx context.Context,
+	ctx gtx.Context,
 	path ...string,
 ) (R, error) {
 	const m = http.MethodGet
@@ -94,7 +95,7 @@ func (c *connImpl[R]) Get(
 }
 
 func (c *connImpl[R]) Delete(
-	ctx context.Context,
+	ctx gtx.Context,
 	path ...string,
 ) (R, error) {
 	const m = http.MethodDelete
@@ -102,7 +103,7 @@ func (c *connImpl[R]) Delete(
 }
 
 func (c *connImpl[R]) Call(
-	ctx context.Context,
+	ctx gtx.Context,
 	method string,
 	body any,
 	path ...string,
@@ -111,7 +112,7 @@ func (c *connImpl[R]) Call(
 }
 
 func (c *connImpl[R]) call(
-	ctx context.Context,
+	ctx gtx.Context,
 	method string,
 	body any,
 	path []string,
@@ -156,7 +157,7 @@ func (c *connImpl[R]) call(
 }
 
 func (c *connImpl[R]) callRaw(
-	ctx context.Context,
+	ctx gtx.Context,
 	method string,
 	body io.Reader,
 	path []string,

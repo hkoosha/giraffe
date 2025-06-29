@@ -1,7 +1,6 @@
 package remote
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"maps"
@@ -10,18 +9,19 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/g11y"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/internal/privnames"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
-type Server func(context.Context, io.Reader, io.Writer) error
+type Server func(gtx.Context, io.Reader, io.Writer) error
 
 func (s Server) ServeHTTP(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
-	if err := s(r.Context(), r.Body, w); err != nil {
+	if err := s(gtx.Of(r.Context()), r.Body, w); err != nil {
 		msg := err.Error()
 		if g11y.IsUnsafeError() {
 			msg += "\n\n" + g11y.FmtStacktraceOf(err)
@@ -38,7 +38,7 @@ type server struct {
 }
 
 func (s *server) ekran(
-	ctx context.Context,
+	ctx gtx.Context,
 	r io.Reader,
 	w io.Writer,
 ) error {

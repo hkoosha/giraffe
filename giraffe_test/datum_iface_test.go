@@ -96,7 +96,8 @@ type Queried interface {
 	Keys() ([]string, error)
 	Len() (int, error)
 	At(int) (Datum, error)
-	Has(query Query) bool
+	Has(Query) bool
+	HasAll(...Query) bool
 	Get(Query) (Datum, error)
 	Query(q string) (Datum, error)
 }

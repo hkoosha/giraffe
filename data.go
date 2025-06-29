@@ -321,6 +321,18 @@ func (d Datum) Has(
 	return d.has(query.impl())
 }
 
+func (d Datum) HasAll(
+	query ...Query,
+) bool {
+	for _, q := range query {
+		if !d.Has(q) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (d Datum) Tree() []Query {
 	return z.Applied(d.tree(), func(it gquery.Query) Query {
 		return Query(it.String())

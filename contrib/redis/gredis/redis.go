@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"reflect"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 	"github.com/hkoosha/giraffe/zebra/zcache"
@@ -95,7 +95,7 @@ func (r *adapter[K, V]) keyOf(k K) (string, error) {
 }
 
 func (r *adapter[K, V]) Get(
-	ctx context.Context,
+	ctx gtx.Context,
 	k K,
 ) (*zcache.Item[K, V], zcache.Outcome, error) {
 	key, err := r.keyOf(k)
@@ -125,7 +125,7 @@ func (r *adapter[K, V]) Get(
 }
 
 func (r *adapter[K, V]) Set(
-	ctx context.Context,
+	ctx gtx.Context,
 	k K,
 	v V,
 ) (zcache.Outcome, error) {
@@ -151,7 +151,7 @@ func (r *adapter[K, V]) Set(
 }
 
 func (r *adapter[K, V]) Unset(
-	ctx context.Context,
+	ctx gtx.Context,
 	k K,
 ) (zcache.Outcome, error) {
 	key, err := r.keyOf(k)
@@ -171,7 +171,7 @@ func (r *adapter[K, V]) Unset(
 }
 
 func (r *adapter[K, V]) start(
-	ctx context.Context,
-) (context.Context, context.CancelFunc) {
-	return context.WithDeadline(ctx, time.Now().Add(r.cfg.timeout))
+	ctx gtx.Context,
+) (gtx.Context, context.CancelFunc) {
+	return ctx.WithTimeout(r.cfg.timeout)
 }

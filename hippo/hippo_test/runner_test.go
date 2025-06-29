@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/hippo"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	. "github.com/hkoosha/giraffe/internal/dot1"
@@ -124,7 +125,7 @@ func TestRunner(t *testing.T) {
 		pipeline, err := hippo.Pipeline(plan)
 		require.NoError(t, err)
 
-		state := M(pipeline.Ekran(t.Context(), giraffe.OfEmpty()))
+		state := M(pipeline.Ekran(gtx.Of(t.Context()), giraffe.OfEmpty()))
 
 		fin, err := state.Get("fin.sum")
 		require.NoError(t, err)
@@ -163,7 +164,7 @@ func TestRunner_Compensation(t *testing.T) {
 			)
 
 		pipeline := M(hippo.Pipeline(plan))
-		state := M(pipeline.Ekran(t.Context(), giraffe.Of1("m", 33)))
+		state := M(pipeline.Ekran(gtx.Of(t.Context()), giraffe.Of1("m", 33)))
 		fin := M(state.QU64("fin.m1"))
 
 		assert.Equal(t, uint64(303), fin)
@@ -199,7 +200,7 @@ func TestRunner_Compensation(t *testing.T) {
 			)
 
 		pipeline := M(hippo.Pipeline(plan))
-		state := M(pipeline.Ekran(t.Context(), giraffe.Of1("m", 33)))
+		state := M(pipeline.Ekran(gtx.Of(t.Context()), giraffe.Of1("m", 33)))
 		fin := M(state.QU64("fin.m4"))
 
 		assert.Equal(t, uint64(303), fin)

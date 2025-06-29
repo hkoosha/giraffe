@@ -1,8 +1,6 @@
 package containers
 
 import (
-	"context"
-
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
 )
@@ -34,8 +32,6 @@ type Config interface {
 	internal.Sealed
 
 	GetAppRef() string
-
-	Runner(context.Context) Runner
 
 	DebugCfg
 	LgCfg

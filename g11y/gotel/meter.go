@@ -1,4 +1,4 @@
-package otel
+package gotel
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/hkoosha/giraffe/g11y/finalizers"
-	"github.com/hkoosha/giraffe/g11y/otel/internal/metrics"
+	"github.com/hkoosha/giraffe/g11y/gotel/internal/metrics"
 	"github.com/hkoosha/giraffe/g11y/setup"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/typing"
@@ -64,7 +64,10 @@ func (m *MetricBuilder) getMeter() metric.Meter {
 	return m.meter
 }
 
-func (m *MetricBuilder) register(names []string, touch func(ctx context.Context)) {
+func (m *MetricBuilder) register(
+	names []string,
+	touch func(ctx context.Context),
+) {
 	what := "metric"
 	if m.isNoop {
 		what = "noop_" + what

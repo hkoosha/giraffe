@@ -1,13 +1,12 @@
 package zcache
 
 import (
-	"context"
-
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/glog"
-	"github.com/hkoosha/giraffe/g11y/otel"
+	"github.com/hkoosha/giraffe/g11y/gotel"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
@@ -72,11 +71,11 @@ func (o Op) String() string {
 // ============================================================================.
 
 type Adapter[K comparable, V any] interface {
-	Get(context.Context, K) (*Item[K, V], Outcome, error)
+	Get(gtx.Context, K) (*Item[K, V], Outcome, error)
 
-	Set(context.Context, K, V) (Outcome, error)
+	Set(gtx.Context, K, V) (Outcome, error)
 
-	Unset(context.Context, K) (Outcome, error)
+	Unset(gtx.Context, K) (Outcome, error)
 }
 
 type Item[K comparable, V any] struct {
@@ -100,7 +99,7 @@ func Of[K comparable, V any](
 
 type Cache[K comparable, V any] struct {
 	lg             glog.Lg
-	cnt            otel.Int64Counter
+	cnt            gotel.Int64Counter
 	adapter        Adapter[K, V]
 	byOpAndOutcome map[Op]map[Outcome][]attribute.KeyValue
 	attrOtel       []attribute.KeyValue
@@ -122,7 +121,7 @@ func (c *Cache[K, V]) WithoutLg() *Cache[K, V] {
 }
 
 func (c *Cache[K, V]) WithOtel(
-	cnt otel.Int64Counter,
+	cnt gotel.Int64Counter,
 	attrs ...attribute.KeyValue,
 ) *Cache[K, V] {
 	g11y.NonNil(cnt)
@@ -191,7 +190,7 @@ func (c *Cache[K, V]) mkAttrs(
 }
 
 func (c *Cache[K, V]) Get(
-	ctx context.Context,
+	ctx gtx.Context,
 	k K,
 ) *Item[K, V] {
 	const op = Get
@@ -221,7 +220,7 @@ func (c *Cache[K, V]) Get(
 }
 
 func (c *Cache[K, V]) Set(
-	ctx context.Context,
+	ctx gtx.Context,
 	k K,
 	v V,
 ) {
@@ -245,14 +244,16 @@ func (c *Cache[K, V]) Set(
 }
 
 func (c *Cache[K, V]) Unset(
-	ctx context.Context,
+	ctx gtx.Context,
 	k K,
-) {
+) bool {
 	const op = Unset
 
 	result, err := c.adapter.Unset(ctx, k)
 
+	ok := true
 	if err != nil && c.lg != nil {
+		ok = false
 		c.lg.Error(
 			"cache error",
 			N("op", op),
@@ -265,6 +266,8 @@ func (c *Cache[K, V]) Unset(
 	if c.cnt != nil {
 		c.cnt.Inc(ctx, c.mkAttrs(op, result, err)...)
 	}
+
+	return ok
 }
 
 // ============================================================================.

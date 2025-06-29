@@ -1,7 +1,6 @@
 package conn
 
 import (
-	"context"
 	"net"
 	"net/http"
 	"net/url"
@@ -9,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hkoosha/giraffe/conn/headers"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
@@ -52,7 +52,7 @@ var (
 )
 
 func defaultHeaderFilter(
-	_ context.Context,
+	_ gtx.Context,
 	_ Config,
 	h string,
 	_ string,
@@ -62,7 +62,7 @@ func defaultHeaderFilter(
 }
 
 func defaultHeaderMasked(
-	_ context.Context,
+	_ gtx.Context,
 	_ Config,
 	h string,
 	_ string,
@@ -80,7 +80,7 @@ type retryKeyT int
 var retryKey retryKeyT
 
 //nolint:unused
-func getRetries(ctx context.Context) int {
+func getRetries(ctx gtx.Context) int {
 	retries, ok := ctx.Value(retryKey).(*int)
 	if !ok {
 		panic("retry key not set")
@@ -90,19 +90,13 @@ func getRetries(ctx context.Context) int {
 }
 
 //nolint:unused
-func incRetries(ctx context.Context) {
+func incRetries(ctx gtx.Context) {
 	retries, ok := ctx.Value(retryKey).(*int)
 	if !ok {
 		panic("retry key not set")
 	}
 
 	*retries++
-}
-
-// =============================================================================.
-
-type seal struct {
-	sealed bool
 }
 
 // =============================================================================.
@@ -239,7 +233,7 @@ type giraffeRT struct {
 }
 
 func (u giraffeRT) modify(
-	ctx context.Context,
+	ctx gtx.Context,
 	orig *http.Request,
 	req func() *http.Request,
 ) error {
@@ -277,8 +271,7 @@ func (u giraffeRT) RoundTrip(
 
 	r := req
 
-	//nolint:contextcheck
-	err := u.modify(req.Context(), req, func() *http.Request {
+	err := u.modify(gtx.Of(req.Context()), req, func() *http.Request {
 		if !cloned {
 			r = req.Clone(req.Context())
 		}

@@ -1,18 +1,18 @@
 package finalizer_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/hkoosha/giraffe/g11y/finalizers"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/g11y/setup"
 )
 
 func run(
-	ctx context.Context,
+	ctx gtx.Context,
 	lg func(string),
 	ch chan<- []string,
 ) {
@@ -56,7 +56,7 @@ func TestFinalizerRegistry_Execute(t *testing.T) {
 		t.Parallel()
 
 		timeline := make(chan []string, 1)
-		go run(t.Context(), lg, timeline)
+		go run(gtx.Of(t.Context()), lg, timeline)
 
 		select {
 		case fin := <-timeline:

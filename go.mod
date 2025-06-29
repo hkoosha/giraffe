@@ -12,6 +12,7 @@ require (
 	go.opentelemetry.io/otel/exporters/prometheus v0.59.0
 	go.opentelemetry.io/otel/metric v1.37.0
 	go.opentelemetry.io/otel/sdk/metric v1.37.0
+	go.opentelemetry.io/otel/trace v1.37.0
 	golang.org/x/sync v0.15.0
 	golang.org/x/tools v0.34.0
 )
@@ -41,7 +42,6 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.37.0 // indirect
-	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/mod v0.25.0 // indirect

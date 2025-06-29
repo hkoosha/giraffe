@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
@@ -56,7 +57,7 @@ func (c Compensator) clone() Compensator {
 }
 
 func (c Compensator) compensate(
-	ctx HContext,
+	ctx gtx.Context,
 	sCtx *StepContext,
 	err error,
 ) (giraffe.Datum, bool) {

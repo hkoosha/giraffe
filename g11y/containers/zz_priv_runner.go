@@ -1,8 +1,6 @@
 package containers
 
 import (
-	"context"
-	"slices"
 	"sync"
 	"time"
 
@@ -10,6 +8,7 @@ import (
 
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
@@ -27,66 +26,39 @@ const (
 )
 
 // TODO broken implementation.
-type runner struct {
+type runner[D any] struct {
 	internal.Sealer
 
 	lg glog.Lg
 
 	state      string
-	cfg        Config
 	mu         *sync.Mutex
-	containers []Container
+	containers []Container[D]
 }
 
-func (r *runner) goToFrom(
-	to string,
-	from ...string,
-) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if slices.Contains(from, to) {
-		panic(EF("cannot go from same state to itself, current=%v, from%v, to=%v",
-			r.state,
-			from,
-			to))
-	}
-	if slices.Contains(from, r.state) {
-		panic(EF("invalid state transition, current=%v, from=%v, to=%v", r.state, from, to))
-	}
-
-	r.state = to
-}
-
-func (r *runner) goTo(
+func (r *runner[D]) goFromTo(
 	from string,
 	to string,
 ) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if from == to {
-		panic(EF("cannot go from same state to itself, current=%v, from=to=%v", r.state, from))
-	}
-	if r.state != from {
-		panic(EF("invalid state transition, current=%v, from=%v, to=%v", r.state, from, to))
+	if r.state != from || from == to {
+		panic(EF("invalid transition: [%s=>%s]", r.state, to))
 	}
 
 	r.state = to
 }
 
-// Return dummy error, so it's more obvious there's an unlock fn that should be
-// called via defer. By not returning error, the call looks
-// like `defer r.stayIn(foo)()` while the second parentheses are easy to miss.
-func (r *runner) stayIn(
-	state string,
-) (func(), error) {
-	r.mu.Lock()
-	r.mustBeIn(state)
-	return r.mu.Unlock, nil
+func (r *runner[D]) goTo(
+	to string,
+) {
+	// It's still possible r.state could be modified,
+	// But I'm not gonna prevent make sure it won't be.
+	r.goFromTo(r.state, to)
 }
 
-func (r *runner) mustBeIn(
+func (r *runner[D]) mustBeIn(
 	state string,
 ) {
 	if r.state != state {
@@ -96,69 +68,79 @@ func (r *runner) mustBeIn(
 
 // Open
 // TODO: log, otel.
-func (r *runner) Open(
-	context.Context,
-) glog.Lg {
-	r.goTo(stateWaitingOpen, stateWaitingFinalize)
-
-	return r.lg
+func (r *runner[D]) Open(
+	_ gtx.Context,
+	lg glog.Lg,
+) {
+	r.goFromTo(stateWaitingOpen, stateWaitingFinalize)
+	r.lg = lg
 }
 
-func (r *runner) Register(
-	c ...Container,
+func (r *runner[D]) Register(
+	c ...Container[D],
 ) {
-	defer M(r.stayIn(stateWaitingFinalize))
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.mustBeIn(stateWaitingFinalize)
 
 	r.containers = append(r.containers, c...)
 }
 
 // Finalize
 // TODO: o11y.Finalize(ctx).
-func (r *runner) Finalize(
-	ctx context.Context,
-	c ...Container,
+func (r *runner[D]) Finalize(
+	ctx gtx.Context,
+	dependencies D,
 ) {
-	r.Register(c...)
-
-	r.goTo(stateWaitingFinalize, stateWaitingActive)
+	r.goFromTo(stateWaitingFinalize, stateWaitingActive)
 
 	if len(r.containers) == 0 {
 		panic(EF("no containers registered"))
 	}
 
 	for _, c := range r.containers {
-		c.Open(ctx, r.lg)
+		c.Open(ctx, r.lg, dependencies)
 	}
 
-	r.goTo(stateWaitingActive, stateActive)
+	r.goFromTo(stateWaitingActive, stateActive)
 }
 
-func (r *runner) Wait(
-	ctx context.Context,
+func (r *runner[D]) Wait(
+	ctx gtx.Context,
 ) error {
-	r.goToFrom(stateActive, stateTryingRunning)
+	r.goFromTo(stateActive, stateTryingRunning)
 
-	wg, ctx := errgroup.WithContext(ctx)
+	wg, _ctx := errgroup.WithContext(ctx)
+	ctx = gtx.Of(_ctx)
 	for _, c := range r.containers {
 		wg.Go(func() error {
-			return c.Start(ctx)
+			return c.Run(ctx)
 		})
 	}
 
-	r.goToFrom(stateTryingRunning, stateRunning)
+	r.goFromTo(stateTryingRunning, stateRunning)
 
 	return wg.Wait()
 }
 
+func (r *runner[D]) MustWait(
+	ctx gtx.Context,
+) {
+	if err := r.Wait(ctx); err != nil {
+		panic(E(err))
+	}
+}
+
 // Stop
 // TODO timeout.
-func (r *runner) Stop(
-	ctx context.Context,
+func (r *runner[D]) Stop(
+	ctx gtx.Context,
 	timeout time.Duration,
 ) error {
 	_ = timeout
 
-	r.goTo(stateRunning, stateStopping)
+	r.goFromTo(stateRunning, stateStopping)
 
 	var wg errgroup.Group
 	for _, c := range r.containers {
@@ -168,7 +150,7 @@ func (r *runner) Stop(
 	}
 
 	if err := wg.Wait(); err != nil {
-		r.goTo(stateStopping, stateErr)
+		r.goFromTo(stateStopping, stateErr)
 		return err
 	}
 
@@ -179,17 +161,17 @@ func (r *runner) Stop(
 // TODO implement
 // TODO: o11y.Shutdown().
 // TODO timeout.
-func (r *runner) Close(
-	ctx context.Context,
+func (r *runner[D]) Close(
+	ctx gtx.Context,
 	timeout time.Duration,
 ) {
 	_ = timeout
 
-	r.goTo(stateActive, stateClosing)
+	r.goTo(stateClosing)
 
 	for _, c := range r.containers {
 		c.Close(ctx)
 	}
 
-	r.goTo(stateClosing, stateClosed)
+	r.goTo(stateClosed)
 }
