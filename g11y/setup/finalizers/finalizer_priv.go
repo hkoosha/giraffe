@@ -1,8 +1,6 @@
 package finalizers
 
 import (
-	"context"
-
 	"github.com/hkoosha/giraffe/g11y/setup"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
@@ -16,7 +14,7 @@ func (f *Finalizer) ensure() {
 }
 
 func (f *Finalizer) add(
-	fn func(context.Context) context.Context,
+	fn FinalizerFn1,
 ) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
@@ -25,7 +23,7 @@ func (f *Finalizer) add(
 	f.finalizers = append(f.finalizers, fn)
 }
 
-func (f *Finalizer) get() []func(context.Context) context.Context {
+func (f *Finalizer) get() []FinalizerFn1 {
 	// Important: if the lock is moved outside of this function (e.g. in
 	// Finalize()), it will can potentially cause a deadlock.
 	f.mu.Lock()

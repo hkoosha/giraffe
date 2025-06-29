@@ -9,12 +9,13 @@ import (
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
-type FinalizerFn00 = func()
-type FinalizerFn10 = func(context.Context)
-type FinalizerFn11 = func(context.Context) context.Context
-type FinalizerFn interface {
-	FinalizerFn11 | FinalizerFn00 | FinalizerFn10
-}
+type (
+	FinalizerFn0 = func()
+	FinalizerFn1 = func(context.Context)
+	FinalizerFn  interface {
+		FinalizerFn0 | FinalizerFn1
+	}
+)
 
 func Add[F FinalizerFn](
 	fn F,
@@ -24,8 +25,8 @@ func Add[F FinalizerFn](
 
 func Finalize(
 	ctx context.Context,
-) context.Context {
-	return globalFin.Finalize(ctx)
+) {
+	globalFin.Finalize(ctx)
 }
 
 // ============================================================================.
@@ -37,7 +38,7 @@ func NewFinalizer(
 
 	return &Finalizer{
 		onceReg:    onceReg,
-		finalizers: []FinalizerFn11{},
+		finalizers: []FinalizerFn1{},
 		mu:         &sync.RWMutex{},
 	}
 }
@@ -47,13 +48,10 @@ func AddTo[F FinalizerFn](
 	fn F,
 ) {
 	switch v := any(fn).(type) {
-	case FinalizerFn11:
-		f.Add(v)
-
-	case FinalizerFn10:
+	case FinalizerFn1:
 		f.Add10(v)
 
-	case FinalizerFn00:
+	case FinalizerFn0:
 		f.Add00(v)
 
 	default:
@@ -62,31 +60,29 @@ func AddTo[F FinalizerFn](
 }
 
 type Finalizer struct {
-	mu         *sync.RWMutex
-	finalizers []FinalizerFn11
 	onceReg    setup.Then
+	mu         *sync.RWMutex
+	finalizers []FinalizerFn1
 }
 
 func (f *Finalizer) Add00(
-	fin FinalizerFn00,
+	fin FinalizerFn0,
 ) {
-	f.Add(func(_ context.Context) context.Context {
+	f.Add(func(_ context.Context) {
 		fin()
-		return nil
 	})
 }
 
 func (f *Finalizer) Add10(
-	fin FinalizerFn10,
+	fin FinalizerFn1,
 ) {
-	f.Add(func(ctx context.Context) context.Context {
+	f.Add(func(ctx context.Context) {
 		fin(ctx)
-		return nil
 	})
 }
 
 func (f *Finalizer) Add(
-	fn FinalizerFn11,
+	fn FinalizerFn1,
 ) {
 	g11y.NonNil(fn)
 	f.add(fn)
@@ -94,15 +90,11 @@ func (f *Finalizer) Add(
 
 func (f *Finalizer) Finalize(
 	ctx context.Context,
-) context.Context {
+) {
 	fin := f.get()
 
 	for i := len(fin) - 1; i >= 0; i-- {
 		fn := fin[i]
-		if ctx0 := fn(ctx); ctx0 != nil {
-			ctx = ctx0
-		}
+		fn(ctx)
 	}
-
-	return ctx
 }

@@ -53,6 +53,8 @@ func TestFinalizerRegistry_Execute(t *testing.T) {
 	lg := func(s string) { t.Log(s) }
 
 	t.Run("runs finalizers", func(t *testing.T) {
+		t.Parallel()
+
 		timeline := make(chan []string, 1)
 		go run(t.Context(), lg, timeline)
 

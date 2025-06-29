@@ -59,10 +59,10 @@ func newOnceRegistry() *onceRegistry {
 }
 
 type onceRegistry struct {
-	bypass    int
 	traces    map[string]string
 	directory map[string]bool
 	mu        *sync.RWMutex
+	bypass    int
 }
 
 func (o *onceRegistry) _require(
