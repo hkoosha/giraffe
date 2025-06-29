@@ -74,7 +74,7 @@ func (c *Config) TTL() time.Duration {
 func (c *Config) WithTTL(
 	ttl time.Duration,
 ) *Config {
-	cp := &*c
+	cp := *c
 	cp.ttl = ttl
 	return cp.Ensure()
 }
@@ -86,7 +86,7 @@ func (c *Config) Timeout() time.Duration {
 func (c *Config) WithTimeout(
 	timeout time.Duration,
 ) *Config {
-	cp := &*c
+	cp := *c
 	cp.timeout = timeout
 	return cp.Ensure()
 }
@@ -94,7 +94,7 @@ func (c *Config) WithTimeout(
 func (c *Config) Namespaced(
 	namespace string,
 ) *Config {
-	cp := &*c
+	cp := *c
 	cp.nsParts = append(cp.nsParts, namespace)
 	cp.namespace = strings.Join(cp.nsParts, namespaceSep) + namespaceKeySep
 	return cp.Ensure()

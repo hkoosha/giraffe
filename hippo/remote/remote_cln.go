@@ -2,13 +2,13 @@ package remote
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
 )
@@ -43,7 +43,7 @@ func Remote(
 		url:     url,
 	}
 
-	return hippo.MustFnCtxOf(fn.Ekran)
+	return hippo.MustFnOf(fn.Ekran)
 }
 
 type remoteFn struct {
@@ -88,7 +88,7 @@ func mkPayload(
 }
 
 func mkRequest(
-	ctx context.Context,
+	ctx gtx.Context,
 	url string,
 	payload io.Reader,
 ) (*http.Request, error) {
@@ -173,7 +173,7 @@ func decode(
 }
 
 func (m *remoteFn) Ekran(
-	ctx context.Context,
+	ctx gtx.Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	payload, err := mkPayload(m.plan, dat)

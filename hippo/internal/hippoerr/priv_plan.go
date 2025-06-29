@@ -49,7 +49,7 @@ func NewRegMissingFnError(
 ) error {
 	return NewHippoError(
 		ErrCodeMissingFn,
-		"missing fn: "+name,
+		"missing fn: "+name+"#"+ty.String(),
 		&PlanErrorState{
 			fnName: name,
 			fnType: ty,

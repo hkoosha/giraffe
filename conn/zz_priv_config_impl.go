@@ -1,7 +1,6 @@
 package conn
 
 import (
-	"context"
 	"maps"
 	"net/http"
 	"slices"
@@ -15,6 +14,7 @@ import (
 	"github.com/hkoosha/giraffe/conn/internal"
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
@@ -80,6 +80,8 @@ func newConfig(
 	serde serdes.Serde[any],
 ) *config {
 	cfg := &config{
+		Sealer: internal.Sealer{},
+		sealed: false,
 		base:   defaultTransport,
 		lg:     lg,
 		rt:     nil,
@@ -372,7 +374,7 @@ func (c *config) withBearerProvider(
 ) *config {
 	g11y.NonNil(fn)
 
-	fn = func(ctx context.Context, config Config) string {
+	fn = func(ctx gtx.Context, config Config) string {
 		return withBearerPrefix(fn(ctx, config))
 	}
 
@@ -434,13 +436,13 @@ func (c *config) WithoutExpectingStatusCode() Config {
 }
 
 func (c *config) withoutExpectingStatusCode() *config {
-	if c.resp.expectStatusCode == 0 {
+	if c.resp.expectStatusCode == -1 {
 		return c
 	}
 
 	cp := c.open()
 	cp.resp = cp.resp.shallow()
-	cp.resp.expectStatusCode = 0
+	cp.resp.expectStatusCode = -1
 	cp.seal()
 
 	return cp
@@ -448,6 +450,35 @@ func (c *config) withoutExpectingStatusCode() *config {
 
 func (c *config) ExpectingStatusCode() int {
 	return c.resp.expectStatusCode
+}
+
+func (c *config) WithExpectingNonEmptyBody() Config {
+	return c.SetExpectingNonEmptyBody(true)
+}
+
+func (c *config) WithoutExpectingNonEmptyBody() Config {
+	return c.SetExpectingNonEmptyBody(false)
+}
+
+func (c *config) SetExpectingNonEmptyBody(b bool) Config {
+	return c.setExpectingNonEmptyBody(b)
+}
+
+func (c *config) setExpectingNonEmptyBody(b bool) *config {
+	if !c.resp.expectNonEmptyBody == b {
+		return c
+	}
+
+	cp := c.open()
+	cp.resp = cp.resp.shallow()
+	cp.resp.expectNonEmptyBody = b
+	cp.seal()
+
+	return cp
+}
+
+func (c *config) ExpectingNonEmptyBody() bool {
+	return c.resp.expectNonEmptyBody
 }
 
 func (c *config) Endpoint() string {

@@ -1,8 +1,6 @@
 package containers
 
 import (
-	"context"
-
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
 )
@@ -20,15 +18,8 @@ type config struct {
 }
 
 func (r *config) shallow() *config {
-	return &*r
-}
-
-// ============================================================================.
-
-func (r *config) Runner(
-	ctx context.Context,
-) Runner {
-	return GiraffeRunner(ctx, r)
+	cp := *r
+	return &cp
 }
 
 // ============================================================================.

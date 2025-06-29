@@ -1,10 +1,9 @@
 package hippo
 
 import (
-	"context"
-
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/g11y"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	. "github.com/hkoosha/giraffe/internal/dot1"
@@ -23,12 +22,12 @@ var (
 )
 
 type ProbeBefore = func(
-	context.Context,
+	gtx.Context,
 	*StepContext,
 )
 
 type ProbeAfter = func(
-	context.Context,
+	gtx.Context,
 	*StepContext,
 	giraffe.Datum,
 	error,
@@ -111,18 +110,15 @@ func (n *PipelineFn) WithAfter(
 	return clone
 }
 
-//nolint:contextcheck
 func (n *PipelineFn) Ekran(
-	ctx context.Context,
+	ctx gtx.Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
-	htx := hContextOf(ctx)
-
-	return n.ekran(htx, dat)
+	return n.ekran(ctx, dat)
 }
 
 func (n *PipelineFn) ekran(
-	htx HContext,
+	htx gtx.Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	hist, hErr := history(dat)
@@ -164,7 +160,7 @@ func (n *PipelineFn) ekran(
 }
 
 func (n *PipelineFn) exe(
-	htx HContext,
+	htx gtx.Context,
 	sCtx *StepContext,
 ) (giraffe.Datum, error) {
 	if n.before != nil {

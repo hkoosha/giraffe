@@ -7,6 +7,8 @@ const (
 	ErrCodeDuplicateFn
 	ErrCodeInvalidStepName
 	ErrCodeRemoteCallFailure
+
+	ErrCodeMissingOutput = 127
 )
 
 type HippoError struct {

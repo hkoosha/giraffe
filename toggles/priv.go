@@ -1,7 +1,6 @@
 package toggles
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -10,6 +9,7 @@ import (
 	"slices"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/toggles/internal"
 )
@@ -484,7 +484,7 @@ type router struct {
 }
 
 func (r *router) Query(
-	ctx context.Context,
+	ctx gtx.Context,
 	name string,
 	values ...Value,
 ) (bool, error) {

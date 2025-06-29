@@ -1,29 +1,58 @@
 package containers
 
 import (
-	"context"
 	"sync"
 	"time"
 
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/g11y/gtx"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
-type Runner interface {
+func MustRun[D any](
+	ctx gtx.Context,
+	lg glog.Lg,
+	cfg Config,
+	dependencies D,
+	c Container[D],
+) {
+	OK(Run[D](ctx, lg, cfg, dependencies, c))
+}
+
+func Run[D any](
+	ctx gtx.Context,
+	lg glog.Lg,
+	cfg Config,
+	dependencies D,
+	c Container[D],
+) error {
+	r := GiraffeRunner[D](ctx, cfg)
+	defer r.Close(ctx, 1*time.Second)
+
+	r.Open(ctx, lg)
+	r.Register(c)
+	r.Finalize(ctx, dependencies)
+	return r.Wait(ctx)
+}
+
+type Runner[D any] interface {
 	internal.Sealed
 
-	Open(ctx context.Context) glog.Lg
+	Open(gtx.Context, glog.Lg)
 
-	Register(...Container)
+	Register(...Container[D])
 
-	Finalize(context.Context, ...Container)
+	Finalize(gtx.Context, D)
 
-	Wait(context.Context) error
+	Wait(gtx.Context) error
 
-	Stop(ctx context.Context, timeout time.Duration) error
+	MustWait(gtx.Context)
 
-	Close(ctx context.Context, timeout time.Duration)
+	Stop(ctx gtx.Context, timeout time.Duration) error
+
+	Close(ctx gtx.Context, timeout time.Duration)
 }
 
 // ====================================.
@@ -46,18 +75,20 @@ func Configure(
 	}
 }
 
-func GiraffeRunner(
-	ctx context.Context,
-	cfg ConfigWrite,
-) Runner {
+func GiraffeRunner[D any](
+	ctx gtx.Context,
+	cfg Config,
+) Runner[D] {
+	_ = cfg
+
 	g11y.NonNil(ctx, cfg)
 
-	return &runner{
+	return &runner[D]{
 		Sealer: internal.Sealer{},
 
+		lg:         nil,
 		state:      stateWaitingOpen,
 		mu:         &sync.Mutex{},
-		containers: make([]Container, 0),
-		cfg:        cfg,
+		containers: make([]Container[D], 0),
 	}
 }

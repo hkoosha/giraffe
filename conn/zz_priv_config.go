@@ -24,7 +24,8 @@ func (c *config) ensure() *config {
 func (c *config) open() *config {
 	c.ensure()
 
-	return &*c
+	cp := *c
+	return &cp
 }
 
 func (c *config) seal() {
@@ -168,18 +169,21 @@ func mkHttpConfig(
 }
 
 type respConfig struct {
-	expectStatusCode int
+	expectStatusCode   int
+	expectNonEmptyBody bool
 }
 
 func (c *respConfig) shallow() *respConfig {
 	return &respConfig{
-		expectStatusCode: c.expectStatusCode,
+		expectStatusCode:   c.expectStatusCode,
+		expectNonEmptyBody: c.expectNonEmptyBody,
 	}
 }
 
 func mkResponseConfig() *respConfig {
 	return &respConfig{
-		expectStatusCode: 0,
+		expectStatusCode:   -1,
+		expectNonEmptyBody: false,
 	}
 }
 

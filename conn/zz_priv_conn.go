@@ -1,14 +1,15 @@
 package conn
 
 import (
-	"context"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/hkoosha/giraffe/conn/connerr"
 	"github.com/hkoosha/giraffe/conn/headers"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
@@ -52,7 +53,7 @@ var (
 )
 
 func defaultHeaderFilter(
-	_ context.Context,
+	_ gtx.Context,
 	_ Config,
 	h string,
 	_ string,
@@ -62,7 +63,7 @@ func defaultHeaderFilter(
 }
 
 func defaultHeaderMasked(
-	_ context.Context,
+	_ gtx.Context,
 	_ Config,
 	h string,
 	_ string,
@@ -80,7 +81,7 @@ type retryKeyT int
 var retryKey retryKeyT
 
 //nolint:unused
-func getRetries(ctx context.Context) int {
+func getRetries(ctx gtx.Context) int {
 	retries, ok := ctx.Value(retryKey).(*int)
 	if !ok {
 		panic("retry key not set")
@@ -90,19 +91,13 @@ func getRetries(ctx context.Context) int {
 }
 
 //nolint:unused
-func incRetries(ctx context.Context) {
+func incRetries(ctx gtx.Context) {
 	retries, ok := ctx.Value(retryKey).(*int)
 	if !ok {
 		panic("retry key not set")
 	}
 
 	*retries++
-}
-
-// =============================================================================.
-
-type seal struct {
-	sealed bool
 }
 
 // =============================================================================.
@@ -239,21 +234,20 @@ type giraffeRT struct {
 }
 
 func (u giraffeRT) modify(
-	ctx context.Context,
-	orig *http.Request,
-	req func() *http.Request,
+	ctx gtx.Context,
+	req *http.Request,
 ) error {
 	for h, v := range u.cfg.header.overwrite {
-		req().Header.Set(h, v)
+		req.Header.Set(h, v)
 	}
 
 	for h, fn := range u.cfg.header.overwriters {
 		v := fn(ctx, u.cfg)
-		req().Header.Set(h, v)
+		req.Header.Set(h, v)
 	}
 
 	if u.cfg.http.endpoint != "" || u.cfg.http.pathPrefix != "" {
-		endpoint, path := partsOf(orig.URL)
+		endpoint, path := partsOf(req.URL)
 
 		if u.cfg.http.endpoint != "" {
 			endpoint = u.cfg.http.endpoint
@@ -264,30 +258,41 @@ func (u giraffeRT) modify(
 			return err
 		}
 
-		req().URL = uParse
+		req.URL = uParse
 	}
 
 	return nil
 }
 
+func (u giraffeRT) finalize(
+	resp *http.Response,
+) (*http.Response, error) {
+	var err error
+
+	if expect := u.cfg.resp.expectStatusCode; expect >= 0 {
+		if resp.StatusCode != expect {
+			err = connerr.Of(resp)
+		}
+	}
+
+	return resp, err //nolint:nilnil
+}
+
 func (u giraffeRT) RoundTrip(
 	req *http.Request,
 ) (*http.Response, error) {
-	cloned := false
+	ctx := gtx.Of(req.Context())
+	req = req.Clone(ctx)
 
-	r := req
-
-	//nolint:contextcheck
-	err := u.modify(req.Context(), req, func() *http.Request {
-		if !cloned {
-			r = req.Clone(req.Context())
-		}
-
-		return r
-	})
+	err := u.modify(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
-	return u.rt.RoundTrip(r)
+	resp, err := u.rt.RoundTrip(req)
+	if err != nil {
+		return resp, err //nolint:nilnil
+	}
+
+	return u.finalize(resp)
 }

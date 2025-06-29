@@ -1,13 +1,16 @@
-package otel
+package gotel
 
 import (
 	"context"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/hkoosha/giraffe/g11y/finalizers"
 	"github.com/hkoosha/giraffe/g11y/glog"
-	"github.com/hkoosha/giraffe/g11y/otel/internal/metrics"
+	"github.com/hkoosha/giraffe/g11y/gotel/internal/metrics"
 	"github.com/hkoosha/giraffe/g11y/setup"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
@@ -25,9 +28,16 @@ var (
 			invalidMetricOpCnt.Add(ctx, 1)
 		}
 	}
+
+	tracer trace.Tracer
 )
 
-func SetupOtel(namespace string) {
+func SetupOtel(
+	name string,
+	version string,
+	ref string,
+	namespace string,
+) {
 	setup.Finish("giraffe", "o11y", "setup")
 
 	metrics.Setup(namespace)
@@ -36,6 +46,14 @@ func SetupOtel(namespace string) {
 		metrics.DefaultProvider().
 			Meter("giraffe").
 			Int64Counter("invalid_op"),
+	)
+
+	tracer = otel.Tracer(
+		name,
+		trace.WithInstrumentationAttributes(
+			attribute.String("giraffe.version", version),
+			attribute.String("giraffe.ref", ref),
+		),
 	)
 }
 

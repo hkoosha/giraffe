@@ -1,7 +1,6 @@
 package conn
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 	"time"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/hkoosha/giraffe/conn/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
 
@@ -37,19 +37,19 @@ func (e *FailedResponseError) Error() string {
 // ============================================================================.
 
 type HeaderFilter = func(
-	context.Context,
+	gtx.Context,
 	Config,
 	string,
 	string,
 ) bool
 
 type HeaderProvider = func(
-	context.Context,
+	gtx.Context,
 	Config,
 ) string
 
 type RetryIfFn = func(
-	ctx context.Context,
+	ctx gtx.Context,
 	resp *http.Response,
 	err error,
 	attempt uint,
@@ -119,6 +119,7 @@ type ConfigRead interface {
 	HeaderOverwrites() map[string]string
 	HeaderOverwriters() map[string]HeaderProvider
 	ExpectingStatusCode() int
+	ExpectingNonEmptyBody() bool
 	Endpoint() string
 	PathPrefix() string
 	Timeout() time.Duration
@@ -138,6 +139,9 @@ type ConfigWrite interface {
 
 	WithExpectingStatusCode(int) Config
 	WithoutExpectingStatusCode() Config
+	WithExpectingNonEmptyBody() Config
+	WithoutExpectingNonEmptyBody() Config
+	SetExpectingNonEmptyBody(bool) Config
 
 	WithEndpoint(string) Config
 	WithoutEndpoint() Config
@@ -186,37 +190,37 @@ type Conn[R any] interface {
 	Raw() Conn[[]byte]
 
 	Call(
-		ctx context.Context,
+		ctx gtx.Context,
 		method string,
 		body any,
 		path ...string,
 	) (R, error)
 
 	Patch(
-		ctx context.Context,
+		ctx gtx.Context,
 		body any,
 		path ...string,
 	) (R, error)
 
 	Put(
-		ctx context.Context,
+		ctx gtx.Context,
 		body any,
 		path ...string,
 	) (R, error)
 
 	Post(
-		ctx context.Context,
+		ctx gtx.Context,
 		body any,
 		path ...string,
 	) (R, error)
 
 	Get(
-		ctx context.Context,
+		ctx gtx.Context,
 		path ...string,
 	) (R, error)
 
 	Delete(
-		ctx context.Context,
+		ctx gtx.Context,
 		path ...string,
 	) (R, error)
 }

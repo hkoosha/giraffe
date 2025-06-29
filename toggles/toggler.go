@@ -1,10 +1,9 @@
 package toggles
 
 import (
-	"context"
-
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/toggles/internal"
 )
 
@@ -12,7 +11,7 @@ type Toggler interface {
 	internal.Sealed
 
 	Query(
-		context.Context,
+		gtx.Context,
 		string,
 		...Value,
 	) (bool, error)
@@ -41,7 +40,7 @@ type Value interface {
 
 type Storage interface {
 	Get(
-		context.Context,
+		gtx.Context,
 		string,
 		Values,
 	) (*bool, error)

@@ -17,6 +17,7 @@ func NewHippoError(
 	var errState ErrorState
 	switch state.(type) {
 	case *FnMissingKeysErrorState,
+		*FnMissingOutputErrorState,
 		*PipelineErrorState,
 		*PlanErrorState,
 		*RemoteErrorState:

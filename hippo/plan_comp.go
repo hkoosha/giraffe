@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
@@ -56,7 +57,7 @@ func (c Compensator) clone() Compensator {
 }
 
 func (c Compensator) compensate(
-	ctx HContext,
+	ctx gtx.Context,
 	sCtx *StepContext,
 	err error,
 ) (giraffe.Datum, bool) {
@@ -77,9 +78,11 @@ func (c Compensator) For(
 	step int,
 	with *Fn_,
 ) Compensator {
+	msgCp := *msg
+	nameCp := *name
 	c.comp = z.Appended(c.comp, compCondition{
-		onErr:  &*msg,
-		onName: &*name,
+		onErr:  &msgCp,
+		onName: &nameCp,
 		onStep: step,
 		fn:     with,
 	})
@@ -100,8 +103,9 @@ func (c Compensator) ForError(
 	msg *regexp.Regexp,
 	with *Fn_,
 ) Compensator {
+	msgCp := *msg
 	c.comp = z.Appended(c.comp, compCondition{
-		onErr:  &*msg,
+		onErr:  &msgCp,
 		onName: nil,
 		onStep: -1,
 		fn:     with,
@@ -143,6 +147,7 @@ func (c Compensator) ForNamed(
 	with *Fn_,
 	steps ...int,
 ) Compensator {
+	nameCp := *name
 	if len(steps) > 0 {
 		cp := slices.Clone(c.comp)
 
@@ -153,7 +158,7 @@ func (c Compensator) ForNamed(
 
 			cp = append(cp, compCondition{
 				onErr:  nil,
-				onName: &*name,
+				onName: &nameCp,
 				onStep: step,
 				fn:     with,
 			})
@@ -167,7 +172,7 @@ func (c Compensator) ForNamed(
 	return Compensator{
 		comp: z.Appended(c.comp, compCondition{
 			onErr:  nil,
-			onName: &*name,
+			onName: &nameCp,
 			onStep: -1,
 			fn:     with,
 		}),

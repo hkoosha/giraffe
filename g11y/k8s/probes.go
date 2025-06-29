@@ -1,11 +1,11 @@
 package k8s
 
 import (
-	"context"
 	"maps"
 	"net/http"
 
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
@@ -14,7 +14,7 @@ const (
 	livenessPath  = "/liveness"
 )
 
-type HealthCheckFn = func(context.Context) error
+type HealthCheckFn = func(gtx.Context) error
 
 type probes struct {
 	lg         glog.Lg
@@ -49,7 +49,7 @@ func (p *probes) ServeHTTP(
 	var err error
 	var check HealthCheckFn
 	for name, check = range p.checks {
-		if err = check(r.Context()); err != nil {
+		if err = check(gtx.Of(r.Context())); err != nil {
 			break
 		}
 	}

@@ -1,20 +1,20 @@
 package zcache
 
 import (
-	"context"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 )
 
 type noop[K comparable, V any] struct{}
 
 func (n noop[K, V]) Get(
-	context.Context,
+	gtx.Context,
 	K,
 ) (*Item[K, V], Outcome, error) {
 	return nil, Miss, nil
 }
 
 func (n noop[K, V]) Set(
-	context.Context,
+	gtx.Context,
 	K,
 	V,
 ) (Outcome, error) {
@@ -22,7 +22,7 @@ func (n noop[K, V]) Set(
 }
 
 func (n noop[K, V]) Unset(
-	context.Context,
+	gtx.Context,
 	K,
 ) (Outcome, error) {
 	return Ignore, nil
