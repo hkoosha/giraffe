@@ -9,7 +9,7 @@ func Global() Lg {
 }
 
 func SetGlobal(lg Lg) {
-	setup.Once("giraffe", "log", "global")
+	setup.Finish("giraffe", "log", "global")
 	global = lg
 }
 

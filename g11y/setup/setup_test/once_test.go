@@ -10,13 +10,13 @@ import (
 
 func TestOnce(t *testing.T) {
 	t.Run("blocks second - level 1 nesting", func(t *testing.T) {
-		setup.Once(
+		setup.Finish(
 			"giraffe_once_test1",
 			"level1",
 		)
 
 		assert.Panics(t, func() {
-			setup.Once(
+			setup.Finish(
 				"giraffe_once_test1",
 				"level1",
 			)
@@ -24,14 +24,14 @@ func TestOnce(t *testing.T) {
 	})
 
 	t.Run("blocks second - level 2 nesting", func(t *testing.T) {
-		setup.Once(
+		setup.Finish(
 			"giraffe_once_test2",
 			"level1",
 			"level2",
 		)
 
 		assert.Panics(t, func() {
-			setup.Once(
+			setup.Finish(
 				"giraffe_once_test2",
 				"level1",
 				"level2",
@@ -40,7 +40,7 @@ func TestOnce(t *testing.T) {
 	})
 
 	t.Run("blocks second - level 3 nesting", func(t *testing.T) {
-		setup.Once(
+		setup.Finish(
 			"giraffe_once_test3",
 			"level1",
 			"level2",
@@ -48,7 +48,7 @@ func TestOnce(t *testing.T) {
 		)
 
 		assert.Panics(t, func() {
-			setup.Once(
+			setup.Finish(
 				"giraffe_once_test3",
 				"level1",
 				"level2",
@@ -58,7 +58,7 @@ func TestOnce(t *testing.T) {
 	})
 
 	t.Run("waterfall", func(t *testing.T) {
-		setup.Once(
+		setup.Finish(
 			"giraffe_once_test_waterfall",
 			"level1",
 			"level2",
@@ -71,7 +71,7 @@ func TestOnce(t *testing.T) {
 			"level3",
 		)
 
-		setup.Once(
+		setup.Finish(
 			"giraffe_once_test_waterfall",
 			"level1",
 			"level2",
@@ -82,7 +82,7 @@ func TestOnce(t *testing.T) {
 			"level2",
 		)
 
-		setup.Once(
+		setup.Finish(
 			"giraffe_once_test_waterfall",
 			"level1",
 		)
@@ -91,7 +91,7 @@ func TestOnce(t *testing.T) {
 			"level1",
 		)
 
-		setup.Once(
+		setup.Finish(
 			"giraffe_once_test_waterfall",
 		)
 		setup.EnsureDone(

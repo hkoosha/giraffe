@@ -9,6 +9,7 @@ import (
 
 	"github.com/hkoosha/giraffe/g11y/otel/internal/metrics"
 	"github.com/hkoosha/giraffe/g11y/setup"
+	"github.com/hkoosha/giraffe/g11y/setup/finalizers"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/typing"
 )
@@ -70,10 +71,10 @@ func (m *MetricBuilder) register(names []string, touch func(ctx context.Context)
 	}
 
 	for _, name := range names {
-		setup.Once("boot", "o11y", what, name)
+		setup.Finish("boot", "o11y", what, name)
 	}
 
-	finalizers.Add(touch)
+	finalizers.AddTo(fin, touch)
 }
 
 func (m *MetricBuilder) Counter(

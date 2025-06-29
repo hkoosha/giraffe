@@ -1,48 +1,54 @@
 package setup
 
-func FixateOnceChecks(enabled bool) {
-	setBypass.Do(func() {
-		bypass = enabled
-	})
+type Bypassed interface {
+	SetBypassed(bool)
 }
 
-func Once(
-	domain string,
+type Then interface {
+	Then(...string) OnceHandle
+}
+
+type OnceHandle interface {
+	Then
+
+	Finish() OnceHandle
+	EnsureOpen() OnceHandle
+	EnsureDone() OnceHandle
+}
+
+type OnceRegistry interface {
+	Bypassed
+	Then
+}
+
+func NewOnceRegistry() OnceRegistry {
+	return newOnceRegistry()
+}
+
+func Global() OnceRegistry {
+	return global
+}
+
+// ============================================================================.
+
+func SetBypassed(bypassed bool) {
+	global.SetBypassed(bypassed)
+}
+
+func Finish(
 	what ...string,
-) {
-	for i := len(what) - 1; i >= 0; i-- {
-		EnsureOpen(domain, what[:i]...)
-	}
-
-	key := toKey(domain, what...)
-
-	locks.mu.Lock()
-	defer locks.mu.Unlock()
-
-	check(key, unlocked)
-	lock(key)
+) OnceHandle {
+	return global.then(what).Finish()
 }
 
 func EnsureOpen(
-	domain string,
 	what ...string,
-) {
-	key := toKey(domain, what...)
-
-	locks.mu.Lock()
-	defer locks.mu.Unlock()
-
-	check(key, unlocked)
+) OnceHandle {
+	return global.then(what).EnsureOpen()
 }
 
 func EnsureDone(
-	domain string,
 	what ...string,
-) {
-	key := toKey(domain, what...)
-
-	locks.mu.Lock()
-	defer locks.mu.Unlock()
-
-	check(key, locked)
+) OnceHandle {
+	return global.then(what).EnsureDone()
 }

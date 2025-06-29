@@ -8,11 +8,12 @@ import (
 	"github.com/hkoosha/giraffe/g11y/glog"
 	"github.com/hkoosha/giraffe/g11y/otel/internal/metrics"
 	"github.com/hkoosha/giraffe/g11y/setup"
+	"github.com/hkoosha/giraffe/g11y/setup/finalizers"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 var (
-	finalizers = setup.NewFinalizerRegistry("o11y")
+	fin = finalizers.NewFinalizer(setup.NewOnceRegistry())
 
 	// Should be directly of underlying counter type, not our custom types to prevent recursion.
 	invalidMetricOpCnt metric.Int64Counter
@@ -27,7 +28,7 @@ var (
 )
 
 func SetupOtel(namespace string) {
-	setup.Once("giraffe", "o11y", "setup")
+	setup.Finish("giraffe", "o11y", "setup")
 
 	metrics.Setup(namespace)
 
@@ -49,5 +50,5 @@ func Shutdown(ctx context.Context) {
 func Finalize(
 	ctx context.Context,
 ) {
-	finalizers.Execute(ctx)
+	fin.Finalize(ctx)
 }
