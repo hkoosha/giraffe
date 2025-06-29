@@ -32,7 +32,7 @@ func Finalize(
 // ============================================================================.
 
 func NewFinalizer(
-	onceReg setup.Then,
+	onceReg setup.Registry,
 ) *Finalizer {
 	g11y.NonNil(onceReg)
 
@@ -60,7 +60,7 @@ func AddTo[F FinalizerFn](
 }
 
 type Finalizer struct {
-	onceReg    setup.Then
+	onceReg    setup.Registry
 	mu         *sync.RWMutex
 	finalizers []FinalizerFn1
 }

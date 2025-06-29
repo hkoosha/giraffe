@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/hkoosha/giraffe/conn/internal"
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
@@ -37,6 +38,8 @@ func newConn[R any](
 }
 
 type connImpl[R any] struct {
+	internal.Sealer
+
 	cfg   *config
 	std   *http.Client
 	serde serdes.Serde[R]

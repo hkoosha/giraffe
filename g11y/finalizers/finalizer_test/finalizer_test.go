@@ -19,7 +19,7 @@ func run(
 	var tl []string
 
 	lg("creating")
-	f := finalizers.NewFinalizer(setup.NewOnceRegistry())
+	f := finalizers.NewFinalizer(setup.New())
 
 	lg("add: f0")
 	f.Add00(func() {

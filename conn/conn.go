@@ -8,6 +8,7 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
+	"github.com/hkoosha/giraffe/conn/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
@@ -56,6 +57,8 @@ type RetryIfFn = func(
 ) (bool, error)
 
 type ConfigLgRead interface {
+	internal.Sealed
+
 	Lg() glog.Lg
 	IsLogged() bool
 	IsPlainLog() bool
@@ -64,6 +67,8 @@ type ConfigLgRead interface {
 }
 
 type ConfigLgWrite interface {
+	internal.Sealed
+
 	WithLg(glog.Lg) Config
 
 	WithLogged() Config
@@ -80,6 +85,8 @@ type ConfigLgWrite interface {
 }
 
 type ConfigRetryRead interface {
+	internal.Sealed
+
 	IsRetryLog() bool
 	RetryMax() uint
 	RetryStatusCodes() []int
@@ -88,6 +95,8 @@ type ConfigRetryRead interface {
 }
 
 type ConfigRetryWrite interface {
+	internal.Sealed
+
 	WithRetryLogged() Config
 	WithoutRetryLogged() Config
 	SetRetryLogged(bool) Config
@@ -99,6 +108,8 @@ type ConfigRetryWrite interface {
 }
 
 type ConfigRead interface {
+	internal.Sealed
+
 	ConfigLgRead
 	ConfigRetryRead
 
@@ -116,6 +127,8 @@ type ConfigRead interface {
 }
 
 type ConfigWrite interface {
+	internal.Sealed
+
 	ConfigLgWrite
 	ConfigRetryWrite
 
@@ -156,6 +169,8 @@ type ConfigWrite interface {
 // This makes refactoring easier and more consistent, since all the methods
 // minus the getters are implemented in [Client] too.
 type Config interface {
+	internal.Sealed
+
 	Conn() Conn[[]byte]
 	Serde() serdes.Serde[any]
 
@@ -164,6 +179,8 @@ type Config interface {
 }
 
 type Conn[R any] interface {
+	internal.Sealed
+
 	Std() *http.Client
 	Cfg() Config
 	Raw() Conn[[]byte]

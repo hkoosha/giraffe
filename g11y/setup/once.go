@@ -4,28 +4,32 @@ type Bypassed interface {
 	SetBypassed(bool)
 }
 
-type Then interface {
-	Then(...string) OnceHandle
+type Handle interface {
+	At(...string) Handle
+
+	Finish()
+	EnsureOpen()
+	EnsureDone()
 }
 
-type OnceHandle interface {
-	Then
+type Registry interface {
+	At(...string) Registry
 
-	Finish() OnceHandle
-	EnsureOpen() OnceHandle
-	EnsureDone() OnceHandle
+	Finish(...string) Handle
+	EnsureOpen(...string) Handle
+	EnsureDone(...string) Handle
 }
 
-type OnceRegistry interface {
-	Bypassed
-	Then
-}
-
-func NewOnceRegistry() OnceRegistry {
+func New() Registry {
 	return newOnceRegistry()
 }
 
-func Global() OnceRegistry {
+func Bypassable() (Registry, Bypassed) {
+	reg := newOnceRegistry()
+	return reg, reg
+}
+
+func Global() Registry {
 	return global
 }
 
@@ -37,18 +41,24 @@ func SetBypassed(bypassed bool) {
 
 func Finish(
 	what ...string,
-) OnceHandle {
-	return global.then(what).Finish()
+) Handle {
+	return global.Finish(what...)
 }
 
 func EnsureOpen(
 	what ...string,
-) OnceHandle {
-	return global.then(what).EnsureOpen()
+) Handle {
+	return global.EnsureOpen(what...)
 }
 
 func EnsureDone(
 	what ...string,
-) OnceHandle {
-	return global.then(what).EnsureDone()
+) Handle {
+	return global.EnsureDone(what...)
+}
+
+func At(
+	what ...string,
+) Registry {
+	return global.At(what...)
 }

@@ -14,7 +14,7 @@ import (
 func (c *config) ensure() *config {
 	g11y.NonNil(c)
 
-	if !c.seal_.sealed {
+	if !c.sealed {
 		panic(EF("invalid config, did you use constructor to create one?"))
 	}
 
@@ -28,7 +28,7 @@ func (c *config) open() *config {
 }
 
 func (c *config) seal() {
-	if c.seal_.sealed {
+	if c.sealed {
 		return
 	}
 
@@ -46,7 +46,7 @@ func (c *config) seal() {
 
 	c.rt = rt
 
-	c.seal_.sealed = true
+	c.sealed = true
 }
 
 func (c *config) mkTransport() http.RoundTripper {

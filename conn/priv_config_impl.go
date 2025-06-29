@@ -12,6 +12,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/hkoosha/giraffe/conn/headers"
+	"github.com/hkoosha/giraffe/conn/internal"
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/glog"
 	"github.com/hkoosha/giraffe/zebra/serdes"
@@ -82,7 +83,6 @@ func newConfig(
 		base:   defaultTransport,
 		lg:     lg,
 		rt:     nil,
-		seal_:  seal{false},
 		resp:   mkResponseConfig(),
 		http:   mkHttpConfig(timeout),
 		header: mkHeaderConfig(),
@@ -98,6 +98,9 @@ func newConfig(
 }
 
 type config struct {
+	internal.Sealer
+
+	sealed bool
 	lg     glog.Lg
 	base   http.RoundTripper
 	rt     http.RoundTripper
@@ -108,7 +111,6 @@ type config struct {
 	log    *logConfig
 	retry  *retryConfig
 	otel   *otelConfig
-	seal_  seal
 }
 
 // =============================================================================.
@@ -173,7 +175,8 @@ func (c *config) WithLogged() Config {
 }
 
 func (c *config) WithoutLogged() Config {
-	return c.withoutLogged()
+	var cc Config = c.withoutLogged()
+	return cc
 }
 
 func (c *config) withoutLogged() *config {

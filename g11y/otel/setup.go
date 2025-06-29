@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	fin = finalizers.NewFinalizer(setup.NewOnceRegistry())
+	fin = finalizers.NewFinalizer(setup.New())
 
 	// Should be directly of underlying counter type, not our custom types to prevent recursion.
 	invalidMetricOpCnt metric.Int64Counter

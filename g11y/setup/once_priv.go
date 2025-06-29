@@ -3,6 +3,7 @@ package setup
 import (
 	"regexp"
 	"runtime/debug"
+	"slices"
 	"strings"
 	"sync"
 
@@ -13,12 +14,6 @@ const (
 	sep      = "::"
 	locked   = true
 	unlocked = false
-)
-
-const (
-	stateBypassUnset = iota + 11
-	stateNoBypass
-	stateBypass
 )
 
 var keyRe = regexp.MustCompile("^([a-zA-Z0-9_]+::)*[a-zA-Z0-9_]+$")
@@ -40,36 +35,46 @@ func join(
 	return strings.Join(what, sep)
 }
 
-func joinWith(
-	key string,
-	what []string,
-) string {
-	return join(append(strings.Split(key, sep), what...))
-}
-
 // ============================================================================.
 
-func newOnceRegistry() *onceRegistry {
-	return &onceRegistry{
-		bypass:    stateBypassUnset,
+func newOnceRegistry() *registry {
+	return &registry{
+		bypass:    nil,
 		traces:    make(map[string]string),
 		directory: make(map[string]bool),
 		mu:        &sync.RWMutex{},
 	}
 }
 
-type onceRegistry struct {
+var _ Registry = (*registry)(nil)
+
+type registry struct {
 	traces    map[string]string
 	directory map[string]bool
 	mu        *sync.RWMutex
-	bypass    int
+	bypass    *bool
 }
 
-func (o *onceRegistry) _require(
+func (o *registry) SetBypassed(
+	bypassed bool,
+) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
+	if o.bypass != nil {
+		panic(EF("bypass already set to %t", *o.bypass))
+	}
+
+	o.bypass = &bypassed
+}
+
+// ===.
+
+func (o *registry) _requireKey(
 	key string,
 	expecting bool,
 ) {
-	if o.bypass == stateBypass || expecting == o.directory[key] {
+	if o.bypass != nil && *o.bypass == true || expecting == o.directory[key] {
 		return
 	}
 
@@ -97,23 +102,23 @@ func (o *onceRegistry) _require(
 	))
 }
 
-func (o *onceRegistry) require(
+func (o *registry) requireKey(
 	key string,
 	expecting bool,
 ) {
 	o.mu.RLock()
 	defer o.mu.RUnlock()
 
-	o._require(key, expecting)
+	o._requireKey(key, expecting)
 }
 
-func (o *onceRegistry) finish(
+func (o *registry) finishKey(
 	key string,
 ) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
-	o._require(key, unlocked)
+	o._requireKey(key, unlocked)
 
 	o.directory[key] = true
 
@@ -125,7 +130,31 @@ func (o *onceRegistry) finish(
 	}
 }
 
-func (o *onceRegistry) then(
+func (o *registry) ensureDoneKey(
+	key string,
+) {
+	o.requireKey(key, locked)
+}
+
+func (o *registry) ensureOpenKey(
+	key string,
+) {
+	o.requireKey(key, unlocked)
+}
+
+func (o *registry) At(
+	what ...string,
+) Registry {
+	// Validate.
+	join(what)
+
+	return &prefixed{
+		reg:    o,
+		prefix: what,
+	}
+}
+
+func (o *registry) then(
 	what []string,
 ) handle {
 	return handle{
@@ -134,60 +163,84 @@ func (o *onceRegistry) then(
 	}
 }
 
-func (o *onceRegistry) Then(what ...string) OnceHandle {
-	return o.then(what)
+func (o *registry) Finish(
+	what ...string,
+) Handle {
+	h := o.then(what)
+	h.Finish()
+	return h
 }
 
-func (o *onceRegistry) SetBypassed(bypassed bool) {
-	o.mu.Lock()
-	defer o.mu.Unlock()
+func (o *registry) EnsureOpen(
+	what ...string,
+) Handle {
+	h := o.then(what)
+	o.ensureOpenKey(h.key)
+	return h
+}
 
-	if o.bypass > stateBypassUnset {
-		isBypassed := true
-		if o.bypass == stateNoBypass {
-			isBypassed = false
-		}
-		panic(EF("bypass already set to %t", isBypassed))
-	}
+func (o *registry) EnsureDone(
+	what ...string,
+) Handle {
+	h := o.then(what)
+	o.ensureDoneKey(h.key)
+	return h
+}
 
-	if bypassed {
-		o.bypass = stateBypass
-	} else {
-		o.bypass = stateNoBypass
-	}
+// ====================================.
+
+var _ Registry = (*prefixed)(nil)
+
+type prefixed struct {
+	reg    *registry
+	prefix []string
+}
+
+func (p prefixed) At(what ...string) Registry {
+	prefix := append(slices.Clone(p.prefix), what...)
+	return p.reg.At(prefix...)
+}
+
+func (p prefixed) Finish(what ...string) Handle {
+	prefix := append(slices.Clone(p.prefix), what...)
+	return p.reg.Finish(prefix...)
+}
+
+func (p prefixed) EnsureOpen(what ...string) Handle {
+	prefix := append(slices.Clone(p.prefix), what...)
+	return p.reg.EnsureOpen(prefix...)
+}
+
+func (p prefixed) EnsureDone(what ...string) Handle {
+	prefix := append(slices.Clone(p.prefix), what...)
+	return p.reg.EnsureDone(prefix...)
 }
 
 // ====================================.
 
 type handle struct {
-	reg *onceRegistry
+	reg *registry
 	key string
 }
 
-func (a handle) withChildren(what []string) handle {
+func (a handle) Finish() {
+	a.reg.finishKey(a.key)
+}
+
+func (a handle) EnsureOpen() {
+	a.reg.ensureOpenKey(a.key)
+}
+
+func (a handle) EnsureDone() {
+	a.reg.ensureDoneKey(a.key)
+}
+
+func (a handle) At(
+	what ...string,
+) Handle {
+	prefix := join(append(strings.Split(a.key, sep), what...))
 	return handle{
 		reg: a.reg,
-		key: joinWith(a.key, what),
+		key: prefix,
 	}
-}
-
-func (a handle) Finish() OnceHandle {
-	a.reg.finish(a.key)
-	return a
-}
-
-func (a handle) EnsureOpen() OnceHandle {
-	a.reg.require(a.key, unlocked)
-	return a
-}
-
-func (a handle) EnsureDone() OnceHandle {
-	a.reg.require(a.key, locked)
-	return a
-}
-
-func (a handle) Then(
-	what ...string,
-) OnceHandle {
-	return a.withChildren(what)
 }
