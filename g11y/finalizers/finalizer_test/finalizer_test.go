@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/hkoosha/giraffe/g11y/finalizers"
 	"github.com/hkoosha/giraffe/g11y/setup"
-	"github.com/hkoosha/giraffe/g11y/setup/finalizers"
 )
 
 func run(
