@@ -111,20 +111,12 @@ func (f *Fn_) WithScopeOut(
 func (f *Fn_) AndInputs(
 	inputs ...giraffe.Query,
 ) *Fn_ {
-	if len(inputs) == 0 {
-		panic(EF("empty inputs"))
-	}
-
 	return f.WithInput(append(inputs, f.inputs...)...)
 }
 
 func (f *Fn_) WithInput(
 	inputs ...giraffe.Query,
 ) *Fn_ {
-	if len(inputs) == 0 {
-		panic(EF("empty inputs"))
-	}
-
 	f.ensure()
 
 	clone := f.clone()
@@ -135,20 +127,12 @@ func (f *Fn_) WithInput(
 func (f *Fn_) AndOptionals(
 	optionals ...giraffe.Query,
 ) *Fn_ {
-	if len(optionals) == 0 {
-		panic(EF("empty optionals"))
-	}
-
 	return f.WithOptional(append(optionals, f.optionals...)...)
 }
 
 func (f *Fn_) WithOptional(
 	optionals ...giraffe.Query,
 ) *Fn_ {
-	if len(optionals) == 0 {
-		panic(EF("empty optionals"))
-	}
-
 	f.ensure()
 
 	clone := f.clone()
@@ -159,20 +143,12 @@ func (f *Fn_) WithOptional(
 func (f *Fn_) AndOutputs(
 	outputs ...giraffe.Query,
 ) *Fn_ {
-	if len(outputs) == 0 {
-		panic(EF("empty outputs"))
-	}
-
 	return f.WithOutput(append(outputs, f.outputs...)...)
 }
 
 func (f *Fn_) WithOutput(
 	outputs ...giraffe.Query,
 ) *Fn_ {
-	if len(outputs) == 0 {
-		panic(EF("empty outputs"))
-	}
-
 	f.ensure()
 
 	clone := f.clone()
@@ -199,20 +175,12 @@ func (f *Fn_) WithoutNoOverwriting() *Fn_ {
 func (f *Fn_) AndSelect(
 	select_ ...giraffe.Query,
 ) *Fn_ {
-	if len(select_) == 0 {
-		panic(EF("empty select"))
-	}
-
 	return f.Select(append(select_, f.selected...)...)
 }
 
 func (f *Fn_) Select(
 	select_ ...giraffe.Query,
 ) *Fn_ {
-	if len(select_) == 0 {
-		panic(EF("empty select"))
-	}
-
 	f.ensure()
 
 	clone := f.clone()

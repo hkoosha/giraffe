@@ -43,7 +43,7 @@ func Remote(
 		url:     url,
 	}
 
-	return hippo.MustFnCtxOf(fn.Ekran)
+	return hippo.MustFnOf(fn.Ekran)
 }
 
 type remoteFn struct {

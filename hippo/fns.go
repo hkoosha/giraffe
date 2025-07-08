@@ -36,12 +36,6 @@ func Static(
 
 // ============================================================================.
 
-func MustFnOf(
-	exe Exe,
-) *Fn_ {
-	return M(FnOf(exe))
-}
-
 func FnOf(
 	exe Exe,
 ) (*Fn_, error) {
@@ -71,31 +65,6 @@ func FnOf(
 	return fn, err
 }
 
-func MustFnCtxOf(
-	exe ExeCtx,
-) *Fn_ {
-	return M(FnCtxOf(exe))
-}
-
-func FnCtxOf(
-	exeCtx ExeCtx,
-) (*Fn_, error) {
-	exe := func(
-		ctx gtx.Context,
-		dat giraffe.Datum,
-	) (giraffe.Datum, error) {
-		return exeCtx(ctx, dat)
-	}
-
-	return FnOf(exe)
-}
-
-func MustFnOf0(
-	exe0 Exe0,
-) *Fn_ {
-	return M(FnOf0(exe0))
-}
-
 func FnOf0(
 	exe0 Exe0,
 ) (*Fn_, error) {
@@ -107,4 +76,16 @@ func FnOf0(
 	}
 
 	return FnOf(exe)
+}
+
+func MustFnOf(
+	exe Exe,
+) *Fn_ {
+	return M(FnOf(exe))
+}
+
+func MustFnOf0(
+	exe0 Exe0,
+) *Fn_ {
+	return M(FnOf0(exe0))
 }
