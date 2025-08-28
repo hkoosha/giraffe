@@ -57,6 +57,8 @@ func GiraffeRunner(
 	return &runner{
 		Sealer: internal.Sealer{},
 
+		lg: nil,
+
 		state:      stateWaitingOpen,
 		mu:         &sync.Mutex{},
 		containers: make([]Container, 0),

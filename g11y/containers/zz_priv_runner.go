@@ -33,7 +33,7 @@ type runner struct {
 	lg glog.Lg
 
 	state      string
-	cfg        Config
+	cfg        Config //nolint:unused
 	mu         *sync.Mutex
 	containers []Container
 }
@@ -75,7 +75,7 @@ func (r *runner) goTo(
 	r.state = to
 }
 
-// Return dummy error, so it's more obvious there's an unlock fn that should be
+// Return dummy error, so makes it clear there's an unlock fn that should be
 // called via defer. By not returning error, the call looks
 // like `defer r.stayIn(foo)()` while the second parentheses are easy to miss.
 func (r *runner) stayIn(
@@ -101,7 +101,7 @@ func (r *runner) Open(
 ) glog.Lg {
 	r.goTo(stateWaitingOpen, stateWaitingFinalize)
 
-	return r.lg
+	panic("todo: set r.lg")
 }
 
 func (r *runner) Register(
@@ -153,7 +153,7 @@ func (r *runner) Wait(
 func (r *runner) MustWait(
 	ctx context.Context,
 ) {
-	E(r.Wait(ctx))
+	M(0, r.Wait(ctx))
 }
 
 // Stop
