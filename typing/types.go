@@ -129,7 +129,7 @@ func mustGet(
 	id uint64,
 ) *info {
 	inf, ok := get(id)
-	AssertF(ok, "invalid type: %d", id)
+	Assertf(ok, "invalid type: %d", id)
 
 	return inf
 }
@@ -155,7 +155,7 @@ type Type struct {
 }
 
 func (t Type) ensure() {
-	AssertF(t.IsValid(), "invalid type")
+	Assertf(t.IsValid(), "invalid type")
 }
 
 func (t Type) String() string {

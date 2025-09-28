@@ -2,7 +2,7 @@ go 1.25.1
 
 use (
 	.
-	helper/tests
+	helper/testhelper
 	contrib/proto
 	contrib/redis
 	contrib/zap

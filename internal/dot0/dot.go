@@ -36,10 +36,11 @@ func N(name string, v any) named.Named {
 }
 
 func Assert(condition bool) {
-	AssertF(condition, "unexpected state")
+	Assertf(condition, "unexpected state")
 }
 
-func AssertF(
+//goland:noinspection SpellCheckingInspection
+func Assertf(
 	condition bool,
 	format string,
 	v ...any,
