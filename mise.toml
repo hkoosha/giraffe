@@ -4,9 +4,9 @@
 mise.path = "./_ybin"
 
 [tools]
-go = '1.25.0'
-golangci-lint = 'v2.4.0'
-just = '1.42.4'
+go = '1.25.1'
+golangci-lint = 'v2.5.0'
+just = '1.43.0'
 jq = '1.8.1'
-yq = '4.47.1'
+yq = '4.47.2'
 

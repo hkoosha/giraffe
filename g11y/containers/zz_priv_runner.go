@@ -46,13 +46,15 @@ func (r *runner) goToFrom(
 	defer r.mu.Unlock()
 
 	if slices.Contains(from, to) {
-		panic(EF("cannot go from same state to itself, current=%v, from%v, to=%v",
+		panic(EF("cannot go from same state to itself, current=%v, "+
+			"from%v, to=%v",
 			r.state,
 			from,
 			to))
 	}
 	if slices.Contains(from, r.state) {
-		panic(EF("invalid state transition, current=%v, from=%v, to=%v", r.state, from, to))
+		panic(EF("invalid state transition, current=%v, from=%v, to=%v",
+			r.state, from, to))
 	}
 
 	r.state = to
