@@ -4,10 +4,10 @@ import (
 	"context"
 	"slices"
 	"sync"
-	"time"
 
 	"golang.org/x/sync/errgroup"
 
+	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
 	. "github.com/hkoosha/giraffe/internal/dot0"
@@ -162,10 +162,7 @@ func (r *runner) MustWait(
 // TODO timeout.
 func (r *runner) Stop(
 	ctx context.Context,
-	timeout time.Duration,
 ) error {
-	_ = timeout
-
 	r.goTo(stateRunning, stateStopping)
 
 	var wg errgroup.Group
@@ -186,18 +183,17 @@ func (r *runner) Stop(
 // Close
 // TODO implement
 // TODO: o11y.Shutdown().
-// TODO timeout.
 func (r *runner) Close(
 	ctx context.Context,
-	timeout time.Duration,
 ) {
-	_ = timeout
-
 	r.goTo(stateActive, stateClosing)
 
+	var err error
 	for _, c := range r.containers {
-		c.Close(ctx)
+		err = g11y.Join(err, c.Close(ctx))
 	}
+
+	g11y.DieIf(err)
 
 	r.goTo(stateClosing, stateClosed)
 }

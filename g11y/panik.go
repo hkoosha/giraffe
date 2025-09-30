@@ -1,9 +1,11 @@
 package g11y
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
+	"sync/atomic"
 )
 
 //goland:noinspection GoUnusedExportedFunction
@@ -28,5 +30,48 @@ func DieIf(
 	)
 	if err != nil {
 		panic(err)
+	}
+}
+
+func Join(
+	err any,
+	with any,
+) error {
+	e0 := toErr(err)
+	e1 := toErr(with)
+
+	return errors.Join(e0, e1)
+}
+
+func Mix(
+	err *atomic.Value,
+	with any,
+) {
+	e0 := toErr(err.Load())
+	e1 := toErr(with)
+	err.Store(Join(e0, e1))
+}
+
+func MixAndGet(
+	err *atomic.Value,
+	with any,
+) error {
+	e0 := toErr(err.Load())
+	e1 := toErr(with)
+	join := Join(e0, e1)
+	err.Store(join)
+	return join
+}
+
+func toErr(a any) error {
+	switch cast, ok := a.(error); {
+	case ok:
+		return cast
+
+	case a != nil:
+		return fmt.Errorf("%v", a)
+
+	default:
+		return nil
 	}
 }

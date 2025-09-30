@@ -3,12 +3,13 @@ package containers
 import (
 	"context"
 	"sync"
-	"time"
 
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
 )
+
+const ListenO11y = "127.0.0.1:8081"
 
 type Runner interface {
 	internal.Sealed
@@ -23,17 +24,15 @@ type Runner interface {
 
 	MustWait(context.Context)
 
-	Stop(ctx context.Context, timeout time.Duration) error
+	Stop(ctx context.Context) error
 
-	Close(ctx context.Context, timeout time.Duration)
+	Close(ctx context.Context)
 }
 
 // ====================================.
 
 func Configure(
 	appRef string,
-	listenO11y string,
-	otelEndpoint string,
 ) ConfigWrite {
 	return &config{
 		Sealer:        internal.Sealer{},
@@ -42,9 +41,7 @@ func Configure(
 		humanReadable: false,
 		appRef:        appRef,
 		otel:          false,
-		listenO11y:    listenO11y,
-		otelEndpoint:  otelEndpoint,
-		otelInsecure:  false,
+		listenO11y:    ListenO11y,
 	}
 }
 

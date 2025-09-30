@@ -24,8 +24,6 @@ type OtelCfg interface {
 	internal.Sealed
 
 	IsOtel() bool
-	GetOtelEndpoint() string
-	IsOtelInsecure() bool
 
 	GetListenO11y() string
 }
@@ -36,6 +34,8 @@ type Config interface {
 	GetAppRef() string
 
 	Runner(context.Context) Runner
+	Wait(context.Context, ...Container) error
+	WaitOrDie(context.Context, ...Container)
 
 	DebugCfg
 	LgCfg
@@ -68,11 +68,6 @@ type OtelCfgWrite interface {
 	WithOtel() ConfigWrite
 	WithoutOtel() ConfigWrite
 	SetOtel(bool) ConfigWrite
-
-	WithOtelEndpoint(string) ConfigWrite
-	WithOtelInsecure() ConfigWrite
-	WithoutOtelInsecure() ConfigWrite
-	SetOtelInsecure(bool) ConfigWrite
 
 	WithListenO11y(string) ConfigWrite
 }

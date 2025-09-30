@@ -223,7 +223,7 @@ type Conn[R any] interface {
 
 // ============================================================================.
 
-func Of[R any](
+func MakeAny[R any](
 	cfg Config,
 	serde serdes.Serde[R],
 ) Conn[R] {
@@ -232,15 +232,15 @@ func Of[R any](
 	return newConn[R](cloned, serde)
 }
 
-func OfJson[R any](
+func MakeJson[R any](
 	cfg Config,
 ) Conn[R] {
-	return Of[R](cfg, serdes.Json[R]())
+	return MakeAny[R](cfg, serdes.Json[R]())
 }
 
 // ====================================.
 
-func To(
+func OfAny(
 	lg glog.Lg,
 	timeout time.Duration,
 	serde serdes.Serde[any],
@@ -248,9 +248,9 @@ func To(
 	return newConfig(lg, timeout, serde)
 }
 
-func ToJson(
+func OfJson(
 	lg glog.Lg,
 	timeout time.Duration,
 ) Config {
-	return To(lg, timeout, serdes.Json[any]())
+	return OfAny(lg, timeout, serdes.Json[any]())
 }

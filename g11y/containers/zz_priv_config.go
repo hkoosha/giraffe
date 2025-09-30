@@ -2,7 +2,11 @@ package containers
 
 import (
 	"context"
+	"errors"
+	"sync/atomic"
+	"time"
 
+	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
 )
@@ -11,12 +15,10 @@ type config struct {
 	internal.Sealer
 	appRef        string
 	listenO11y    string
-	otelEndpoint  string
 	level         glog.Level
 	debug         bool
 	humanReadable bool
 	otel          bool
-	otelInsecure  bool
 }
 
 func (r *config) shallow() *config {
@@ -29,6 +31,84 @@ func (r *config) Runner(
 	ctx context.Context,
 ) Runner {
 	return GiraffeRunner(ctx, r)
+}
+
+func (r *config) Wait(
+	ctx context.Context,
+	containers ...Container,
+) error {
+	err := atomic.Value{}
+	return r.doWait(ctx, &err, containers...)
+	e := g11y.MixAndGet(&err, nil)
+	return e
+}
+
+func (r *config) doWait(
+	ctx context.Context,
+	err *atomic.Value,
+	containers ...Container,
+) error {
+	const timeout = 4 * time.Second
+
+	defer func() { g11y.Mix(err, recover()) }()
+
+	open := func() Runner {
+		rn := GiraffeRunner(ctx, r)
+		rn.Open(ctx)
+		rn.Register(containers...)
+		rn.Finalize(ctx)
+		return rn
+	}
+
+	fin := func(
+		ctx context.Context,
+		rn Runner,
+	) {
+		timer := time.NewTimer(timeout)
+		defer timer.Stop()
+
+		ctx, cancel := context.WithTimeout(ctx, timeout)
+		defer cancel()
+
+		done := make(chan error, 1)
+
+		go func() {
+			defer func() { g11y.DieIf(recover()) }()
+			done <- rn.Stop(ctx)
+		}()
+
+		select {
+		case dErr := <-done:
+			g11y.Mix(err, dErr)
+		case <-timer.C:
+			g11y.Mix(err, errors.New("timed out on stop"))
+		}
+
+		go func() {
+			defer func() { g11y.DieIf(recover()) }()
+			rn.Close(ctx)
+			done <- nil
+		}()
+
+		select {
+		case dErr := <-done:
+			g11y.Mix(err, dErr)
+		case <-timer.C:
+			g11y.Mix(err, errors.New("timed out on close"))
+		}
+	}
+
+	rn := open()
+	defer fin(ctx, rn)
+	return g11y.MixAndGet(err, rn.Wait(ctx))
+}
+
+func (r *config) WaitOrDie(
+	ctx context.Context,
+	containers ...Container,
+) {
+	err := r.Wait(ctx, containers...)
+	g11y.DieIf(err)
 }
 
 // ============================================================================.
@@ -87,26 +167,6 @@ func (r *config) SetOtel(b bool) ConfigWrite {
 	return cp
 }
 
-func (r *config) WithOtelEndpoint(s string) ConfigWrite {
-	cp := r.shallow()
-	cp.otelEndpoint = s
-	return cp
-}
-
-func (r *config) WithOtelInsecure() ConfigWrite {
-	return r.SetOtelInsecure(true)
-}
-
-func (r *config) WithoutOtelInsecure() ConfigWrite {
-	return r.SetOtelInsecure(false)
-}
-
-func (r *config) SetOtelInsecure(b bool) ConfigWrite {
-	cp := r.shallow()
-	cp.otelInsecure = b
-	return cp
-}
-
 func (r *config) WithListenO11y(s string) ConfigWrite {
 	cp := r.shallow()
 	cp.listenO11y = s
@@ -133,14 +193,6 @@ func (r *config) GetAppRef() string {
 
 func (r *config) IsOtel() bool {
 	return r.otel
-}
-
-func (r *config) GetOtelEndpoint() string {
-	return r.otelEndpoint
-}
-
-func (r *config) IsOtelInsecure() bool {
-	return r.otelInsecure
 }
 
 func (r *config) GetListenO11y() string {
