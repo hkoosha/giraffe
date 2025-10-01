@@ -4,7 +4,6 @@ import (
 	"slices"
 	"sync"
 
-	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hkoosha/giraffe/contrib/zap/gzapadapter"
@@ -19,10 +18,11 @@ const (
 	stateWaitingOpen     = "waiting_open"
 	stateWaitingFinalize = "waiting_finalize"
 	stateWaitingActive   = "waiting_active"
-	stateActive          = "active"
+	ready                = "ready"
 	stateTryingRunning   = "trying_running"
 	stateRunning         = "running"
 	stateStopping        = "stopping"
+	stateStopped         = "stoped"
 	stateClosing         = "closing"
 	stateClosed          = "closed"
 	stateErr             = "err"
@@ -40,7 +40,7 @@ type runner struct {
 	containers []Container
 }
 
-func (r *runner) goToFrom(
+func (r *runner) gotoFrom(
 	to string,
 	from ...string,
 ) {
@@ -48,32 +48,15 @@ func (r *runner) goToFrom(
 	defer r.mu.Unlock()
 
 	if slices.Contains(from, to) {
-		panic(EF("cannot go from same state to itself, current=%v, "+
+		panic(EF("cannot go from an state to itself, current=%v, "+
 			"from%v, to=%v",
 			r.state,
 			from,
 			to))
 	}
-	if slices.Contains(from, r.state) {
+	if !slices.Contains(from, r.state) {
 		panic(EF("invalid state transition, current=%v, from=%v, to=%v",
 			r.state, from, to))
-	}
-
-	r.state = to
-}
-
-func (r *runner) goTo(
-	from string,
-	to string,
-) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if from == to {
-		panic(EF("cannot go from same state to itself, current=%v, from=to=%v", r.state, from))
-	}
-	if r.state != from {
-		panic(EF("invalid state transition, current=%v, from=%v, to=%v", r.state, from, to))
 	}
 
 	r.state = to
@@ -92,10 +75,12 @@ func (r *runner) mustBeIn(
 func (r *runner) Open(
 	gtx.Context,
 ) glog.Lg {
-	r.goTo(stateWaitingOpen, stateWaitingFinalize)
+	r.gotoFrom(stateWaitingFinalize, stateWaitingOpen)
 
-	lg := gzapadapter.DefaultSetup(false, zap.String("ref", "TODO"))
-	r.lg = gzapadapter.Of(lg)
+	lgProvider := gzapadapter.MkInit(true, true, nil)
+	M(lgProvider.Open())
+
+	r.lg = gzapadapter.Of(lgProvider.Get())
 	return r.lg
 }
 
@@ -114,7 +99,7 @@ func (r *runner) Register(
 func (r *runner) Finalize(
 	ctx gtx.Context,
 ) {
-	r.goTo(stateWaitingFinalize, stateWaitingActive)
+	r.gotoFrom(stateWaitingActive, stateWaitingFinalize)
 
 	if len(r.containers) == 0 {
 		panic(EF("no containers registered"))
@@ -124,13 +109,13 @@ func (r *runner) Finalize(
 		c.Open(ctx, r.lg)
 	}
 
-	r.goTo(stateWaitingActive, stateActive)
+	r.gotoFrom(ready, stateWaitingActive)
 }
 
 func (r *runner) Wait(
 	ctx gtx.Context,
 ) error {
-	r.goToFrom(stateActive, stateTryingRunning)
+	r.gotoFrom(stateTryingRunning, ready)
 
 	wg, ctx := errgroup.WithContext(ctx)
 	for _, c := range r.containers {
@@ -139,7 +124,7 @@ func (r *runner) Wait(
 		})
 	}
 
-	r.goToFrom(stateTryingRunning, stateRunning)
+	r.gotoFrom(stateRunning, stateTryingRunning)
 
 	return wg.Wait()
 }
@@ -155,7 +140,7 @@ func (r *runner) MustWait(
 func (r *runner) Stop(
 	ctx gtx.Context,
 ) error {
-	r.goTo(stateRunning, stateStopping)
+	r.gotoFrom(stateStopping, stateRunning)
 
 	var wg errgroup.Group
 	for _, c := range r.containers {
@@ -165,10 +150,11 @@ func (r *runner) Stop(
 	}
 
 	if err := wg.Wait(); err != nil {
-		r.goTo(stateStopping, stateErr)
+		r.gotoFrom(stateErr, stateStopping)
 		return err
 	}
 
+	r.gotoFrom(stateStopped, stateStopping)
 	return nil
 }
 
@@ -178,7 +164,7 @@ func (r *runner) Stop(
 func (r *runner) Close(
 	ctx gtx.Context,
 ) {
-	r.goTo(stateActive, stateClosing)
+	r.gotoFrom(stateClosing, stateStopped)
 
 	var err error
 	for _, c := range r.containers {
@@ -187,5 +173,5 @@ func (r *runner) Close(
 
 	g11y.DieIf(err)
 
-	r.goTo(stateClosing, stateClosed)
+	r.gotoFrom(stateClosed, stateClosing)
 }

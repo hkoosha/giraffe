@@ -2,71 +2,173 @@ package gzapadapter
 
 import (
 	"fmt"
+	"maps"
 	"os"
 	"sync"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 var writeSyncer = sync.OnceValue(func() zapcore.WriteSyncer {
 	return zapcore.Lock(os.Stdout)
 })
 
-func DefaultEncoderConfig() *zapcore.EncoderConfig {
-	return &zapcore.EncoderConfig{
-		MessageKey:     "msg",
+type Provider[D any] interface {
+	Close() error
+
+	Open() (D, error)
+
+	Get() D
+
+	Init(
+		local bool,
+		adjustGlobalLogger bool,
+		extra map[string]string,
+	)
+}
+
+type provider struct {
+	mu                 *sync.Mutex
+	lg                 *zap.Logger
+	extra              map[string]string
+	local              bool
+	adjustGlobalLogger bool
+	initialized        bool
+	ready              bool
+}
+
+func (p *provider) Init(
+	local bool,
+	adjustGlobalLogger bool,
+	extra map[string]string,
+) {
+	extra = maps.Clone(extra)
+	if extra == nil {
+		extra = make(map[string]string)
+	}
+
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.ready = false
+	p.initialized = false
+	p.local = local
+	p.adjustGlobalLogger = adjustGlobalLogger
+	p.extra = extra
+	p.initialized = true
+}
+
+func (p *provider) Close() error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.initialized = false
+	p.ready = false
+
+	err := p.lg.Sync()
+	if err != nil {
+		fmt.Println("failed to sync logger:", err)
+	}
+
+	return err
+}
+
+func (p *provider) Open() (*zap.Logger, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	const level = zap.InfoLevel
+
+	if !p.initialized {
+		panic(EF("not initialized"))
+	}
+
+	if p.ready {
+		Assert(p.lg != nil)
+		return p.lg, nil
+	}
+
+	cfg := zapcore.EncoderConfig{
+		MessageKey:     "what",
+		NameKey:        "who",
+		TimeKey:        "when",
+		CallerKey:      "where",
+		StacktraceKey:  "whereabouts",
 		LevelKey:       "level",
-		NameKey:        "logger",
-		TimeKey:        "at",
-		CallerKey:      "caller",
-		StacktraceKey:  "stacktrace",
 		FunctionKey:    "fn",
 		EncodeLevel:    zapcore.LowercaseLevelEncoder,
 		EncodeTime:     zapcore.ISO8601TimeEncoder,
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
-}
-
-func DefaultShutdown() {
-	if err := zap.L().Sync(); err != nil {
-		fmt.Println("Failed to sync logger:", err)
-	}
-}
-
-func DefaultNewLogger(
-	json bool,
-	cfg *zapcore.EncoderConfig,
-	extra ...zap.Field,
-) *zap.Logger {
-	level := zap.InfoLevel
 
 	var enc zapcore.Encoder
-	if json {
-		enc = zapcore.NewJSONEncoder(*cfg)
+	if p.local {
+		enc = zapcore.NewConsoleEncoder(cfg)
 	} else {
-		enc = zapcore.NewConsoleEncoder(*cfg)
+		enc = zapcore.NewJSONEncoder(cfg)
 	}
 
-	core := zapcore.NewCore(enc, writeSyncer(), level)
-
-	return zap.New(
-		core,
+	op := []zap.Option{
 		zap.WithCaller(false),
 		zap.AddStacktrace(zap.DPanicLevel),
-		zap.Fields(extra...),
+	}
+
+	if len(p.extra) > 0 {
+		var fields []zap.Field
+		for k, v := range p.extra {
+			fields = append(fields, zap.String(k, v))
+		}
+		op = append(op, zap.Fields(fields...))
+	}
+
+	p.lg = zap.New(
+		zapcore.NewCore(enc, writeSyncer(), level),
+		op...,
 	)
+
+	if p.adjustGlobalLogger {
+		zap.ReplaceGlobals(p.lg)
+	}
+
+	p.ready = true
+	return p.lg, nil
 }
 
-func DefaultSetup(
-	json bool,
-	extra ...zap.Field,
-) *zap.Logger {
-	zap.ReplaceGlobals(DefaultNewLogger(
-		json,
-		DefaultEncoderConfig(),
-	))
+func (p *provider) Get() *zap.Logger {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
-	return zap.L()
+	if !p.initialized {
+		panic(EF("not initialized"))
+	}
+	if !p.ready {
+		panic(EF("not opened"))
+	}
+
+	return p.lg
+}
+
+func MkProvider() Provider[*zap.Logger] {
+	return &provider{
+		mu:                 &sync.Mutex{},
+		lg:                 nil,
+		extra:              map[string]string{},
+		local:              false,
+		initialized:        false,
+		adjustGlobalLogger: false,
+	}
+}
+
+func MkInit(
+	local bool,
+	adjustGlobalLogger bool,
+	extra map[string]string,
+) Provider[*zap.Logger] {
+	p := MkProvider()
+	p.Init(local, adjustGlobalLogger, extra)
+	return p
 }

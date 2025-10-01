@@ -52,10 +52,8 @@ func GiraffeRunner(
 	g11y.NonNil(ctx, cfg)
 
 	return &runner{
-		Sealer: internal.Sealer{},
-
-		lg: nil,
-
+		Sealer:     internal.Sealer{},
+		lg:         nil,
 		state:      stateWaitingOpen,
 		mu:         &sync.Mutex{},
 		containers: make([]Container, 0),
