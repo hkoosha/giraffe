@@ -4,8 +4,10 @@ import (
 	"slices"
 	"sync"
 
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/hkoosha/giraffe/contrib/zap/gzapadapter"
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
@@ -77,17 +79,6 @@ func (r *runner) goTo(
 	r.state = to
 }
 
-// Return dummy error, so makes it clear there's an unlock fn that should be
-// called via defer. By not returning error, the call looks
-// like `defer r.stayIn(foo)()` while the second parentheses are easy to miss.
-func (r *runner) stayIn(
-	state string,
-) (func(), error) {
-	r.mu.Lock()
-	r.mustBeIn(state)
-	return r.mu.Unlock, nil
-}
-
 func (r *runner) mustBeIn(
 	state string,
 ) {
@@ -103,13 +94,17 @@ func (r *runner) Open(
 ) glog.Lg {
 	r.goTo(stateWaitingOpen, stateWaitingFinalize)
 
-	panic("todo: set r.lg")
+	lg := gzapadapter.DefaultSetup(false, zap.String("ref", "TODO"))
+	r.lg = gzapadapter.Of(lg)
+	return r.lg
 }
 
 func (r *runner) Register(
 	c ...Container,
 ) {
-	defer M(r.stayIn(stateWaitingFinalize))
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.mustBeIn(stateWaitingFinalize)
 
 	r.containers = append(r.containers, c...)
 }
@@ -118,10 +113,7 @@ func (r *runner) Register(
 // TODO: o11y.Finalize(ctx).
 func (r *runner) Finalize(
 	ctx gtx.Context,
-	c ...Container,
 ) {
-	r.Register(c...)
-
 	r.goTo(stateWaitingFinalize, stateWaitingActive)
 
 	if len(r.containers) == 0 {

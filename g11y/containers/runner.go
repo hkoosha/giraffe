@@ -18,7 +18,7 @@ type Runner interface {
 
 	Register(...Container)
 
-	Finalize(gtx.Context, ...Container)
+	Finalize(gtx.Context)
 
 	Wait(gtx.Context) error
 

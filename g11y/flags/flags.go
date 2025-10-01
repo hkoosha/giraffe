@@ -119,7 +119,9 @@ func (s *FlagStore) Bind(cmd *cobra.Command) {
 			panic(EF("%s", "unsupported flag type: "+reflect.TypeOf(v.def).String()))
 		}
 
-		OK(s.vp.BindPFlag(name, cmd.PersistentFlags().Lookup(name)))
+		lu := cmd.PersistentFlags().Lookup(name)
+		err := s.vp.BindPFlag(name, lu)
+		OK(err)
 
 		s.vp.MustBindEnv(name, s.envPrefix+v.envVar)
 	}
