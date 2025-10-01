@@ -50,7 +50,7 @@ func (s *server) ekran(
 		return newErrorParsingPayload(err)
 	}
 
-	init, err := giraffe.Make(req.Init)
+	init, err := giraffe.From(req.Init)
 	if err != nil {
 		return newErrorParsingPayload(err)
 	}
@@ -88,7 +88,7 @@ func (s *server) ekran(
 				return newErrorMissingFn(comp.WithFn)
 			}
 		} else {
-			withDatum, mkErr := giraffe.Make(comp.With)
+			withDatum, mkErr := giraffe.From(comp.With)
 			if mkErr != nil {
 				return newErrorParsingPayload(mkErr)
 			}

@@ -74,7 +74,7 @@ func (h *hContext) Value(key any) any {
 	return h.ctx.Value(key)
 }
 
-func (h *hContext) WithCtx(ctx context.Context) HContext {
+func (h *hContext) WithCtx(ctx context.Context) Context {
 	return h.withCtx(ctx)
 }
 

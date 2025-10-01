@@ -1,29 +1,28 @@
 package containers
 
 import (
-	"context"
-
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 )
 
 type SimpleContainer interface {
-	Open(context.Context, glog.Lg)
+	Open(gtx.Context, glog.Lg)
 
-	Start(context.Context) error
+	Start(gtx.Context) error
 }
 
 type Container interface {
-	Open(context.Context, glog.Lg)
+	Open(gtx.Context, glog.Lg)
 
-	Start(context.Context) error
+	Start(gtx.Context) error
 
-	Stop(context.Context) error
+	Stop(gtx.Context) error
 
-	Close(context.Context) error
+	Close(gtx.Context) error
 }
 
 func Of(
-	fn func(context.Context, glog.Lg) error,
+	fn func(gtx.Context, glog.Lg) error,
 ) Container {
 	return &lgContainer{
 		fn: fn,
@@ -31,14 +30,18 @@ func Of(
 }
 
 func OfMust(
-	fn func(context.Context, glog.Lg),
+	fn func(gtx.Context, glog.Lg),
 ) Container {
-	return Of(func(ctx context.Context, lg glog.Lg) error {
+	return Of(func(ctx gtx.Context, lg glog.Lg) error {
 		fn(ctx, lg)
 		return nil
 	})
 }
 
-func FromSimple(sc SimpleContainer) Container {
-	return &lgContainer{}
+func FromSimple(
+	sc SimpleContainer,
+) Container {
+	return &simpleAdapter{
+		simple: sc,
+	}
 }

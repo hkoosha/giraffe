@@ -31,16 +31,57 @@ var (
 	}
 
 	jsonNumberType = reflect.TypeOf((*json.Number)(nil)).Elem()
+	strType        = reflect.TypeOf((*string)(nil)).Elem()
 )
+
+func ofJsonable(
+	v any,
+) (Datum, error) {
+	switch r := reflect.ValueOf(v); {
+	case !r.IsValid() && v == nil:
+		// TODO is this the correct way to detect reflect.ValueOf(nil)?
+		return _newDatum(Nil, nil), nil
+
+	case !r.IsValid():
+		return OfErr(), newDataMakeInvalidTypeError(r.Type())
+
+	case r.Type() == _datumPtrType ||
+		r.Type() == strType ||
+		r.Kind() == reflect.Map && r.Type().Key() == tQuery:
+		// TODO expand
+		return OfErr(), newNotJsonableError()
+
+	default:
+		toJ, err := json.Marshal(v)
+		if err != nil {
+			return OfErr(), E(err)
+		}
+
+		var fromJ any
+		err = json.Unmarshal(toJ, fromJ)
+		if err != nil {
+			return OfErr(), E(err)
+		}
+
+		val, typ, err := _ofAny(fromJ, r)
+		if err != nil {
+			return OfErr(), err
+		}
+
+		if typ == Err {
+			panic(EF("unreachable, invalid giraffe type: %s", typ.String()))
+		}
+
+		return _newDatum(typ, val), nil
+	}
+}
 
 func of(
 	v any,
 ) (Datum, error) {
-	r := reflect.ValueOf(v)
-
-	switch {
-	// TODO is this the correct way to detect reflect.ValueOf(nil)?
+	switch r := reflect.ValueOf(v); {
 	case !r.IsValid() && v == nil:
+		// TODO is this the correct way to detect reflect.ValueOf(nil)?
 		return _newDatum(Nil, nil), nil
 
 	case !r.IsValid():
@@ -49,8 +90,8 @@ func of(
 	case r.Type() == _datumPtrType && r.IsNil():
 		return OfErr(), newNilError()
 
-	// MUST make a copy: return value WILL BE MODIFIED by internal code.
 	case r.Type() == _datumPtrType:
+		// MUST make a copy: return value WILL BE MODIFIED by internal code.
 		d, ok := v.(*Datum)
 		if !ok {
 			panic(EF("unreachable: unexpected value for datum"))

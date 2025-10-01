@@ -56,7 +56,7 @@ func (c Compensator) clone() Compensator {
 }
 
 func (c Compensator) compensate(
-	ctx HContext,
+	ctx Context,
 	sCtx *StepContext,
 	err error,
 ) (giraffe.Datum, bool) {

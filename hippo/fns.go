@@ -9,7 +9,7 @@ func Static(
 	dat giraffe.Datum,
 ) *Fn_ {
 	return M(FnOf(func(
-		HContext,
+		Context,
 		giraffe.Datum,
 	) (giraffe.Datum, error) {
 		return dat, nil

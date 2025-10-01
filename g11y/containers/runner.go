@@ -1,12 +1,12 @@
 package containers
 
 import (
-	"context"
 	"sync"
 
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 )
 
 const ListenO11y = "127.0.0.1:8081"
@@ -14,19 +14,19 @@ const ListenO11y = "127.0.0.1:8081"
 type Runner interface {
 	internal.Sealed
 
-	Open(ctx context.Context) glog.Lg
+	Open(ctx gtx.Context) glog.Lg
 
 	Register(...Container)
 
-	Finalize(context.Context, ...Container)
+	Finalize(gtx.Context, ...Container)
 
-	Wait(context.Context) error
+	Wait(gtx.Context) error
 
-	MustWait(context.Context)
+	MustWait(gtx.Context)
 
-	Stop(ctx context.Context) error
+	Stop(ctx gtx.Context) error
 
-	Close(ctx context.Context)
+	Close(ctx gtx.Context)
 }
 
 // ====================================.
@@ -46,7 +46,7 @@ func Configure(
 }
 
 func GiraffeRunner(
-	ctx context.Context,
+	ctx gtx.Context,
 	cfg ConfigWrite,
 ) Runner {
 	g11y.NonNil(ctx, cfg)

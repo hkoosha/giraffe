@@ -161,7 +161,7 @@ func decode(
 		)
 	}
 
-	dat, err := giraffe.Make(res)
+	dat, err := giraffe.From(res)
 	if err != nil {
 		return giraffe.OfErr(), hippoerr.NewRemoteError(
 			"failed to decode response",

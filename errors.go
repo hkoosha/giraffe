@@ -12,6 +12,7 @@ import (
 const (
 	ErrCodeUnexpectedNil uint64 = iota + 1
 	ErrCodeInvalidDatum
+	ErrCodeInvalidJsonable
 	ErrCodeCastError
 	ErrCodeOverflowError
 
@@ -73,6 +74,13 @@ func newNilError() error {
 	return newGiraffeError(
 		ErrCodeUnexpectedNil,
 		"unexpected nil",
+	)
+}
+
+func newNotJsonableError() error {
+	return newGiraffeError(
+		ErrCodeInvalidJsonable,
+		"given object cannot be transformed to of from json",
 	)
 }
 

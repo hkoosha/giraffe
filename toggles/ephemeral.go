@@ -1,11 +1,11 @@
 package toggles
 
 import (
-	"context"
 	"sync"
 
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
@@ -66,7 +66,7 @@ func (i *InMemory) set(
 }
 
 func (i *InMemory) Get(
-	_ context.Context,
+	_ gtx.Context,
 	name string,
 	values Values,
 ) (*bool, error) {
@@ -74,7 +74,7 @@ func (i *InMemory) Get(
 }
 
 func (i *InMemory) Set(
-	_ context.Context,
+	_ gtx.Context,
 	name string,
 	enabled bool,
 	req Condition,
@@ -98,7 +98,7 @@ func newConstant(
 }
 
 func (i *constant) Get(
-	context.Context,
+	gtx.Context,
 	string,
 	Values,
 ) (*bool, error) {

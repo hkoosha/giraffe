@@ -26,7 +26,7 @@ type ExeCtx = func(
 ) (giraffe.Datum, error)
 
 type Exe = func(
-	HContext,
+	Context,
 	giraffe.Datum,
 ) (giraffe.Datum, error)
 
@@ -75,7 +75,7 @@ func FnCtxOf(
 	exeCtx ExeCtx,
 ) (*Fn_, error) {
 	exe := func(
-		ctx HContext,
+		ctx Context,
 		dat giraffe.Datum,
 	) (giraffe.Datum, error) {
 		return exeCtx(ctx, dat)
@@ -94,7 +94,7 @@ func FnOf0(
 	exe0 Exe0,
 ) (*Fn_, error) {
 	exe := func(
-		_ HContext,
+		_ Context,
 		dat giraffe.Datum,
 	) (giraffe.Datum, error) {
 		return exe0(dat)
@@ -430,7 +430,7 @@ func (f *Fn_) clone() *Fn_ {
 }
 
 func (f *Fn_) call(
-	ctx HContext,
+	ctx Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	g11y.NonNil(f, f.exe)

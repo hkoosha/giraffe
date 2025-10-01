@@ -89,7 +89,7 @@ func TestServer_Ekran(t *testing.T) {
 		var fin any
 		OK(json.Unmarshal(out.Bytes(), &fin))
 
-		t.Log(M(giraffe.Make(fin)).Pretty())
+		t.Log(M(giraffe.From(fin)).Pretty())
 	})
 }
 

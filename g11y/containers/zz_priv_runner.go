@@ -1,7 +1,6 @@
 package containers
 
 import (
-	"context"
 	"slices"
 	"sync"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
@@ -99,7 +99,7 @@ func (r *runner) mustBeIn(
 // Open
 // TODO: log, otel.
 func (r *runner) Open(
-	context.Context,
+	gtx.Context,
 ) glog.Lg {
 	r.goTo(stateWaitingOpen, stateWaitingFinalize)
 
@@ -117,7 +117,7 @@ func (r *runner) Register(
 // Finalize
 // TODO: o11y.Finalize(ctx).
 func (r *runner) Finalize(
-	ctx context.Context,
+	ctx gtx.Context,
 	c ...Container,
 ) {
 	r.Register(c...)
@@ -136,7 +136,7 @@ func (r *runner) Finalize(
 }
 
 func (r *runner) Wait(
-	ctx context.Context,
+	ctx gtx.Context,
 ) error {
 	r.goToFrom(stateActive, stateTryingRunning)
 
@@ -153,7 +153,7 @@ func (r *runner) Wait(
 }
 
 func (r *runner) MustWait(
-	ctx context.Context,
+	ctx gtx.Context,
 ) {
 	M(0, r.Wait(ctx))
 }
@@ -161,7 +161,7 @@ func (r *runner) MustWait(
 // Stop
 // TODO timeout.
 func (r *runner) Stop(
-	ctx context.Context,
+	ctx gtx.Context,
 ) error {
 	r.goTo(stateRunning, stateStopping)
 
@@ -184,7 +184,7 @@ func (r *runner) Stop(
 // TODO implement
 // TODO: o11y.Shutdown().
 func (r *runner) Close(
-	ctx context.Context,
+	ctx gtx.Context,
 ) {
 	r.goTo(stateActive, stateClosing)
 

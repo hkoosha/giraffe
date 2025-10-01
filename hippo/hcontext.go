@@ -4,12 +4,14 @@ import (
 	"context"
 	rand1 "math/rand"
 	rand2 "math/rand/v2"
+
+	"github.com/hkoosha/giraffe/g11y/gtx"
 )
 
-type HContext interface {
-	context.Context
+type Context interface {
+	gtx.Context
 
-	WithCtx(context.Context) HContext
+	WithCtx(context.Context) Context
 
 	Rand() Rand
 }

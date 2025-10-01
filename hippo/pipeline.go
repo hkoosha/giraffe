@@ -122,7 +122,7 @@ func (n *PipelineFn) Ekran(
 }
 
 func (n *PipelineFn) ekran(
-	htx HContext,
+	htx Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	hist, hErr := history(dat)
@@ -164,7 +164,7 @@ func (n *PipelineFn) ekran(
 }
 
 func (n *PipelineFn) exe(
-	htx HContext,
+	htx Context,
 	sCtx *StepContext,
 ) (giraffe.Datum, error) {
 	if n.before != nil {
