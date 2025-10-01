@@ -65,7 +65,8 @@ func (c *connImpl[R]) Patch(
 	path ...string,
 ) (R, error) {
 	const m = http.MethodPatch
-	return c.call(ctx, m, body, path)
+	_, r, err := c.call(ctx, m, body, path)
+	return r, err
 }
 
 func (c *connImpl[R]) Put(
@@ -74,7 +75,8 @@ func (c *connImpl[R]) Put(
 	path ...string,
 ) (R, error) {
 	const m = http.MethodPut
-	return c.call(ctx, m, body, path)
+	_, r, err := c.call(ctx, m, body, path)
+	return r, err
 }
 
 func (c *connImpl[R]) Post(
@@ -83,7 +85,21 @@ func (c *connImpl[R]) Post(
 	path ...string,
 ) (R, error) {
 	const m = http.MethodPost
-	return c.call(ctx, m, body, path)
+	_, r, err := c.call(ctx, m, body, path)
+	return r, err
+}
+
+func (c *connImpl[R]) PostForHeaders(
+	ctx context.Context,
+	body any,
+	path ...string,
+) (http.Header, error) {
+	const m = http.MethodPost
+	resp, _, err := c.call(ctx, m, body, path)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Header, nil
 }
 
 func (c *connImpl[R]) Get(
@@ -91,7 +107,20 @@ func (c *connImpl[R]) Get(
 	path ...string,
 ) (R, error) {
 	const m = http.MethodGet
-	return c.call(ctx, m, nobody, path)
+	_, r, err := c.call(ctx, m, nobody, path)
+	return r, err
+}
+
+func (c *connImpl[R]) GetForHeaders(
+	ctx context.Context,
+	path ...string,
+) (http.Header, error) {
+	const m = http.MethodGet
+	resp, _, err := c.call(ctx, m, nobody, path)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Header, nil
 }
 
 func (c *connImpl[R]) Delete(
@@ -99,7 +128,8 @@ func (c *connImpl[R]) Delete(
 	path ...string,
 ) (R, error) {
 	const m = http.MethodDelete
-	return c.call(ctx, m, nil, path)
+	_, r, err := c.call(ctx, m, nobody, path)
+	return r, err
 }
 
 func (c *connImpl[R]) Call(
@@ -108,7 +138,8 @@ func (c *connImpl[R]) Call(
 	body any,
 	path ...string,
 ) (R, error) {
-	return c.call(ctx, method, body, path)
+	_, call, err := c.call(ctx, method, body, path)
+	return call, err
 }
 
 func (c *connImpl[R]) call(
@@ -116,7 +147,7 @@ func (c *connImpl[R]) call(
 	method string,
 	body any,
 	path []string,
-) (R, error) {
+) (*http.Response, R, error) {
 	var b io.Reader
 
 	switch cast := body.(type) {
@@ -132,28 +163,29 @@ func (c *connImpl[R]) call(
 	default:
 		serialized, err := c.cfg.serde_.Write(cast)
 		if err != nil {
-			return c.rErr, err
+			return nil, c.rErr, err
 		}
 		b = bytes.NewReader(serialized)
 	}
 
 	resp, err := c.callRaw(ctx, method, b, path)
 	if err != nil {
-		return c.rErr, err
+		return nil, c.rErr, err
 	}
 
 	if resp.Body == nil {
-		return c.serde.Read([]byte{})
+		rd, err := c.serde.Read([]byte{})
+		return resp, rd, err
 	}
 
 	defer resp.Body.Close()
 
 	u, err := c.serde.ReadFrom(resp.Body)
 	if err != nil {
-		return c.rErr, err
+		return nil, c.rErr, err
 	}
 
-	return u, nil
+	return resp, u, nil
 }
 
 func (c *connImpl[R]) callRaw(

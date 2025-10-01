@@ -12,6 +12,15 @@ import (
 
 // ================================================== ERROR MANAGEMENT SHORTCUTS.
 
+// T traced error if error, result if otherwise
+func T[A any](a A, err error) (A, error) {
+	if err != nil {
+		return a, E(err)
+	}
+
+	return a, nil
+}
+
 // E trace error(s).
 func E(err ...error) error {
 	switch {

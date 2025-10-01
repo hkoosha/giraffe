@@ -158,6 +158,11 @@ type ConfigWrite interface {
 		includeDefaults bool,
 		h map[string]string,
 	) Config
+	AndHeaders(map[string]string) Config
+	AndHeader(
+		name string,
+		value string,
+	) Config
 }
 
 // Config
@@ -210,10 +215,21 @@ type Conn[R any] interface {
 		path ...string,
 	) (R, error)
 
+	PostForHeaders(
+		ctx context.Context,
+		body any,
+		path ...string,
+	) (http.Header, error)
+
 	Get(
 		ctx context.Context,
 		path ...string,
 	) (R, error)
+
+	GetForHeaders(
+		ctx context.Context,
+		path ...string,
+	) (http.Header, error)
 
 	Delete(
 		ctx context.Context,

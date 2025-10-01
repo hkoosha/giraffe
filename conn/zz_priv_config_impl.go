@@ -292,6 +292,21 @@ func (c *config) HeaderOverwriters() map[string]HeaderProvider {
 	return maps.Clone(c.ensure().header.overwriters)
 }
 
+func (c *config) AndHeaders(
+	h map[string]string,
+) Config {
+	return c.withHeaderOverwrites(true, h)
+}
+
+func (c *config) AndHeader(
+	name string,
+	value string,
+) Config {
+	return c.withHeaderOverwrites(true, map[string]string{
+		name: value,
+	})
+}
+
 func (c *config) WithHeaderOverwrites(
 	withDefaults bool,
 	h map[string]string,
