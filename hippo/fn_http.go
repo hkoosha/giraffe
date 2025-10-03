@@ -13,8 +13,10 @@ import (
 	. "github.com/hkoosha/giraffe/internal/dot1"
 )
 
-var httpPathVarRe = regexp.MustCompile("^(:)?([a-zA-Z0-9-_]+)$")
-var httpSimpleNameRe = regexp.MustCompile("^[a-zA-Z0-9-_]+$")
+var (
+	httpPathVarRe    = regexp.MustCompile("^(:)?([a-zA-Z0-9-_]+)$")
+	httpSimpleNameRe = regexp.MustCompile("^[a-zA-Z0-9-_]+$")
+)
 
 type HttpFn struct {
 	cnx        conn.Conn[any]
