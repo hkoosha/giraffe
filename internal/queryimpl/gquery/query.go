@@ -1,10 +1,10 @@
-package queryimpl
+package gquery
 
 import (
 	"strings"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/queryimpl/gqerrors"
+	"github.com/hkoosha/giraffe/internal/queryerrors"
 	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/qflag"
 )
@@ -248,5 +248,5 @@ func (q Query) MustReadonly() error {
 		return nil
 	}
 
-	return gqerrors.NewNotWritableError(q.String())
+	return queryerrors.NewNotWritableError(q.String())
 }

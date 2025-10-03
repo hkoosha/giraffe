@@ -11,7 +11,7 @@ import (
 	"github.com/hkoosha/giraffe/qcmd"
 )
 
-func (d Datum) hasShallow(q queryimpl.Pipeline) bool {
+func (d Datum) hasShallow(q queryimpl.Query) bool {
 	qf := q.Flags()
 	dt := d.typ
 
@@ -102,7 +102,7 @@ func (d Datum) len() int {
 }
 
 func (d Datum) get(
-	q queryimpl.Pipeline,
+	q queryimpl.Query,
 ) (Datum, error) {
 	qf := q.Flags()
 	dt := d.typ
@@ -155,15 +155,15 @@ func (d Datum) get(
 	}
 }
 
-func (d Datum) tree() []queryimpl.Pipeline {
-	var tr []queryimpl.Pipeline
+func (d Datum) tree() []queryimpl.Query {
+	var tr []queryimpl.Query
 	tree(&tr, &d, []string{})
 
 	return tr
 }
 
 func tree(
-	tr *[]queryimpl.Pipeline,
+	tr *[]queryimpl.Query,
 	d *Datum,
 	path []string,
 ) bool {
@@ -206,7 +206,7 @@ func tree(
 // ==============================================================================.
 
 func newDataReadOnlyError(
-	query queryimpl.Pipeline,
+	query queryimpl.Query,
 ) error {
 	return newDataReadError(
 		query,
@@ -216,7 +216,7 @@ func newDataReadOnlyError(
 }
 
 func newDataReadIndeterministicQueryError(
-	query queryimpl.Pipeline,
+	query queryimpl.Query,
 ) error {
 	return newDataReadError(
 		query,
@@ -226,7 +226,7 @@ func newDataReadIndeterministicQueryError(
 }
 
 func newDataReadOutOfBoundsError(
-	query queryimpl.Pipeline,
+	query queryimpl.Query,
 ) error {
 	return newDataReadError(
 		query,
@@ -236,7 +236,7 @@ func newDataReadOutOfBoundsError(
 }
 
 func newDataReadMissingKeyError(
-	query queryimpl.Pipeline,
+	query queryimpl.Query,
 ) error {
 	return newDataReadError(
 		query,
@@ -260,7 +260,7 @@ func newDataReadIntegerOverflowError(
 }
 
 func newDataReadUnexpectedTypeError(
-	query queryimpl.Pipeline,
+	query queryimpl.Query,
 	expecting Type,
 	actual Type,
 ) error {
@@ -276,7 +276,7 @@ func newDataReadUnexpectedTypeError(
 }
 
 func newDataReadError(
-	query queryimpl.Pipeline,
+	query queryimpl.Query,
 	code uint64,
 	msg string,
 	extra ...string,

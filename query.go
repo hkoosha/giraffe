@@ -8,7 +8,7 @@ import (
 // Query NEVER INSTANTIATE DIRECTLY. NEVER CAST TO. NEVER CAST FROM.
 type Query string
 
-func (q Query) impl() queryimpl.Pipeline {
+func (q Query) impl() queryimpl.Query {
 	return M(queryimpl.Parse(string(q)))
 }
 

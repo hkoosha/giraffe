@@ -9,7 +9,7 @@ import (
 
 func modify(
 	d *Datum,
-	q queryimpl.Pipeline,
+	q queryimpl.Query,
 	value any,
 ) error {
 	switch {
@@ -46,7 +46,7 @@ func modify(
 
 func move(
 	d *Datum,
-	q queryimpl.Pipeline,
+	q queryimpl.Query,
 ) error {
 	seg0, seg1, ok := q.Segments()
 	if !ok {
@@ -74,7 +74,7 @@ func move(
 
 func del(
 	d *Datum,
-	q queryimpl.Pipeline,
+	q queryimpl.Query,
 ) error {
 	qf := q.Flags()
 	dt := d.typ
@@ -109,7 +109,7 @@ func del(
 
 func set(
 	d *Datum,
-	q queryimpl.Pipeline,
+	q queryimpl.Query,
 	value Datum,
 ) error {
 	switch {
@@ -123,7 +123,7 @@ func set(
 
 func setObj(
 	d *Datum,
-	q queryimpl.Pipeline,
+	q queryimpl.Query,
 	item Datum,
 ) error {
 	qf := q.Flags()
@@ -187,7 +187,7 @@ func setObj(
 
 func arrSet(
 	d *Datum,
-	q queryimpl.Pipeline,
+	q queryimpl.Query,
 	item Datum,
 ) error {
 	qf := q.Flags()
@@ -240,7 +240,7 @@ func arrSet(
 // ==============================================================================.
 
 func newDataWriteOverwriteErr(
-	query queryimpl.Pipeline,
+	query queryimpl.Query,
 ) error {
 	return newDataWriteError(
 		query,
@@ -250,7 +250,7 @@ func newDataWriteOverwriteErr(
 }
 
 func newDataWriteMissingKeyError(
-	query queryimpl.Pipeline,
+	query queryimpl.Query,
 ) error {
 	return newDataWriteError(
 		query,
@@ -260,7 +260,7 @@ func newDataWriteMissingKeyError(
 }
 
 func newDataWriteMoveUnsegmentedQuery(
-	query queryimpl.Pipeline,
+	query queryimpl.Query,
 ) error {
 	return newDataWriteError(
 		query,
@@ -270,7 +270,7 @@ func newDataWriteMoveUnsegmentedQuery(
 }
 
 func newDataWriteError(
-	query queryimpl.Pipeline,
+	query queryimpl.Query,
 	code uint64,
 	msg string,
 	extra ...string,

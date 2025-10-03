@@ -1,4 +1,4 @@
-package gqerrors
+package queryerrors
 
 import (
 	"fmt"
@@ -17,10 +17,8 @@ const (
 	ErrCodeDuplicatedCmd
 	ErrCodeConflictingCmd
 	ErrCodeUnexpectedToken
-	ErrCodeUnexpectedSegments
 	ErrCodeNestingTooDeep
 	ErrCodeNotWritable
-	ErrCodeUnclosedExtern
 )
 
 //goland:noinspection GoNameStartsWithPackageName
@@ -33,7 +31,7 @@ func (e *qError) Error() string {
 	return fmt.Sprintf("query error #%d: %s", e.Code, e.Msg)
 }
 
-func NewError(
+func newError(
 	code uint64,
 	msg string,
 ) error {
@@ -46,7 +44,7 @@ func NewError(
 func NewNotWritableError(
 	q string,
 ) error {
-	return NewError(
+	return newError(
 		ErrCodeNotWritable,
 		fmt.Sprintf(
 			"wrong modifier: need=read, have=write, query=%s",
@@ -77,7 +75,7 @@ func NewParseError(
 		sb.WriteString(e)
 	}
 
-	return NewError(code, sb.String())
+	return newError(code, sb.String())
 }
 
 func UnexpectedTokenError(
@@ -91,34 +89,6 @@ func UnexpectedTokenError(
 		spec,
 		"expected token not seen",
 		"actual="+string(actual),
-	)
-}
-
-func UnexpectedSegmentError(
-	at int,
-	spec string,
-	segment int,
-) error {
-	return NewParseError(
-		ErrCodeUnexpectedSegments,
-		at,
-		spec,
-		"expected number of segments",
-		"actual="+strconv.Itoa(segment),
-	)
-}
-
-func UnclosedExternError(
-	at int,
-	spec string,
-	segment int,
-) error {
-	return NewParseError(
-		ErrCodeUnclosedExtern,
-		at,
-		spec,
-		"unclosed extern specification",
-		"actual="+strconv.Itoa(segment),
 	)
 }
 

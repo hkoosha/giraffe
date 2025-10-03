@@ -1,4 +1,4 @@
-package queryimpl
+package gquery
 
 import (
 	"strings"

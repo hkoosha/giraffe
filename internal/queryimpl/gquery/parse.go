@@ -1,4 +1,4 @@
-package queryimpl
+package gquery
 
 import (
 	"regexp"
@@ -9,7 +9,7 @@ import (
 	"github.com/hkoosha/giraffe/dialects"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/inmem"
-	"github.com/hkoosha/giraffe/internal/queryimpl/gqerrors"
+	"github.com/hkoosha/giraffe/internal/queryerrors"
 	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/qflag"
 )
@@ -53,7 +53,7 @@ func (p *gParser) last() *Query {
 func (p *gParser) onEscape() error {
 	switch { //nolint:gocritic
 	case p.state.isFin:
-		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
+		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 	}
 
 	p.state.noCmd = true
@@ -76,7 +76,7 @@ func (p *gParser) onEscaped() error {
 func (p *gParser) onSelf() error {
 	switch { //nolint:gocritic
 	case p.state.noCmd:
-		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
+		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 	}
 
 	p.state.flags |= qflag.QModSelf
@@ -89,14 +89,14 @@ func (p *gParser) onSelf() error {
 func (p *gParser) onAppend() error {
 	switch {
 	case p.state.noCmd:
-		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
+		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
 	case p.state.flags.IsOverwrite(),
 		p.state.flags.IsDelete():
-		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
+		return queryerrors.ConflictingCmdError(p.i, p.spec, p.c)
 
 	case p.state.flags.IsAppend():
-		return gqerrors.DuplicatedCmdError(p.i, p.spec, p.c)
+		return queryerrors.DuplicatedCmdError(p.i, p.spec, p.c)
 	}
 
 	p.global |= qflag.QModIndeter
@@ -109,16 +109,16 @@ func (p *gParser) onAppend() error {
 func (p *gParser) onDelete() error {
 	switch {
 	case p.state.noCmd:
-		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
+		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
 	case p.state.flags.IsOverwrite(),
 		p.state.flags.IsAppend(),
 		p.state.flags.IsMake(),
 		len(p.path) > 0:
-		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
+		return queryerrors.ConflictingCmdError(p.i, p.spec, p.c)
 
 	case p.global.IsDelete():
-		return gqerrors.DuplicatedCmdError(p.i, p.spec, p.c)
+		return queryerrors.DuplicatedCmdError(p.i, p.spec, p.c)
 	}
 
 	p.global |= qflag.QModDelete
@@ -130,14 +130,14 @@ func (p *gParser) onDelete() error {
 func (p *gParser) onMake() error {
 	switch {
 	case p.state.noCmd:
-		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
+		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
 	case p.state.flags.IsMaybe(),
 		p.global.IsDelete():
-		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
+		return queryerrors.ConflictingCmdError(p.i, p.spec, p.c)
 
 	case p.state.flags.IsMake():
-		return gqerrors.DuplicatedCmdError(p.i, p.spec, p.c)
+		return queryerrors.DuplicatedCmdError(p.i, p.spec, p.c)
 
 	}
 
@@ -150,14 +150,14 @@ func (p *gParser) onMake() error {
 func (p *gParser) onMaybe() error {
 	switch {
 	case p.state.noCmd:
-		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
+		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
 	case p.state.flags.IsOverwrite(),
 		p.state.flags.IsMake():
-		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
+		return queryerrors.ConflictingCmdError(p.i, p.spec, p.c)
 
 	case p.state.flags.IsMaybe():
-		return gqerrors.DuplicatedCmdError(p.i, p.spec, p.c)
+		return queryerrors.DuplicatedCmdError(p.i, p.spec, p.c)
 
 	}
 
@@ -169,13 +169,13 @@ func (p *gParser) onMaybe() error {
 func (p *gParser) onOverwrite() error {
 	switch {
 	case p.state.noCmd:
-		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
+		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
 	case p.global.IsMaybe(),
 		p.global.IsAppend(),
 		p.global.IsMake(),
 		p.global.IsDelete():
-		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
+		return queryerrors.ConflictingCmdError(p.i, p.spec, p.c)
 	}
 
 	p.global = qflag.QModOverwrit
@@ -191,11 +191,11 @@ func (p *gParser) onSep() error {
 		str = "0"
 
 	case str == "":
-		return gqerrors.EmptyError(p.i, p.spec)
+		return queryerrors.EmptyError(p.i, p.spec)
 	}
 
 	if p.global.Seq() >= MaxDepth {
-		return gqerrors.NestingTooDeepError(p.i, p.spec)
+		return queryerrors.NestingTooDeepError(p.i, p.spec)
 	}
 
 	curr := newQuery(
@@ -209,7 +209,7 @@ func (p *gParser) onSep() error {
 		// Not entirely sound, or rather too restrictive if the isMake switch
 		// was turned on by previous key parts.
 		if !curr.flags.IsMake() && curr.flags.IsMaybe() && curr.ref != "0" {
-			return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
+			return queryerrors.ConflictingCmdError(p.i, p.spec, p.c)
 		}
 
 		curr.flags |= qflag.QModArr
@@ -222,14 +222,14 @@ func (p *gParser) onSep() error {
 		curr.flags |= value
 
 	case p.state.flags.IsAppend():
-		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
+		return queryerrors.ConflictingCmdError(p.i, p.spec, p.c)
 
 	default:
 		curr.flags |= qflag.QModObj
 	}
 
 	if p.global.IsDelete() && p.state.flags.IsMaybe() && !curr.flags.IsArr() {
-		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
+		return queryerrors.ConflictingCmdError(p.i, p.spec, p.c)
 	}
 
 	p.path = append(p.path, curr)
@@ -247,7 +247,7 @@ func (p *gParser) onMove() error {
 	p.segment++
 
 	if p.segment > 2 {
-		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
+		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 	}
 
 	p.global |= qflag.QModMove
@@ -337,7 +337,7 @@ func (p *gParser) doParse() error {
 			}
 
 		case qcmd.At.Byte():
-			return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
+			return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
 		default:
 			if err := p.onRune(); err != nil {
@@ -352,10 +352,10 @@ func (p *gParser) doParse() error {
 func (p *gParser) parsePostValidate() error {
 	switch {
 	case len(p.path) == 0:
-		return gqerrors.EmptyError(p.i, p.spec)
+		return queryerrors.EmptyError(p.i, p.spec)
 
 	case p.segment != 0 && p.segment != 2:
-		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
+		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
 	default:
 		return nil
@@ -398,7 +398,7 @@ func (p *gParser) postProcess() {
 
 func (p *gParser) parse() (Query, error) {
 	if strings.HasPrefix(p.spec, string(qcmd.Sep)) {
-		return invalid, gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
+		return invalid, queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 	}
 
 	if err := p.doParse(); err != nil {
