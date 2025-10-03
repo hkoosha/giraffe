@@ -24,7 +24,7 @@ const (
 func Escaped(
 	spec string,
 ) string {
-	return gquery.Escaped(spec)
+	return queryimpl.Escaped(spec)
 }
 
 func EscapedQ(
@@ -57,7 +57,7 @@ func QErr() Query {
 func Parse(
 	spec string,
 ) (Query, error) {
-	if _, err := gquery.Parse(spec); err != nil {
+	if _, err := queryimpl.Parse(spec); err != nil {
 		return invalid, err
 	}
 
@@ -69,7 +69,7 @@ func Parser(
 ) func(string) (Query, error) {
 	if prefix != "" {
 		prefix += CmdSep
-		M(gquery.Parse(prefix + "dummy"))
+		M(queryimpl.Parse(prefix + "dummy"))
 	}
 
 	return func(spec string) (Query, error) {

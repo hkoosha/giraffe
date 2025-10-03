@@ -6,14 +6,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hkoosha/giraffe/internal/gquery"
+	"github.com/hkoosha/giraffe/internal/queryimpl"
 )
 
 func TestParse(t *testing.T) {
 	t.Run("test parse simple", func(t *testing.T) {
 		spec := "k0"
 
-		first, err := gquery.Parse(spec)
+		first, err := queryimpl.Parse(spec)
 		require.NoError(t, err)
 
 		require.NotNil(t, first.Path)
@@ -38,7 +38,7 @@ func TestParse(t *testing.T) {
 	t.Run("test parse simple 2", func(t *testing.T) {
 		spec := "k0.k1"
 
-		first, err := gquery.Parse(spec)
+		first, err := queryimpl.Parse(spec)
 		require.NoError(t, err)
 
 		require.NotNil(t, first.Path)
@@ -80,7 +80,7 @@ func TestNext(t *testing.T) {
 	t.Run("test next", func(t *testing.T) {
 		spec := "dynamic.static.thingy.foo"
 
-		q, err := gquery.Parse(spec)
+		q, err := queryimpl.Parse(spec)
 		require.NoError(t, err)
 
 		assert.Equal(t, "dynamic", q.Named())
@@ -94,7 +94,7 @@ func TestNext(t *testing.T) {
 
 func TestQuery_ToString(t *testing.T) {
 	t.Run("to string", func(t *testing.T) {
-		q, err := gquery.Parse("k0.k1.k2")
+		q, err := queryimpl.Parse("k0.k1.k2")
 		require.NoError(t, err)
 		str := q.Next().String()
 		require.Equal(t, "k0.@k1.k2", str)

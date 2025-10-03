@@ -12,6 +12,6 @@ var (
 	tQuery  = reflect.TypeOf((*Query)(nil)).Elem()
 )
 
-func (q Query) impl() gquery.Query {
-	return M(gquery.Parse(string(q)))
+func (q Query) impl() queryimpl.Query {
+	return M(queryimpl.Parse(string(q)))
 }

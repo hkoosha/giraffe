@@ -47,14 +47,14 @@ const (
 
 //goland:noinspection GoUnusedConst
 const (
-	ErrCodeQueryParseEmptyQuery         = gquery.ErrCodeQueryParseEmptyQuery
-	ErrCodeQueryParseDuplicatedCmd      = gquery.ErrCodeQueryParseDuplicatedCmd
-	ErrCodeQueryParseConflictingCmd     = gquery.ErrCodeQueryParseConflictingCmd
-	ErrCodeQueryParseUnexpectedToken    = gquery.ErrCodeQueryParseUnexpectedToken
-	ErrCodeQueryParseUnexpectedSegments = gquery.ErrCodeQueryParseUnexpectedSegments
-	ErrCodeQueryParseNestingTooDeep     = gquery.ErrCodeQueryParseNestingTooDeep
-	ErrCodeQueryParseNotWritable        = gquery.ErrCodeQueryParseNotWritable
-	ErrCodeQueryParseUnclosedExtern     = gquery.ErrCodeQueryParseUnclosedExtern
+	ErrCodeQueryParseEmptyQuery         = queryimpl.ErrCodeQueryParseEmptyQuery
+	ErrCodeQueryParseDuplicatedCmd      = queryimpl.ErrCodeQueryParseDuplicatedCmd
+	ErrCodeQueryParseConflictingCmd     = queryimpl.ErrCodeQueryParseConflictingCmd
+	ErrCodeQueryParseUnexpectedToken    = queryimpl.ErrCodeQueryParseUnexpectedToken
+	ErrCodeQueryParseUnexpectedSegments = queryimpl.ErrCodeQueryParseUnexpectedSegments
+	ErrCodeQueryParseNestingTooDeep     = queryimpl.ErrCodeQueryParseNestingTooDeep
+	ErrCodeQueryParseNotWritable        = queryimpl.ErrCodeQueryParseNotWritable
+	ErrCodeQueryParseUnclosedExtern     = queryimpl.ErrCodeQueryParseUnclosedExtern
 )
 
 //nolint:reassign

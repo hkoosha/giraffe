@@ -1,12 +1,12 @@
-package gquery
+package queryimpl
 
 import (
 	"regexp"
 	"strings"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/gquery/gqcmd"
-	"github.com/hkoosha/giraffe/internal/gquery/gqflag"
+	"github.com/hkoosha/giraffe/qcmd"
+	"github.com/hkoosha/giraffe/qflag"
 )
 
 // MaxQueryDepth must fit in the gqflag.QFlag in the sequence part, i.e., 8 bits.
@@ -17,7 +17,7 @@ var uintRegex = regexp.MustCompile(`^\d+$`)
 func newQuery(
 	path *[]Query,
 	ref string,
-	flags gqflag.QFlag,
+	flags qflag.QFlag,
 ) Query {
 	return Query{
 		Path:  path,
@@ -46,7 +46,7 @@ func (q Query) reconstructedIn(
 }
 
 func (q Query) reconstructedAs(
-	flags gqflag.QFlag,
+	flags qflag.QFlag,
 ) Query {
 	sb := strings.Builder{}
 
@@ -61,7 +61,7 @@ func (q Query) reconstructedAs(
 
 func (q Query) reconstructInAs(
 	sb *strings.Builder,
-	flags gqflag.QFlag,
+	flags qflag.QFlag,
 ) {
 	flags.ReconstructPreModIn(sb)
 	sb.WriteString(q.ref)
@@ -73,10 +73,10 @@ func (q Query) string0() string {
 
 	for j, p := range *q.Path {
 		if j > 0 {
-			sb.WriteByte(gqcmd.Sep)
+			sb.WriteByte(qcmd.Sep)
 
 			if q.flags.Seq() == j {
-				sb.WriteByte(gqcmd.At)
+				sb.WriteByte(qcmd.At)
 			}
 		}
 
@@ -101,7 +101,7 @@ func (q Query) bef(
 		sb.WriteString(qI.flags.ReconstructPreMod())
 		sb.WriteString(qI.ref)
 		sb.WriteString(qI.flags.ReconstructPostMod())
-		sb.WriteByte(gqcmd.Sep)
+		sb.WriteByte(qcmd.Sep)
 	}
 }
 
@@ -114,7 +114,7 @@ func (q Query) aft(
 
 	path := *q.Path
 	for i := q.flags.Seq() + 1; i < len(path); i++ {
-		sb.WriteByte(gqcmd.Sep)
+		sb.WriteByte(qcmd.Sep)
 
 		qI := path[i]
 		sb.WriteString(qI.flags.ReconstructPreMod())

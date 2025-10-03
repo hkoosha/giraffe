@@ -10,7 +10,7 @@ import (
 	"github.com/hkoosha/giraffe/internal/gquery"
 )
 
-func (d Datum) hasShallow(q gquery.Query) bool {
+func (d Datum) hasShallow(q queryimpl.Query) bool {
 	qf := q.Flags()
 	dt := d.typ
 
@@ -101,7 +101,7 @@ func (d Datum) len() int {
 }
 
 func (d Datum) get(
-	q gquery.Query,
+	q queryimpl.Query,
 ) (Datum, error) {
 	qf := q.Flags()
 	dt := d.typ
@@ -154,15 +154,15 @@ func (d Datum) get(
 	}
 }
 
-func (d Datum) tree() []gquery.Query {
-	var tr []gquery.Query
+func (d Datum) tree() []queryimpl.Query {
+	var tr []queryimpl.Query
 	tree(&tr, &d, []string{})
 
 	return tr
 }
 
 func tree(
-	tr *[]gquery.Query,
+	tr *[]queryimpl.Query,
 	d *Datum,
 	path []string,
 ) bool {
@@ -193,7 +193,7 @@ func tree(
 
 	default:
 		for k, v := range d.obj() {
-			if tree(tr, &v, Appended(path, gquery.Escaped(k))) {
+			if tree(tr, &v, Appended(path, queryimpl.Escaped(k))) {
 				return false
 			}
 		}
@@ -205,7 +205,7 @@ func tree(
 // ==============================================================================.
 
 func newDataReadOnlyError(
-	query gquery.Query,
+	query queryimpl.Query,
 ) error {
 	return newDataReadError(
 		query,
@@ -215,7 +215,7 @@ func newDataReadOnlyError(
 }
 
 func newDataReadIndeterministicQueryError(
-	query gquery.Query,
+	query queryimpl.Query,
 ) error {
 	return newDataReadError(
 		query,
@@ -225,7 +225,7 @@ func newDataReadIndeterministicQueryError(
 }
 
 func newDataReadOutOfBoundsError(
-	query gquery.Query,
+	query queryimpl.Query,
 ) error {
 	return newDataReadError(
 		query,
@@ -235,7 +235,7 @@ func newDataReadOutOfBoundsError(
 }
 
 func newDataReadMissingKeyError(
-	query gquery.Query,
+	query queryimpl.Query,
 ) error {
 	return newDataReadError(
 		query,
@@ -259,7 +259,7 @@ func newDataReadIntegerOverflowError(
 }
 
 func newDataReadUnexpectedTypeError(
-	query gquery.Query,
+	query queryimpl.Query,
 	expecting Type,
 	actual Type,
 ) error {
@@ -275,7 +275,7 @@ func newDataReadUnexpectedTypeError(
 }
 
 func newDataReadError(
-	query gquery.Query,
+	query queryimpl.Query,
 	code uint64,
 	msg string,
 	extra ...string,

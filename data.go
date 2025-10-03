@@ -330,7 +330,7 @@ func (d Datum) Has(
 }
 
 func (d Datum) Tree() []Query {
-	return z.Applied(d.tree(), func(it gquery.Query) Query {
+	return z.Applied(d.tree(), func(it queryimpl.Query) Query {
 		return Query(it.String())
 	})
 }

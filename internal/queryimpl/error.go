@@ -1,11 +1,11 @@
-package gquery
+package queryimpl
 
 import (
 	"fmt"
 	"math"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/gquery/gqflag"
+	"github.com/hkoosha/giraffe/qflag"
 )
 
 // ErrStart Keep in sync with errors.go in giraffe.
@@ -22,7 +22,7 @@ const (
 	ErrCodeQueryParseUnclosedExtern
 )
 
-var ErrQ = newQuery(nil, "", gqflag.QFlag(0))
+var ErrQ = newQuery(nil, "", qflag.QFlag(0))
 
 //goland:noinspection GoNameStartsWithPackageName
 type queryError struct {

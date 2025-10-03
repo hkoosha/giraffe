@@ -257,7 +257,7 @@ func (d Datum) nest(
 }
 
 func (d Datum) set(
-	q gquery.Query,
+	q queryimpl.Query,
 	value any,
 ) (Datum, error) {
 	if !d.typ.IsArr() && !d.typ.IsObj() {
@@ -273,7 +273,7 @@ func (d Datum) set(
 }
 
 func (d Datum) has(
-	q gquery.Query,
+	q queryimpl.Query,
 ) bool {
 	switch {
 	case q.Flags().IsObj() && d.typ.IsObj():
@@ -367,7 +367,7 @@ func newMergeClashingKeysError(
 }
 
 func newDataWriteUnexpectedValueError(
-	q gquery.Query,
+	q queryimpl.Query,
 	v any,
 ) error {
 	return newDataWriteError(

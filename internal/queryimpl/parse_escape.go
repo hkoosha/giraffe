@@ -1,14 +1,15 @@
-package gquery
+package queryimpl
 
 import (
 	"strings"
 
-	"github.com/hkoosha/giraffe/internal/gquery/gqcmd"
+	"github.com/hkoosha/giraffe/qcmd"
 )
 
 // TODO: no 'overwrite' and 'maybe' at the same time.
-
 // TODO: better conflicting cmd checks.
+
+var commands = qcmd.All()
 
 func Escaped(
 	spec string,
@@ -18,17 +19,11 @@ func Escaped(
 
 	for _, c := range spec {
 		if _, ok := commands[c]; ok {
-			sb.WriteRune(gqcmd.Escape)
+			sb.WriteRune(qcmd.Escape)
 		}
 
 		sb.WriteRune(c)
 	}
 
 	return spec
-}
-
-func Parse(
-	spec string,
-) (Query, error) {
-	return parse(spec)
 }

@@ -1,4 +1,4 @@
-package gquery
+package queryimpl
 
 import (
 	"reflect"
@@ -15,6 +15,11 @@ var (
 	//nolint:exhaustruct
 	hasDebug = reflect.TypeOf(Query{}) == reflect.TypeOf(QueryDebug{})
 )
+
+// DebugImpl to enable debug, it is needed to switch this alias to QueryDebug.
+// It will require recompilation but allows Query.Debug to be typed and
+// have zero lengths when debug is not enabled (contrary to using pointers).
+type DebugImpl = struct{} // = QueryDebug.
 
 func init() {
 	debugQueryId.Add(11)

@@ -1,10 +1,10 @@
-package gqflag
+package qflag
 
 import (
 	"strconv"
 	"strings"
 
-	"github.com/hkoosha/giraffe/internal/gquery/gqcmd"
+	"github.com/hkoosha/giraffe/qcmd"
 )
 
 //goland:noinspection SpellCheckingInspection
@@ -56,7 +56,7 @@ func (f QFlag) String0() string {
 
 	f.ReconstructPreModIn(&sb)
 
-	sb.WriteByte(gqcmd.At)
+	sb.WriteByte(qcmd.At)
 	sb.WriteString(strconv.Itoa(f.Seq()))
 
 	f.ReconstructPostModIn(&sb)
@@ -75,27 +75,27 @@ func (f QFlag) ReconstructPreModIn(
 	sb *strings.Builder,
 ) {
 	if f&QModOverwrit != 0 {
-		sb.WriteByte(gqcmd.Overwrite)
+		sb.WriteByte(qcmd.Overwrite)
 	}
 
 	if f&QModeMaybe != 0 {
-		sb.WriteByte(gqcmd.Maybe)
+		sb.WriteByte(qcmd.Maybe)
 	}
 
 	if f&QModAppend != 0 {
-		sb.WriteByte(gqcmd.Append)
+		sb.WriteByte(qcmd.Append)
 	}
 
 	if f&QModDelete != 0 {
-		sb.WriteByte(gqcmd.Delete)
+		sb.WriteByte(qcmd.Delete)
 	}
 
 	if f&QModeMake != 0 {
-		sb.WriteByte(gqcmd.Make)
+		sb.WriteByte(qcmd.Make)
 	}
 
 	if f&QModSelf != 0 {
-		sb.WriteByte(gqcmd.Self)
+		sb.WriteByte(qcmd.Self)
 	}
 }
 
@@ -110,7 +110,7 @@ func (f QFlag) ReconstructPostModIn(
 	sb *strings.Builder,
 ) {
 	if f&QModMover != 0 {
-		sb.WriteByte(gqcmd.Move)
+		sb.WriteByte(qcmd.Move)
 	}
 }
 

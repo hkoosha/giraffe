@@ -1,26 +1,21 @@
-package gquery
+package queryimpl
 
 import (
 	"strings"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/gquery/gqcmd"
-	"github.com/hkoosha/giraffe/internal/gquery/gqflag"
+	"github.com/hkoosha/giraffe/qcmd"
+	"github.com/hkoosha/giraffe/qflag"
 )
-
-// DebugImpl to enable debug, it is needed to switch this alias to QueryDebug.
-// It will require recompilation but allows Query.Debug to be typed and
-// have zero lengths when debug is not enabled (contrary to using pointers).
-type DebugImpl = struct{} // = QueryDebug.
 
 type Query struct {
 	Debug DebugImpl
 	Path  *[]Query
 	ref   string
-	flags gqflag.QFlag
+	flags qflag.QFlag
 }
 
-func (q Query) Flags() gqflag.QFlag {
+func (q Query) Flags() qflag.QFlag {
 	return q.flags
 }
 
@@ -130,19 +125,19 @@ func (q Query) Originating(withSelf bool) Query {
 // =====================================.
 
 func (q Query) WithWrite() Query {
-	return q.reconstructedAs(q.flags | gqflag.QModWrite)
+	return q.reconstructedAs(q.flags | qflag.QModWrite)
 }
 
 func (q Query) WithMake() Query {
-	return q.reconstructedAs(q.flags | gqflag.QModeMake)
+	return q.reconstructedAs(q.flags | qflag.QModeMake)
 }
 
 func (q Query) WithOverwrite() Query {
-	return q.reconstructedAs(q.flags | gqflag.QModOverwrit)
+	return q.reconstructedAs(q.flags | qflag.QModOverwrit)
 }
 
 func (q Query) WithoutOverwrite() Query {
-	return q.reconstructedAs(q.flags & ^gqflag.QModOverwrit)
+	return q.reconstructedAs(q.flags & ^qflag.QModOverwrit)
 }
 
 // Plus panics if the resulting query is too deep, set by MaxQueryDepth.
@@ -159,10 +154,10 @@ func (q Query) PlusS(other string) Query {
 	sb.WriteString(q.flags.ReconstructPreMod())
 	sb.WriteString(q.ref)
 	sb.WriteString(q.flags.ReconstructPostMod())
-	sb.WriteByte(gqcmd.Sep)
+	sb.WriteByte(qcmd.Sep)
 	sb.WriteString(other)
 
-	return M(parse(sb.String())).at(q.flags.Seq())
+	return M(Parse(sb.String())).at(q.flags.Seq())
 }
 
 // =====================================.
