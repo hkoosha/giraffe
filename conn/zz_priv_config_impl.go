@@ -126,11 +126,11 @@ func (c *config) serde() serdes.Serde[any] {
 	return c.serde_
 }
 
-func (c *config) Conn() Conn[[]byte] {
+func (c *config) Conn() Raw {
 	return c.connection()
 }
 
-func (c *config) connection() Conn[[]byte] {
+func (c *config) connection() Raw {
 	c.ensure()
 
 	return newConn(c, serdes.Bytes())

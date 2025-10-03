@@ -28,8 +28,9 @@ func mkEkran(
 
 	mkStep := func(
 		step int,
-	) *hippo.Fn_ {
-		fn := hippo.MustFnOf0(func(
+	) *hippo.Fn {
+		fn := hippo.MustFnOf(func(
+			_ hippo.Context,
 			dat giraffe.Datum,
 		) (giraffe.Datum, error) {
 			in := "m" + strconv.Itoa(step-1)
@@ -97,7 +98,8 @@ func TestServer_Http(t *testing.T) {
 	g11y.EnableTracer()
 	g11y.EnableUnsafeError()
 
-	remoteFn := hippo.MustFnOf0(func(
+	remoteFn := hippo.MustFnOf(func(
+		_ hippo.Context,
 		dat giraffe.Datum,
 	) (giraffe.Datum, error) {
 		u64, err := dat.QU64("meow")
@@ -108,7 +110,8 @@ func TestServer_Http(t *testing.T) {
 		return giraffe.Of1(Q("meow2"), u64*2), nil
 	})
 
-	local := hippo.MustFnOf0(func(
+	local := hippo.MustFnOf(func(
+		hippo.Context,
 		giraffe.Datum,
 	) (giraffe.Datum, error) {
 		return giraffe.Of1(Q("fn0"), 111), nil

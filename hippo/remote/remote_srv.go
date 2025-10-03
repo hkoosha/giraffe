@@ -81,7 +81,7 @@ func (s *server) ekran(
 			step = *comp.OnStep
 		}
 
-		var with *hippo.Fn_
+		var with *hippo.Fn
 		//nolint:nestif
 		if comp.WithFn != "" {
 			if with, err = s.reg.Named(comp.WithFn); err != nil {

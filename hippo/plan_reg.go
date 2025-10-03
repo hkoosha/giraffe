@@ -70,7 +70,7 @@ func (r FnRegistry) clone() FnRegistry {
 
 func (r FnRegistry) WithNamed(
 	name string,
-	fn *Fn_,
+	fn *Fn,
 ) (FnRegistry, error) {
 	if !fn.IsValid() {
 		panic(EF("invalid fn"))
@@ -120,7 +120,7 @@ func (r FnRegistry) hasNamed(
 }
 
 func (r FnRegistry) has(
-	fn *Fn_,
+	fn *Fn,
 	alias string,
 ) (bool, error) {
 	if fn == nil {
@@ -145,7 +145,7 @@ func (r FnRegistry) has(
 }
 
 func (r FnRegistry) With(
-	fn *Fn_,
+	fn *Fn,
 	aliases ...string,
 ) (FnRegistry, error) {
 	if fn == nil {
@@ -167,13 +167,13 @@ func (r FnRegistry) With(
 
 func (r FnRegistry) MustWithNamed(
 	name string,
-	fn *Fn_,
+	fn *Fn,
 ) FnRegistry {
 	return M(r.WithNamed(name, fn))
 }
 
 func (r FnRegistry) MustWith(
-	fn *Fn_,
+	fn *Fn,
 	aliases ...string,
 ) FnRegistry {
 	return M(r.With(fn, aliases...))
@@ -181,7 +181,7 @@ func (r FnRegistry) MustWith(
 
 func (r FnRegistry) Named(
 	name string,
-) (*Fn_, error) {
+) (*Fn, error) {
 	for _, e := range r.byType {
 		if slices.Contains(e.aliases, name) {
 			return e.fn, nil
@@ -193,7 +193,7 @@ func (r FnRegistry) Named(
 
 func (r FnRegistry) Typed(
 	ty typing.Type,
-) (*Fn_, error) {
+) (*Fn, error) {
 	if r.byType == nil {
 		return nil, hippoerr.NewRegMissingFnError(ty, "")
 	}

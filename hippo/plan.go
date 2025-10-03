@@ -52,14 +52,14 @@ func (p *Plan) Dump() *Plan {
 
 func (p *Plan) MustWithNext(
 	name string,
-	fn *Fn_,
+	fn *Fn,
 ) *Plan {
 	return M(p.WithNext(name, fn))
 }
 
 func (p *Plan) WithNext(
 	name string,
-	fn *Fn_,
+	fn *Fn,
 ) (*Plan, error) {
 	cp := p.clone()
 

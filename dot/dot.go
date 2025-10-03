@@ -106,17 +106,11 @@ func OfEmpty() giraffe.Datum {
 
 // ========================================================================= FN.
 
-type Fn_ = *hippo.Fn_
+type Fn = *hippo.Fn
 
-func Fn0(
-	exe hippo.Exe0,
-) Fn_ {
-	return hippo.MustFnOf0(exe)
-}
-
-func Fn(
+func OfFn(
 	exe hippo.Exe,
-) Fn_ {
+) Fn {
 	return hippo.MustFnOf(exe)
 }
 

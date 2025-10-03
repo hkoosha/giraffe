@@ -18,6 +18,7 @@ import (
 )
 
 func fn0(
+	hippo.Context,
 	giraffe.Datum,
 ) (giraffe.Datum, error) {
 	return giraffe.Of1(Q("ns0.my_out_fn0"), []uint64{
@@ -30,12 +31,14 @@ func fn0(
 }
 
 func fn1(
+	hippo.Context,
 	giraffe.Datum,
 ) (giraffe.Datum, error) {
 	return giraffe.Of1(Q("ns1.my_out_fn1"), []int{2, 4}), nil
 }
 
 func fn2(
+	_ hippo.Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	fn0Out, err := dat.QU64s("ns0.my_out_fn0")
@@ -61,8 +64,9 @@ func fn2(
 
 func mul(
 	step int,
-) *hippo.Fn_ {
-	return hippo.MustFnOf0(func(
+) *hippo.Fn {
+	return hippo.MustFnOf(func(
+		_ hippo.Context,
 		dat giraffe.Datum,
 	) (giraffe.Datum, error) {
 		out := "m" + strconv.Itoa(step)
@@ -87,8 +91,9 @@ func mul(
 
 func fail(
 	msg string,
-) *hippo.Fn_ {
-	return hippo.MustFnOf0(func(
+) *hippo.Fn {
+	return hippo.MustFnOf(func(
+		hippo.Context,
 		giraffe.Datum,
 	) (giraffe.Datum, error) {
 		return giraffe.OfErr(), errors.New("I failed like this: " + msg)
@@ -117,9 +122,9 @@ func write(
 func TestRunner(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
 		plan := hippo.Plan_.
-			MustWithNext("my_fn0", hippo.MustFnOf0(fn0)).
-			MustWithNext("my_fn1", hippo.MustFnOf0(fn1)).
-			MustWithNext("my_fn2", hippo.MustFnOf0(fn2))
+			MustWithNext("my_fn0", hippo.MustFnOf(fn0)).
+			MustWithNext("my_fn1", hippo.MustFnOf(fn1)).
+			MustWithNext("my_fn2", hippo.MustFnOf(fn2))
 
 		pipeline, err := hippo.Pipeline(plan)
 		require.NoError(t, err)

@@ -13,7 +13,7 @@ import (
 type compCondition struct {
 	onErr  *regexp.Regexp
 	onName *regexp.Regexp
-	fn     *Fn_
+	fn     *Fn
 	onStep int
 }
 
@@ -75,7 +75,7 @@ func (c Compensator) For(
 	msg *regexp.Regexp,
 	name *regexp.Regexp,
 	step int,
-	with *Fn_,
+	with *Fn,
 ) Compensator {
 	c.comp = z.Appended(c.comp, compCondition{
 		onErr:  &*msg,
@@ -98,7 +98,7 @@ func (c Compensator) ForWith(
 
 func (c Compensator) ForError(
 	msg *regexp.Regexp,
-	with *Fn_,
+	with *Fn,
 ) Compensator {
 	c.comp = z.Appended(c.comp, compCondition{
 		onErr:  &*msg,
@@ -119,7 +119,7 @@ func (c Compensator) ForErrorWith(
 
 func (c Compensator) ForStep(
 	step int,
-	with *Fn_,
+	with *Fn,
 ) Compensator {
 	c.comp = z.Appended(c.comp, compCondition{
 		onErr:  nil,
@@ -140,7 +140,7 @@ func (c Compensator) ForStepWith(
 
 func (c Compensator) ForNamed(
 	name *regexp.Regexp,
-	with *Fn_,
+	with *Fn,
 	steps ...int,
 ) Compensator {
 	if len(steps) > 0 {

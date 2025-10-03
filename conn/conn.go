@@ -176,7 +176,7 @@ type ConfigWrite interface {
 type Config interface {
 	internal.Sealed
 
-	Conn() Conn[[]byte]
+	Conn() Raw
 	Serde() serdes.Serde[any]
 
 	ConfigRead
@@ -188,7 +188,7 @@ type Conn[R any] interface {
 
 	Std() *http.Client
 	Cfg() Config
-	Raw() Conn[[]byte]
+	Raw() Raw
 
 	Call(
 		ctx context.Context,
@@ -236,6 +236,8 @@ type Conn[R any] interface {
 		path ...string,
 	) (R, error)
 }
+
+type Raw = Conn[[]byte]
 
 // ============================================================================.
 

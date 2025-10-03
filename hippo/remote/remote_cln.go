@@ -36,7 +36,7 @@ func Remote(
 	url string,
 	plan string,
 	hClient *http.Client,
-) *hippo.Fn_ {
+) *hippo.Fn {
 	fn := remoteFn{
 		hClient: hClient,
 		plan:    plan,

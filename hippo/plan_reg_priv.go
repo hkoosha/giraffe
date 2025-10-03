@@ -13,7 +13,7 @@ var fnRegistryErr = FnRegistry{
 }
 
 type regEntry struct {
-	fn      *Fn_
+	fn      *Fn
 	aliases []string
 }
 

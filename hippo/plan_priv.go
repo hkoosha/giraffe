@@ -8,7 +8,7 @@ import (
 
 func newNamedStep(
 	name string,
-	fn *Fn_,
+	fn *Fn,
 ) namedStep {
 	if name == "" {
 		panic(EF("empty step name"))
@@ -27,7 +27,7 @@ func newNamedStep(
 }
 
 type namedStep struct {
-	fn   *Fn_
+	fn   *Fn
 	name string
 }
 

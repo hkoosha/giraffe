@@ -18,8 +18,6 @@ import (
 
 var errInvalidFn = errors.New("invalid fn")
 
-type Exe0 = func(giraffe.Datum) (giraffe.Datum, error)
-
 type ExeCtx = func(
 	context.Context,
 	giraffe.Datum,
@@ -34,16 +32,16 @@ type Exe = func(
 
 func MustFnOf(
 	exe Exe,
-) *Fn_ {
+) *Fn {
 	return M(FnOf(exe))
 }
 
 func FnOf(
 	exe Exe,
-) (*Fn_, error) {
+) (*Fn, error) {
 	t := typing.OfVirtual()
 
-	fn := &Fn_{
+	fn := &Fn{
 		exe:        exe,
 		scoped:     "",
 		inputs:     nil,
@@ -67,13 +65,13 @@ func FnOf(
 
 func MustFnCtxOf(
 	exe ExeCtx,
-) *Fn_ {
+) *Fn {
 	return M(FnCtxOf(exe))
 }
 
 func FnCtxOf(
 	exeCtx ExeCtx,
-) (*Fn_, error) {
+) (*Fn, error) {
 	exe := func(
 		ctx Context,
 		dat giraffe.Datum,
@@ -84,26 +82,7 @@ func FnCtxOf(
 	return FnOf(exe)
 }
 
-func MustFnOf0(
-	exe0 Exe0,
-) *Fn_ {
-	return M(FnOf0(exe0))
-}
-
-func FnOf0(
-	exe0 Exe0,
-) (*Fn_, error) {
-	exe := func(
-		_ Context,
-		dat giraffe.Datum,
-	) (giraffe.Datum, error) {
-		return exe0(dat)
-	}
-
-	return FnOf(exe)
-}
-
-type Fn_ struct {
+type Fn struct {
 	exe        Exe
 	replicated map[giraffe.Query]giraffe.Query
 	swapped    map[giraffe.Query]giraffe.Query
@@ -116,13 +95,13 @@ type Fn_ struct {
 	typ        typing.Type
 }
 
-func (f *Fn_) ensure() {
+func (f *Fn) ensure() {
 	if !f.IsValid() {
 		panic(EF("invalid fn"))
 	}
 }
 
-func (f *Fn_) Type() typing.Type {
+func (f *Fn) Type() typing.Type {
 	if f == nil {
 		return typing.OfErr()
 	}
@@ -130,13 +109,13 @@ func (f *Fn_) Type() typing.Type {
 	return f.typ
 }
 
-func (f *Fn_) IsValid() bool {
+func (f *Fn) IsValid() bool {
 	return f != nil && f.exe != nil && f.typ.IsValid()
 }
 
-func (f *Fn_) AndReplicate(
+func (f *Fn) AndReplicate(
 	replicated map[giraffe.Query]giraffe.Query,
-) *Fn_ {
+) *Fn {
 	f.ensure()
 
 	replicated = maps.Clone(replicated)
@@ -147,9 +126,9 @@ func (f *Fn_) AndReplicate(
 	return clone
 }
 
-func (f *Fn_) WithReplicated(
+func (f *Fn) WithReplicated(
 	replicated map[giraffe.Query]giraffe.Query,
-) *Fn_ {
+) *Fn {
 	f.ensure()
 
 	clone := f.clone()
@@ -157,9 +136,9 @@ func (f *Fn_) WithReplicated(
 	return clone
 }
 
-func (f *Fn_) AndSwapping(
+func (f *Fn) AndSwapping(
 	swapping map[giraffe.Query]giraffe.Query,
-) *Fn_ {
+) *Fn {
 	f.ensure()
 
 	swapping = maps.Clone(swapping)
@@ -170,9 +149,9 @@ func (f *Fn_) AndSwapping(
 	return clone
 }
 
-func (f *Fn_) WithSwapping(
+func (f *Fn) WithSwapping(
 	swapping map[giraffe.Query]giraffe.Query,
-) *Fn_ {
+) *Fn {
 	f.ensure()
 
 	clone := f.clone()
@@ -180,17 +159,17 @@ func (f *Fn_) WithSwapping(
 	return clone
 }
 
-func (f *Fn_) AndScope(
+func (f *Fn) AndScope(
 	scope giraffe.Query,
-) *Fn_ {
+) *Fn {
 	f.ensure()
 
 	return f.WithScope(f.scoped.Plus(scope))
 }
 
-func (f *Fn_) WithScope(
+func (f *Fn) WithScope(
 	scope giraffe.Query,
-) *Fn_ {
+) *Fn {
 	f.ensure()
 
 	clone := f.clone()
@@ -198,15 +177,15 @@ func (f *Fn_) WithScope(
 	return clone
 }
 
-func (f *Fn_) AndInputs(
+func (f *Fn) AndInputs(
 	inputs ...giraffe.Query,
-) *Fn_ {
+) *Fn {
 	return f.WithInput(append(inputs, f.inputs...)...)
 }
 
-func (f *Fn_) WithInput(
+func (f *Fn) WithInput(
 	inputs ...giraffe.Query,
-) *Fn_ {
+) *Fn {
 	f.ensure()
 
 	clone := f.clone()
@@ -214,15 +193,15 @@ func (f *Fn_) WithInput(
 	return clone
 }
 
-func (f *Fn_) AndOptionals(
+func (f *Fn) AndOptionals(
 	optionals ...giraffe.Query,
-) *Fn_ {
+) *Fn {
 	return f.WithOptional(append(optionals, f.optionals...)...)
 }
 
-func (f *Fn_) WithOptional(
+func (f *Fn) WithOptional(
 	optionals ...giraffe.Query,
-) *Fn_ {
+) *Fn {
 	f.ensure()
 
 	clone := f.clone()
@@ -230,15 +209,15 @@ func (f *Fn_) WithOptional(
 	return clone
 }
 
-func (f *Fn_) AndOutputs(
+func (f *Fn) AndOutputs(
 	outputs ...giraffe.Query,
-) *Fn_ {
+) *Fn {
 	return f.WithOutput(append(outputs, f.outputs...)...)
 }
 
-func (f *Fn_) WithOutput(
+func (f *Fn) WithOutput(
 	outputs ...giraffe.Query,
-) *Fn_ {
+) *Fn {
 	f.ensure()
 
 	clone := f.clone()
@@ -246,15 +225,15 @@ func (f *Fn_) WithOutput(
 	return clone
 }
 
-func (f *Fn_) AndSelect(
+func (f *Fn) AndSelect(
 	select_ ...giraffe.Query,
-) *Fn_ {
+) *Fn {
 	return f.Select(append(select_, f.selected...)...)
 }
 
-func (f *Fn_) Select(
+func (f *Fn) Select(
 	select_ ...giraffe.Query,
-) *Fn_ {
+) *Fn {
 	f.ensure()
 
 	clone := f.clone()
@@ -262,7 +241,7 @@ func (f *Fn_) Select(
 	return clone
 }
 
-func (f *Fn_) SelectAll() *Fn_ {
+func (f *Fn) SelectAll() *Fn {
 	f.ensure()
 
 	clone := f.clone()
@@ -270,9 +249,9 @@ func (f *Fn_) SelectAll() *Fn_ {
 	return clone
 }
 
-func (f *Fn_) Named(
+func (f *Fn) Named(
 	name string,
-) *Fn_ {
+) *Fn {
 	f.ensure()
 
 	if !privnames.SimpleName.MatchString(name) {
@@ -284,11 +263,11 @@ func (f *Fn_) Named(
 	return clone
 }
 
-func (f *Fn_) Dump() *Fn_ {
+func (f *Fn) Dump() *Fn {
 	return f
 }
 
-func (f *Fn_) String() string {
+func (f *Fn) String() string {
 	return fmt.Sprintf("Fn[%s][%s]", f.typ, f.name)
 }
 
@@ -318,7 +297,7 @@ func chkDatPresent(
 
 // =====================================.
 
-func (f *Fn_) replicate(
+func (f *Fn) replicate(
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	if len(f.replicated) == 0 {
@@ -344,7 +323,7 @@ func (f *Fn_) replicate(
 	return dat, nil
 }
 
-func (f *Fn_) scope(
+func (f *Fn) scope(
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	if f.scoped == "" {
@@ -354,7 +333,7 @@ func (f *Fn_) scope(
 	return giraffe.Of1(f.scoped, dat), nil
 }
 
-func (f *Fn_) select_(
+func (f *Fn) select_(
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	if len(f.selected) == 0 {
@@ -377,7 +356,7 @@ func (f *Fn_) select_(
 	return Of0(selected), nil
 }
 
-func (f *Fn_) swap(
+func (f *Fn) swap(
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	if len(f.swapped) == 0 {
@@ -408,14 +387,14 @@ func (f *Fn_) swap(
 
 // =====================================.
 
-func (f *Fn_) clone() *Fn_ {
+func (f *Fn) clone() *Fn {
 	f.ensure()
 
 	if f == nil {
 		return nil
 	}
 
-	return &Fn_{
+	return &Fn{
 		exe:        f.exe,
 		scoped:     f.scoped,
 		inputs:     slices.Clone(f.inputs),
@@ -429,7 +408,7 @@ func (f *Fn_) clone() *Fn_ {
 	}
 }
 
-func (f *Fn_) call(
+func (f *Fn) call(
 	ctx Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {

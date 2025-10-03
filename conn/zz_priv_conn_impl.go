@@ -51,7 +51,7 @@ func (c *connImpl[R]) Std() *http.Client {
 	return c.cfg.Std()
 }
 
-func (c *connImpl[R]) Raw() Conn[[]byte] {
+func (c *connImpl[R]) Raw() Raw {
 	return newConn[[]byte](c.cfg, serdes.Bytes())
 }
 

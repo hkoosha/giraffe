@@ -37,7 +37,7 @@ type ProbeAfter = func(
 // ============================================================================.
 
 type StepContext struct {
-	fn       *Fn_
+	fn       *Fn
 	stepName string
 	dat      giraffe.Datum
 	stepNo   int

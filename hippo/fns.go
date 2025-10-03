@@ -7,7 +7,7 @@ import (
 
 func Static(
 	dat giraffe.Datum,
-) *Fn_ {
+) *Fn {
 	return M(FnOf(func(
 		Context,
 		giraffe.Datum,
