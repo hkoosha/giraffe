@@ -3,47 +3,154 @@ package conn
 import (
 	"slices"
 	"strings"
+
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
-func Join(parts ...string) string {
+var danger = []string{
+	"//",
+	"..",
+}
+
+func Join(
+	parts ...string,
+) string {
 	return join(parts)
 }
 
-func join(parts []string) string {
-	if len(parts) == 0 {
-		panic("no parts to join")
+func join(
+	parts []string,
+) string {
+	orig := slices.Clone(parts)
+
+	preprocess(parts)
+
+	parts, queries := splitQuery(parts)
+
+	ensureParts(orig, parts)
+
+	parts, prefix := processParts(parts)
+
+	sb := &strings.Builder{}
+	sb.WriteString(prefix)
+
+	writeParts(sb, parts)
+	writeQueries(sb, queries)
+
+	fin := sb.String()
+
+	ensure(orig, fin)
+
+	return fin
+}
+
+func writeQueries(
+	sb *strings.Builder,
+	queries []string,
+) {
+	if len(queries) == 0 {
+		return
 	}
 
-	for i := range parts {
-		parts[i] = strings.TrimSpace(parts[i])
+	sb.WriteByte('?')
+
+	last := len(queries) - 1
+	for i, p := range queries {
+		sb.WriteString(p)
+		if i != last {
+			sb.WriteByte('&')
+		}
 	}
+}
 
-	parts = slices.DeleteFunc(parts, func(s string) bool { return s == "" })
+func writeParts(
+	sb *strings.Builder,
+	parts []string,
+) {
+	last := len(parts) - 1
+	for i, v := range parts {
+		sb.WriteString(v)
+		if i != last {
+			sb.WriteByte('/')
+		}
+	}
+}
 
+//nolint:nonamedreturns
+func processParts(
+	parts []string,
+) (
+	_ []string,
+	prefix string,
+) {
 	// Check and see if any non-empty path originally started with slash,
-	// before we remove all the slashes in the next block:.
-	prefix := ""
+	// before we remove all the slashes in the next block.
+	prefix = ""
 	if len(parts) > 0 && parts[0] != "" && parts[0][0] == '/' {
 		prefix = "/"
 	}
 
-	// Remove extra slashes:.
+	// Remove extra slashes.
 	for i := range parts {
 		parts[i] = strings.Trim(parts[i], "/")
 	}
 	parts = slices.DeleteFunc(parts, func(s string) bool { return s == "" })
 
-	fin := prefix + strings.Join(parts, "/")
+	return parts, prefix
+}
 
-	//goland:noinspection HttpUrlsUsage
-	probe := strings.TrimPrefix(fin, "https://")
-	if probe == fin {
-		probe = strings.ReplaceAll(probe, "https://", "dummy/")
+func ensureParts(
+	orig []string,
+	parts []string,
+) {
+	if len(parts) == 0 {
+		panic(EF("no parts to join"))
 	}
-	if strings.Contains(probe, "//") {
-		panic("the joined http path has multiple consecutive fwd slashes: " +
-			fin)
+	if slices.Contains(parts, "") {
+		panic(EF("empty path parts: %v", orig))
+	}
+}
+
+//goland:noinspection HttpUrlsUsage
+func ensure(
+	orig []string,
+	fin string,
+) {
+	var probe string
+	switch {
+	case strings.HasPrefix(fin, "https://"):
+		probe = strings.TrimPrefix(fin, "https://")
+
+	case strings.HasPrefix(fin, "http://"):
+		probe = strings.TrimPrefix(fin, "http://")
+
+	default:
+		probe = fin
 	}
 
-	return fin
+	for _, d := range danger {
+		if strings.Contains(probe, d) {
+			panic(EF("illegal path: %v", orig))
+		}
+	}
+}
+
+func preprocess(parts []string) {
+	for i := range parts {
+		parts[i] = strings.TrimSpace(parts[i])
+	}
+}
+
+//nolint:nonamedreturns
+func splitQuery(parts []string) (
+	pathParts []string,
+	queries []string,
+) {
+	i := slices.Index(parts, "?")
+
+	if i < 0 {
+		return parts, nil
+	}
+
+	return parts[0:i], parts[i:]
 }
