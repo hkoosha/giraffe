@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ttl = 1 * time.Hour
+	ttl = 4 * 24 * time.Hour
 
 	cache = tlru.New[string, QueryCacheItem](
 		tlru.ConstantCost,
