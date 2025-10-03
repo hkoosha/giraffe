@@ -277,6 +277,8 @@ linters:
     rules:
       - path: '^internal/vendored/.*$'
         text: '.*'
+      - path: '.*'
+        text: 'todoCommentWithoutDetail:'
       - linters:
           - asasalint
           - goconst

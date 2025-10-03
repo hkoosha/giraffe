@@ -69,6 +69,7 @@ func toErr(a any) error {
 		return cast
 
 	case a != nil:
+		//nolint:err113
 		return fmt.Errorf("%v", a)
 
 	default:

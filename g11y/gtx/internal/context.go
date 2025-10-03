@@ -13,11 +13,12 @@ var gtxKey gtxKeyT
 
 var _ context.Context = (*GContext)(nil)
 
+//nolint:containedctx
 type GContext struct {
 	ctx context.Context
 }
 
-func (c GContext) Deadline() (deadline time.Time, ok bool) {
+func (c GContext) Deadline() (time.Time, bool) {
 	return c.ctx.Deadline()
 }
 
@@ -49,6 +50,7 @@ func Set(ctx context.Context) *GContext {
 	}
 
 	gtx := &GContext{ctx: nil}
+	//nolint:fatcontext
 	gtx.ctx = context.WithValue(ctx, gtxKey, gtx)
 	return gtx
 }

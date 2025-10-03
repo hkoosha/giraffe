@@ -3,6 +3,8 @@ module github.com/hkoosha/giraffe
 go 1.25.1
 
 require (
+	github.com/hkoosha/giraffe/contrib/zap v0.0.0-20251001234256-ab0d71aa6795
+	github.com/hkoosha/giraffe/helper/testhelper v0.0.0-20251001234256-ab0d71aa6795
 	github.com/prometheus/client_golang v1.23.2
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
@@ -42,6 +44,8 @@ require (
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/sdk v1.38.0 // indirect
 	go.opentelemetry.io/otel/trace v1.38.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+	go.uber.org/zap v1.27.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/mod v0.28.0 // indirect

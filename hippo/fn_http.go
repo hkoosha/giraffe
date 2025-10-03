@@ -1,15 +1,16 @@
 package hippo
 
 import (
+	"net/http"
+
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/conn"
 	"github.com/hkoosha/giraffe/g11y"
-	. "github.com/hkoosha/giraffe/internal/dot1"
 )
 
 type httpFn struct {
-	method string
 	cnx    conn.Raw
+	method string
 }
 
 func (e *httpFn) ekran(
@@ -18,14 +19,13 @@ func (e *httpFn) ekran(
 ) (giraffe.Datum, error) {
 	panic("todo")
 
-	var err error
-	var resp any
-
-	if err != nil {
-		return OfErr(), err
-	}
-
-	return giraffe.FromJsonable(resp)
+	// var resp any
+	//
+	// if err != nil {
+	// 	return OfErr(), err
+	// }
+	//
+	// return giraffe.FromJsonable(resp)
 }
 
 func HttpFn(
@@ -35,7 +35,8 @@ func HttpFn(
 	g11y.NonNil(cnx)
 
 	fn := httpFn{
-		cnx: cnx,
+		cnx:    cnx,
+		method: http.MethodGet,
 	}
 
 	return MustFnOf(fn.ekran).

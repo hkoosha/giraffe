@@ -25,6 +25,7 @@ func Of(
 	fn func(gtx.Context, glog.Lg) error,
 ) Container {
 	return &lgContainer{
+		lg: nil,
 		fn: fn,
 	}
 }

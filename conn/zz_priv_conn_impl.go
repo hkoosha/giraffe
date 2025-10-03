@@ -51,7 +51,7 @@ func (c *connImpl[R]) Std() *http.Client {
 	return c.cfg.Std()
 }
 
-func (c *connImpl[R]) Raw() Raw {
+func (c *connImpl[R]) Raw() Conn[[]byte] {
 	return newConn[[]byte](c.cfg, serdes.Bytes())
 }
 
@@ -65,6 +65,7 @@ func (c *connImpl[R]) Patch(
 	path ...string,
 ) (R, error) {
 	const m = http.MethodPatch
+	//nolint:bodyclose
 	_, r, err := c.call(ctx, m, body, path)
 	return r, err
 }
@@ -75,6 +76,7 @@ func (c *connImpl[R]) Put(
 	path ...string,
 ) (R, error) {
 	const m = http.MethodPut
+	//nolint:bodyclose
 	_, r, err := c.call(ctx, m, body, path)
 	return r, err
 }
@@ -85,6 +87,7 @@ func (c *connImpl[R]) Post(
 	path ...string,
 ) (R, error) {
 	const m = http.MethodPost
+	//nolint:bodyclose
 	_, r, err := c.call(ctx, m, body, path)
 	return r, err
 }
@@ -95,6 +98,7 @@ func (c *connImpl[R]) PostForHeaders(
 	path ...string,
 ) (http.Header, error) {
 	const m = http.MethodPost
+	//nolint:bodyclose
 	resp, _, err := c.call(ctx, m, body, path)
 	if err != nil {
 		return nil, err
@@ -107,6 +111,7 @@ func (c *connImpl[R]) Get(
 	path ...string,
 ) (R, error) {
 	const m = http.MethodGet
+	//nolint:bodyclose
 	_, r, err := c.call(ctx, m, nobody, path)
 	return r, err
 }
@@ -116,6 +121,7 @@ func (c *connImpl[R]) GetForHeaders(
 	path ...string,
 ) (http.Header, error) {
 	const m = http.MethodGet
+	//nolint:bodyclose
 	resp, _, err := c.call(ctx, m, nobody, path)
 	if err != nil {
 		return nil, err
@@ -128,6 +134,7 @@ func (c *connImpl[R]) Delete(
 	path ...string,
 ) (R, error) {
 	const m = http.MethodDelete
+	//nolint:bodyclose
 	_, r, err := c.call(ctx, m, nobody, path)
 	return r, err
 }
@@ -138,6 +145,7 @@ func (c *connImpl[R]) Call(
 	body any,
 	path ...string,
 ) (R, error) {
+	//nolint:bodyclose
 	_, call, err := c.call(ctx, method, body, path)
 	return call, err
 }
@@ -171,11 +179,6 @@ func (c *connImpl[R]) call(
 	resp, err := c.callRaw(ctx, method, b, path)
 	if err != nil {
 		return nil, c.rErr, err
-	}
-
-	if resp.Body == nil {
-		rd, err := c.serde.Read([]byte{})
-		return resp, rd, err
 	}
 
 	defer resp.Body.Close()

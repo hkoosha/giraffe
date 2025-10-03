@@ -11,6 +11,11 @@ import (
 	"github.com/hkoosha/giraffe/g11y/glog"
 )
 
+var (
+	errStopTimeout  = errors.New("timed out on stop")
+	errCloseTimeout = errors.New("timed out on close")
+)
+
 type config struct {
 	internal.Sealer
 	appRef        string
@@ -39,8 +44,6 @@ func (r *config) Wait(
 ) error {
 	err := atomic.Value{}
 	return r.doWait(ctx, &err, containers...)
-	e := g11y.MixAndGet(&err, nil)
-	return e
 }
 
 func (r *config) doWait(
@@ -81,7 +84,7 @@ func (r *config) doWait(
 		case dErr := <-done:
 			g11y.Mix(err, dErr)
 		case <-timer.C:
-			g11y.Mix(err, errors.New("timed out on stop"))
+			g11y.Mix(err, errStopTimeout)
 		}
 
 		go func() {
@@ -94,7 +97,7 @@ func (r *config) doWait(
 		case dErr := <-done:
 			g11y.Mix(err, dErr)
 		case <-timer.C:
-			g11y.Mix(err, errors.New("timed out on close"))
+			g11y.Mix(err, errCloseTimeout)
 		}
 	}
 

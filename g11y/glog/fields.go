@@ -8,8 +8,8 @@ const (
 )
 
 type Field struct {
-	Name  string
 	Value any
+	Name  string
 	Typ   int
 }
 
@@ -28,6 +28,7 @@ func OfN(name string, v any) Field {
 
 	default:
 		return Field{
+			Name:  name,
 			Value: v,
 			Typ:   TypAny,
 		}
@@ -50,7 +51,7 @@ func OfErrN(name string, v error) Field {
 	}
 }
 
-func OfStringN(name string, v string) Field {
+func OfStringN(name, v string) Field {
 	return Field{
 		Name:  name,
 		Value: v,
