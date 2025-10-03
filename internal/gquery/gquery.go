@@ -9,18 +9,19 @@ import (
 const (
 	cmdSepStr = string(CmdSep)
 
-	CmdOverwrite = '%'
+	CmdExtern    = '^'
+	CmdAppend    = '+'
+	CmdOverwrite = '='
+	CmdDelete    = '!'
 	CmdMake      = '$'
 	CmdMaybe     = '?'
-	CmdAppend    = '+'
-	CmdDelete    = '^'
 	CmdSep       = '.'
 	CmdEscape    = '\\'
 	CmdAt        = '@'
 	CmdSelf      = '#'
 	CmdMove      = '>'
 
-	CmdNonDeterministic = '~'
+	CmdIndeterministic = '~'
 )
 
 // DebugImpl to enable debug, it is needed to switch this alias to QueryDebug.
