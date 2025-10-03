@@ -408,6 +408,22 @@ func (d Datum) Str() (string, error) {
 	}
 }
 
+func (d Datum) FmtStr() (string, error) {
+	switch {
+	case d.typ.IsStr():
+		return cast[string](d), nil
+
+	case d.typ.IsBln():
+		return strconv.FormatBool(cast[bool](d)), nil
+
+	case d.typ.IsInt():
+		return M(d.Int()).String(), nil
+
+	default:
+		return "", EF("cannot format datatype as simple string: %v", d.String())
+	}
+}
+
 // =====================================.
 
 func (d Datum) I08() (int8, error) {
@@ -754,4 +770,13 @@ func (d Datum) QStr(q Query) (string, error) {
 	}
 
 	return get.Str()
+}
+
+func (d Datum) QFmtStr(q Query) (string, error) {
+	get, err := d.Get(q)
+	if err != nil {
+		return "", err
+	}
+
+	return get.FmtStr()
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/hkoosha/giraffe/conn/internal"
 	"github.com/hkoosha/giraffe/g11y"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
 
@@ -141,6 +142,14 @@ func (c *connImpl[R]) Delete(
 
 func (c *connImpl[R]) Call(
 	ctx context.Context,
+	body any,
+	path ...string,
+) (R, error) {
+	return c.CallAs(ctx, c.cfg.http.defaultMethod, body, path...)
+}
+
+func (c *connImpl[R]) CallAs(
+	ctx context.Context,
 	method string,
 	body any,
 	path ...string,
@@ -203,12 +212,12 @@ func (c *connImpl[R]) callRaw(
 
 	req, err := http.NewRequestWithContext(ctx, method, join(path), body)
 	if err != nil {
-		return nil, err
+		return nil, E(err)
 	}
 
 	resp, err := c.std.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, E(err)
 	}
 
 	return resp, nil

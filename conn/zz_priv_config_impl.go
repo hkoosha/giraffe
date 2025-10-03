@@ -513,6 +513,36 @@ func (c *config) withoutEndpoint() *config {
 	return cp
 }
 
+func (c *config) Method() string {
+	return c.ensure().http.defaultMethod
+}
+
+func (c *config) WithMethod(
+	p string,
+) Config {
+	return c.withMethod(p)
+}
+
+func (c *config) withMethod(
+	v string,
+) *config {
+	// TODO validate p.
+	if v == "" || strings.TrimSpace(v) == "" {
+		panic("empty method")
+	}
+
+	if c.http.defaultMethod == v {
+		return c
+	}
+
+	cp := c.open()
+	cp.http = cp.http.shallow()
+	cp.http.defaultMethod = v
+	cp.seal()
+
+	return cp
+}
+
 func (c *config) PathPrefix() string {
 	return c.ensure().http.pathPrefix
 }

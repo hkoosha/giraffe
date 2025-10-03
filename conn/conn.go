@@ -121,6 +121,7 @@ type ConfigRead interface {
 	ExpectingStatusCode() int
 	Endpoint() string
 	PathPrefix() string
+	Method() string
 	Timeout() time.Duration
 	TraceOptions() []otelhttp.Option
 	IsTraced() bool
@@ -142,6 +143,7 @@ type ConfigWrite interface {
 	WithEndpoint(string) Config
 	WithoutEndpoint() Config
 	WithPathPrefix(string) Config
+	WithMethod(string) Config
 	WithoutPathPrefix() Config
 	AndPathPrefix(string) Config
 
@@ -191,6 +193,12 @@ type Conn[R any] interface {
 	Raw() Raw
 
 	Call(
+		ctx context.Context,
+		body any,
+		path ...string,
+	) (R, error)
+
+	CallAs(
 		ctx context.Context,
 		method string,
 		body any,
