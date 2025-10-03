@@ -4,12 +4,12 @@ import (
 	"strings"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/gquery"
+	"github.com/hkoosha/giraffe/internal/queryimpl"
 )
 
 func modify(
 	d *Datum,
-	q queryimpl.Query,
+	q queryimpl.Pipeline,
 	value any,
 ) error {
 	switch {
@@ -46,7 +46,7 @@ func modify(
 
 func move(
 	d *Datum,
-	q queryimpl.Query,
+	q queryimpl.Pipeline,
 ) error {
 	seg0, seg1, ok := q.Segments()
 	if !ok {
@@ -74,7 +74,7 @@ func move(
 
 func del(
 	d *Datum,
-	q queryimpl.Query,
+	q queryimpl.Pipeline,
 ) error {
 	qf := q.Flags()
 	dt := d.typ
@@ -109,7 +109,7 @@ func del(
 
 func set(
 	d *Datum,
-	q queryimpl.Query,
+	q queryimpl.Pipeline,
 	value Datum,
 ) error {
 	switch {
@@ -123,7 +123,7 @@ func set(
 
 func setObj(
 	d *Datum,
-	q queryimpl.Query,
+	q queryimpl.Pipeline,
 	item Datum,
 ) error {
 	qf := q.Flags()
@@ -187,7 +187,7 @@ func setObj(
 
 func arrSet(
 	d *Datum,
-	q queryimpl.Query,
+	q queryimpl.Pipeline,
 	item Datum,
 ) error {
 	qf := q.Flags()
@@ -240,7 +240,7 @@ func arrSet(
 // ==============================================================================.
 
 func newDataWriteOverwriteErr(
-	query queryimpl.Query,
+	query queryimpl.Pipeline,
 ) error {
 	return newDataWriteError(
 		query,
@@ -250,7 +250,7 @@ func newDataWriteOverwriteErr(
 }
 
 func newDataWriteMissingKeyError(
-	query queryimpl.Query,
+	query queryimpl.Pipeline,
 ) error {
 	return newDataWriteError(
 		query,
@@ -260,7 +260,7 @@ func newDataWriteMissingKeyError(
 }
 
 func newDataWriteMoveUnsegmentedQuery(
-	query queryimpl.Query,
+	query queryimpl.Pipeline,
 ) error {
 	return newDataWriteError(
 		query,
@@ -270,7 +270,7 @@ func newDataWriteMoveUnsegmentedQuery(
 }
 
 func newDataWriteError(
-	query queryimpl.Query,
+	query queryimpl.Pipeline,
 	code uint64,
 	msg string,
 	extra ...string,

@@ -1,4 +1,4 @@
-package queryimpl
+package gqdebug
 
 import (
 	"reflect"
@@ -10,28 +10,28 @@ import (
 const debugNilId = "<nil>"
 
 var (
-	debugQueryId = atomic.Uint64{}
+	debugId = atomic.Uint64{}
 
 	//nolint:exhaustruct
-	hasDebug = reflect.TypeOf(Query{}) == reflect.TypeOf(QueryDebug{})
+	hasDebug = reflect.TypeOf(Query{}) == reflect.TypeOf(DebugT{})
 )
 
-// DebugImpl to enable debug, it is needed to switch this alias to QueryDebug.
+// DebugImpl to enable debug, it is needed to switch this alias to DebugT.
 // It will require recompilation but allows Query.Debug to be typed and
 // have zero lengths when debug is not enabled (contrary to using pointers).
-type DebugImpl = struct{} // = QueryDebug.
+type DebugImpl = struct{} // = DebugT.
 
 func init() {
-	debugQueryId.Add(11)
+	debugId.Add(11)
 }
 
-func newQueryDebug() DebugImpl {
+func newDebug() DebugImpl {
 	if !hasDebug {
 		return DebugImpl{}
 	}
 
-	db := QueryDebug{
-		ID:   ref(debugQueryId.Add(1)),
+	db := DebugT{
+		ID:   ref(debugId.Add(1)),
 		Root: ref("?"),
 		Str:  ref("?"),
 		Seq:  ref(-1),
@@ -48,7 +48,7 @@ func newQueryDebug() DebugImpl {
 }
 
 //goland:noinspection GoNameStartsWithPackageName
-type QueryDebug struct {
+type DebugT struct {
 	All  *[]string `json:"all"`
 	Root *string   `json:"root"`
 	Str  *string   `json:"str"`
@@ -56,7 +56,7 @@ type QueryDebug struct {
 	Seq  *int      `json:"seq"`
 }
 
-func (d *QueryDebug) String() string {
+func (d *DebugT) String() string {
 	if d == nil {
 		return debugNilId
 	}
@@ -71,7 +71,7 @@ func (d *QueryDebug) String() string {
 	return strings.Join(props, " | ")
 }
 
-func (d *QueryDebug) populate(q Query) string {
+func (d *DebugT) populate(q Query) string {
 	d.Root = ref(q.Root().String())
 	d.Str = ref(q.String())
 	d.Seq = ref(q.Flags().Seq())
@@ -89,7 +89,7 @@ func debugPopulateQueries(
 	all := make([]string, len(path))
 
 	for i, q := range path {
-		if dDebug, ok := any(&path[i].Debug).(*QueryDebug); ok {
+		if dDebug, ok := any(&path[i].Debug).(*DebugT); ok {
 			all[i] = dDebug.populate(q)
 		} else {
 			panic("unreachable: debug not enabled")
@@ -97,7 +97,7 @@ func debugPopulateQueries(
 	}
 
 	for i := range path {
-		if dDebug, ok := any(&path[i].Debug).(*QueryDebug); ok {
+		if dDebug, ok := any(&path[i].Debug).(*DebugT); ok {
 			dDebug.All = &all
 		} else {
 			panic("unreachable: debug not enabled")

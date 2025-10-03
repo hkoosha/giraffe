@@ -9,7 +9,7 @@ import (
 	"github.com/hkoosha/giraffe/internal"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/gdatum"
-	"github.com/hkoosha/giraffe/internal/gquery"
+	"github.com/hkoosha/giraffe/internal/queryimpl"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
@@ -32,6 +32,8 @@ var (
 
 	jsonNumberType = reflect.TypeOf((*json.Number)(nil)).Elem()
 	strType        = reflect.TypeOf((*string)(nil)).Elem()
+
+	tQuery = reflect.TypeOf((*Query)(nil)).Elem()
 )
 
 func ofJsonable(
@@ -144,7 +146,7 @@ func _ofExpandable(
 
 	it := r.MapRange()
 	for it.Next() {
-		var q queryimpl.Query
+		var q queryimpl.Pipeline
 		if qCast, ok := it.Key().Interface().(Query); ok {
 			q = qCast.impl()
 		} else if qCast, ok := it.Key().Interface().(Query); ok {
@@ -298,7 +300,7 @@ func _ofMap(
 			o[key.String()] = d
 			d.val = Ref(any(o))
 		} else if key.CanInterface() && key.CanConvert(tQuery) {
-			var q queryimpl.Query
+			var q queryimpl.Pipeline
 			if qCast, ok := key.Interface().(Query); ok {
 				q = qCast.impl()
 			} else if qCast, ok := key.Interface().(Query); ok {

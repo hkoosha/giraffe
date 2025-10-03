@@ -15,7 +15,8 @@ import (
 	"github.com/hkoosha/giraffe/internal"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/gdatum"
-	"github.com/hkoosha/giraffe/internal/gquery"
+	"github.com/hkoosha/giraffe/internal/queryimpl"
+	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
@@ -261,7 +262,7 @@ func (d Datum) Append(
 	value any,
 ) (Datum, error) {
 	return d.Set(
-		Q(CmdAppend),
+		Q(qcmd.Append.String()),
 		value,
 	)
 }
@@ -330,7 +331,7 @@ func (d Datum) Has(
 }
 
 func (d Datum) Tree() []Query {
-	return z.Applied(d.tree(), func(it queryimpl.Query) Query {
+	return z.Applied(d.tree(), func(it queryimpl.Pipeline) Query {
 		return Query(it.String())
 	})
 }

@@ -4,21 +4,8 @@ import (
 	"reflect"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/gquery"
-	"github.com/hkoosha/giraffe/internal/gquery/gcmd"
-)
-
-//goland:noinspection GoUnusedConst
-const (
-	CmdOverwrite = string(gqcmd.CmdOverwrite)
-	CmdMake      = string(gqcmd.CmdMake)
-	CmdMaybe     = string(gqcmd.CmdMaybe)
-	CmdAppend    = string(gqcmd.CmdAppend)
-	CmdDelete    = string(gqcmd.CmdDelete)
-	CmdSep       = string(gqcmd.CmdSep)
-	CmdEscape    = string(gqcmd.CmdEscape)
-	CmdAt        = string(gqcmd.CmdAt)
-	CmdSelf      = string(gqcmd.CmdSelf)
+	"github.com/hkoosha/giraffe/internal/queryimpl"
+	"github.com/hkoosha/giraffe/qcmd"
 )
 
 func Escaped(
@@ -27,13 +14,7 @@ func Escaped(
 	return queryimpl.Escaped(spec)
 }
 
-func EscapedQ(
-	spec string,
-) Query {
-	return Q(Escaped(spec))
-}
-
-func Q[T QueryT](
+func Q[T interface{ Query | string }](
 	spec T,
 ) Query {
 	//nolint:gocritic
@@ -46,19 +27,15 @@ func Q[T QueryT](
 	}
 }
 
-type QueryT interface {
-	Query | string
-}
-
 func QErr() Query {
-	return invalid
+	return ""
 }
 
 func Parse(
 	spec string,
 ) (Query, error) {
 	if _, err := queryimpl.Parse(spec); err != nil {
-		return invalid, err
+		return "", err
 	}
 
 	return Query(spec), nil
@@ -68,7 +45,7 @@ func Parser(
 	prefix string,
 ) func(string) (Query, error) {
 	if prefix != "" {
-		prefix += CmdSep
+		prefix += qcmd.Sep.String()
 		M(queryimpl.Parse(prefix + "dummy"))
 	}
 

@@ -6,7 +6,8 @@ import (
 	"strings"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/gquery"
+	"github.com/hkoosha/giraffe/internal/queryimpl"
+	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
@@ -257,7 +258,7 @@ func (d Datum) nest(
 }
 
 func (d Datum) set(
-	q queryimpl.Query,
+	q queryimpl.Pipeline,
 	value any,
 ) (Datum, error) {
 	if !d.typ.IsArr() && !d.typ.IsObj() {
@@ -273,7 +274,7 @@ func (d Datum) set(
 }
 
 func (d Datum) has(
-	q queryimpl.Query,
+	q queryimpl.Pipeline,
 ) bool {
 	switch {
 	case q.Flags().IsObj() && d.typ.IsObj():
@@ -362,12 +363,12 @@ func newMergeClashingKeysError(
 
 	return newDataMakeError(
 		ErrCodeDataMergeClashingKeys,
-		"clashing keys: ["+strings.Join(q, CmdSep)+"]",
+		"clashing keys: ["+strings.Join(q, qcmd.Sep.String())+"]",
 	)
 }
 
 func newDataWriteUnexpectedValueError(
-	q queryimpl.Query,
+	q queryimpl.Pipeline,
 	v any,
 ) error {
 	return newDataWriteError(

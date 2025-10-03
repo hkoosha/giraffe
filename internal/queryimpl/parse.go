@@ -1,15 +1,25 @@
 package queryimpl
 
 import (
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
 
+	"github.com/hkoosha/giraffe/dialects"
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/queryimpl/gqcache"
+	"github.com/hkoosha/giraffe/internal/inmem"
+	"github.com/hkoosha/giraffe/internal/queryimpl/gqerrors"
 	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/qflag"
 )
+
+// MaxDepth must fit in the gqflag.QFlag in the sequence part, i.e., 8 bits.
+const MaxDepth = 255
+
+var uintRegex = regexp.MustCompile(`^\d+$`)
+
+var invalid = newQuery(nil, "", qflag.QFlag(0))
 
 type state struct {
 	ref     strings.Builder
@@ -19,7 +29,7 @@ type state struct {
 	escaped bool
 }
 
-type parser struct {
+type gParser struct {
 	spec    string
 	path    []Query
 	state   state
@@ -27,102 +37,23 @@ type parser struct {
 	segment int
 
 	i int
-	c rune
-
-	waitingExternClose bool
+	c byte
 }
 
-func (p *parser) reset() {
+func (p *gParser) reset() {
 	//nolint:exhaustruct
 	p.state = state{}
 	p.state.ref.Grow(64)
 }
 
-func (p *parser) last() *Query {
+func (p *gParser) last() *Query {
 	return &p.path[len(p.path)-1]
 }
 
-func (p *parser) newError(
-	code uint64,
-	msg string,
-	extra ...string,
-) error {
-	sb := strings.Builder{}
-	sb.Grow(len(p.spec) + len(msg) + 16)
-
-	sb.WriteString("query parse error, ")
-	sb.WriteString(msg)
-	sb.WriteString(": at=")
-	sb.WriteString(strconv.Itoa(p.i))
-	sb.WriteString(", query=")
-	sb.WriteString(p.spec)
-
-	for _, e := range extra {
-		sb.WriteString(", ")
-		sb.WriteString(e)
-	}
-
-	return newQueryError(code, sb.String())
-}
-
-func (p *parser) unexpectedToken() error {
-	return p.newError(
-		ErrCodeQueryParseUnexpectedToken,
-		"expected token not seen",
-		"actual="+string(p.c),
-	)
-}
-
-func (p *parser) unexpectedSegments() error {
-	return p.newError(
-		ErrCodeQueryParseUnexpectedSegments,
-		"expected number of segments",
-		"actual="+strconv.Itoa(p.segment),
-	)
-}
-
-func (p *parser) unclosedExtern() error {
-	return p.newError(
-		ErrCodeQueryParseUnclosedExtern,
-		"unclosed extern specification",
-		"actual="+strconv.Itoa(p.segment),
-	)
-}
-
-func (p *parser) conflictingCmd(conflictWith rune) error {
-	return p.newError(
-		ErrCodeQueryParseConflictingCmd,
-		"conflicting command",
-		"cmd="+string(conflictWith),
-	)
-}
-
-func (p *parser) duplicatedCmd() error {
-	return p.newError(
-		ErrCodeQueryParseDuplicatedCmd,
-		"duplicated command",
-		"cmd="+string(p.c),
-	)
-}
-
-func (p *parser) emptyQuery() error {
-	return p.newError(
-		ErrCodeQueryParseEmptyQuery,
-		"query is empty",
-	)
-}
-
-func (p *parser) nestingTooDeep() error {
-	return p.newError(
-		ErrCodeQueryParseNestingTooDeep,
-		"query nesting is too deep",
-	)
-}
-
-func (p *parser) onEscape() error {
+func (p *gParser) onEscape() error {
 	switch { //nolint:gocritic
 	case p.state.isFin:
-		return p.unexpectedToken()
+		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 	}
 
 	p.state.noCmd = true
@@ -131,21 +62,21 @@ func (p *parser) onEscape() error {
 	return nil
 }
 
-func (p *parser) onEscaped() error {
+func (p *gParser) onEscaped() error {
 	if p.state.isFin || !p.state.noCmd {
 		panic(EF("unreachable: invalid escape in query"))
 	}
 
 	p.state.escaped = false
-	p.state.ref.WriteRune(p.c)
+	p.state.ref.WriteByte(p.c)
 
 	return nil
 }
 
-func (p *parser) onSelf() error {
+func (p *gParser) onSelf() error {
 	switch { //nolint:gocritic
 	case p.state.noCmd:
-		return p.unexpectedToken()
+		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 	}
 
 	p.state.flags |= qflag.QModSelf
@@ -155,19 +86,17 @@ func (p *parser) onSelf() error {
 	return nil
 }
 
-func (p *parser) onAppend() error {
+func (p *gParser) onAppend() error {
 	switch {
 	case p.state.noCmd:
-		return p.unexpectedToken()
+		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
-	case p.state.flags.IsOverwrite():
-		return p.conflictingCmd(qcmd.Overwrite)
+	case p.state.flags.IsOverwrite(),
+		p.state.flags.IsDelete():
+		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
 
 	case p.state.flags.IsAppend():
-		return p.duplicatedCmd()
-
-	case p.global.IsDelete():
-		return p.conflictingCmd(qcmd.Delete)
+		return gqerrors.DuplicatedCmdError(p.i, p.spec, p.c)
 	}
 
 	p.global |= qflag.QModIndeter
@@ -177,25 +106,19 @@ func (p *parser) onAppend() error {
 	return nil
 }
 
-func (p *parser) onDelete() error {
+func (p *gParser) onDelete() error {
 	switch {
 	case p.state.noCmd:
-		return p.unexpectedToken()
+		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
-	case p.state.flags.IsOverwrite():
-		return p.conflictingCmd(qcmd.Overwrite)
-
-	case p.state.flags.IsAppend():
-		return p.conflictingCmd(qcmd.Delete)
-
-	case p.state.flags.IsMake():
-		return p.conflictingCmd(qcmd.Make)
+	case p.state.flags.IsOverwrite(),
+		p.state.flags.IsAppend(),
+		p.state.flags.IsMake(),
+		len(p.path) > 0:
+		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
 
 	case p.global.IsDelete():
-		return p.duplicatedCmd()
-
-	case len(p.path) > 0:
-		return p.conflictingCmd(qcmd.Delete)
+		return gqerrors.DuplicatedCmdError(p.i, p.spec, p.c)
 	}
 
 	p.global |= qflag.QModDelete
@@ -204,19 +127,18 @@ func (p *parser) onDelete() error {
 	return nil
 }
 
-func (p *parser) onMake() error {
+func (p *gParser) onMake() error {
 	switch {
 	case p.state.noCmd:
-		return p.unexpectedToken()
+		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
-	case p.state.flags.IsMaybe():
-		return p.conflictingCmd(qcmd.Maybe)
+	case p.state.flags.IsMaybe(),
+		p.global.IsDelete():
+		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
 
 	case p.state.flags.IsMake():
-		return p.duplicatedCmd()
+		return gqerrors.DuplicatedCmdError(p.i, p.spec, p.c)
 
-	case p.global.IsDelete():
-		return p.conflictingCmd(qcmd.Delete)
 	}
 
 	p.state.flags |= qflag.QModeMake
@@ -225,19 +147,18 @@ func (p *parser) onMake() error {
 	return nil
 }
 
-func (p *parser) onMaybe() error {
+func (p *gParser) onMaybe() error {
 	switch {
 	case p.state.noCmd:
-		return p.unexpectedToken()
+		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
-	case p.state.flags.IsOverwrite():
-		return p.conflictingCmd(qcmd.Overwrite)
+	case p.state.flags.IsOverwrite(),
+		p.state.flags.IsMake():
+		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
 
 	case p.state.flags.IsMaybe():
-		return p.duplicatedCmd()
+		return gqerrors.DuplicatedCmdError(p.i, p.spec, p.c)
 
-	case p.state.flags.IsMake():
-		return p.conflictingCmd(qcmd.Make)
 	}
 
 	p.state.flags = qflag.QModeMaybe
@@ -245,22 +166,16 @@ func (p *parser) onMaybe() error {
 	return nil
 }
 
-func (p *parser) onOverwrite() error {
+func (p *gParser) onOverwrite() error {
 	switch {
 	case p.state.noCmd:
-		return p.unexpectedToken()
+		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
-	case p.global.IsMaybe():
-		return p.conflictingCmd(qcmd.Maybe)
-
-	case p.global.IsAppend():
-		return p.conflictingCmd(qcmd.Append)
-
-	case p.global.IsMake():
-		return p.conflictingCmd(qcmd.Make)
-
-	case p.global.IsDelete():
-		return p.conflictingCmd(qcmd.Delete)
+	case p.global.IsMaybe(),
+		p.global.IsAppend(),
+		p.global.IsMake(),
+		p.global.IsDelete():
+		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
 	}
 
 	p.global = qflag.QModOverwrit
@@ -268,7 +183,7 @@ func (p *parser) onOverwrite() error {
 	return nil
 }
 
-func (p *parser) onSep() error {
+func (p *gParser) onSep() error {
 	str := p.state.ref.String()
 
 	switch {
@@ -276,11 +191,11 @@ func (p *parser) onSep() error {
 		str = "0"
 
 	case str == "":
-		return p.emptyQuery()
+		return gqerrors.EmptyError(p.i, p.spec)
 	}
 
-	if p.global.Seq() >= MaxQueryDepth {
-		return p.nestingTooDeep()
+	if p.global.Seq() >= MaxDepth {
+		return gqerrors.NestingTooDeepError(p.i, p.spec)
 	}
 
 	curr := newQuery(
@@ -294,7 +209,7 @@ func (p *parser) onSep() error {
 		// Not entirely sound, or rather too restrictive if the isMake switch
 		// was turned on by previous key parts.
 		if !curr.flags.IsMake() && curr.flags.IsMaybe() && curr.ref != "0" {
-			return p.conflictingCmd(qcmd.Make)
+			return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
 		}
 
 		curr.flags |= qflag.QModArr
@@ -307,14 +222,14 @@ func (p *parser) onSep() error {
 		curr.flags |= value
 
 	case p.state.flags.IsAppend():
-		return p.conflictingCmd(qcmd.Append)
+		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
 
 	default:
 		curr.flags |= qflag.QModObj
 	}
 
 	if p.global.IsDelete() && p.state.flags.IsMaybe() && !curr.flags.IsArr() {
-		return p.conflictingCmd(qcmd.Delete)
+		return gqerrors.ConflictingCmdError(p.i, p.spec, p.c)
 	}
 
 	p.path = append(p.path, curr)
@@ -328,11 +243,11 @@ func (p *parser) onSep() error {
 	return nil
 }
 
-func (p *parser) onMove() error {
+func (p *gParser) onMove() error {
 	p.segment++
 
 	if p.segment > 2 {
-		return p.unexpectedToken()
+		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 	}
 
 	p.global |= qflag.QModMove
@@ -346,57 +261,18 @@ func (p *parser) onMove() error {
 	return nil
 }
 
-func (p *parser) onRune() error {
-	p.state.ref.WriteRune(p.c)
+func (p *gParser) onRune() error {
+	p.state.ref.WriteByte(p.c)
 
 	return nil
 }
 
-func (p *parser) onExtern() error {
-	switch {
-	case p.waitingExternClose:
-		return p.onExternClose()
-
-	default:
-		return p.onExternOpen()
-	}
-}
-
-func (p *parser) onExternOpen() error {
-	switch {
-	case p.i != 0:
-		return p.unexpectedToken()
-
-	case p.state.noCmd:
-		return p.unexpectedToken()
-	}
-
-	p.waitingExternClose = true
-	p.state.flags |= qflag.QModExtern
-
-	return nil
-}
-
-func (p *parser) onExternClose() error {
-	p.waitingExternClose = false
-
-	return nil
-}
-
-func (p *parser) preParse() (bool, error) {
+func (p *gParser) preParse() (bool, error) {
 	switch {
 	case p.state.escaped:
 		if err := p.onEscaped(); err != nil {
 			return false, err
 		}
-
-	case p.c == qcmd.Extern:
-		if err := p.onExtern(); err != nil {
-			return false, err
-		}
-
-	case p.waitingExternClose:
-	// nothing to do
 
 	default:
 		return false, nil
@@ -405,7 +281,11 @@ func (p *parser) preParse() (bool, error) {
 	return true, nil
 }
 
-func (p *parser) doParse() error {
+func (p *gParser) doParse() error {
+	// for dialect
+	p.i++
+	p.i += len(dialects.Giraffe.String())
+
 	for p.i, p.c = range p.spec {
 		switch consumed, err := p.preParse(); {
 		case err != nil:
@@ -416,53 +296,48 @@ func (p *parser) doParse() error {
 		}
 
 		switch p.c {
-		case qcmd.Escape:
+		case qcmd.Escape.Byte():
 			if err := p.onEscape(); err != nil {
 				return err
 			}
 
-		case qcmd.Self:
+		case qcmd.Self.Byte():
 			if err := p.onSelf(); err != nil {
 				return err
 			}
 
-		case qcmd.Append:
+		case qcmd.Append.Byte():
 			if err := p.onAppend(); err != nil {
 				return err
 			}
 
-		case qcmd.Delete:
+		case qcmd.Delete.Byte():
 			if err := p.onDelete(); err != nil {
 				return err
 			}
 
-		case qcmd.Make:
+		case qcmd.Make.Byte():
 			if err := p.onMake(); err != nil {
 				return err
 			}
 
-		case qcmd.Maybe:
+		case qcmd.Maybe.Byte():
 			if err := p.onMaybe(); err != nil {
 				return err
 			}
 
-		case qcmd.Overwrite:
+		case qcmd.Overwrite.Byte():
 			if err := p.onOverwrite(); err != nil {
 				return err
 			}
 
-		case qcmd.Move:
-			if err := p.onMove(); err != nil {
-				return err
-			}
-
-		case qcmd.Sep:
+		case qcmd.Sep.Byte():
 			if err := p.onSep(); err != nil {
 				return err
 			}
 
-		case qcmd.At:
-			return p.unexpectedToken()
+		case qcmd.At.Byte():
+			return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
 		default:
 			if err := p.onRune(); err != nil {
@@ -471,27 +346,23 @@ func (p *parser) doParse() error {
 		}
 	}
 
-	if p.waitingExternClose {
-		return p.unclosedExtern()
-	}
-
 	return nil
 }
 
-func (p *parser) parsePostValidate() error {
+func (p *gParser) parsePostValidate() error {
 	switch {
 	case len(p.path) == 0:
-		return p.emptyQuery()
+		return gqerrors.EmptyError(p.i, p.spec)
 
 	case p.segment != 0 && p.segment != 2:
-		return p.unexpectedSegments()
+		return gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
 	default:
 		return nil
 	}
 }
 
-func (p *parser) postProcess() {
+func (p *gParser) postProcess() {
 	p.path = slices.Clip(p.path)
 
 	if len(p.path) == 1 {
@@ -522,20 +393,20 @@ func (p *parser) postProcess() {
 		}
 	}
 
-	debugPopulateQueries(p.path)
+	// debugPopulateQueries(p.path)
 }
 
-func (p *parser) parse() (Query, error) {
+func (p *gParser) parse() (Query, error) {
 	if strings.HasPrefix(p.spec, string(qcmd.Sep)) {
-		return ErrQ, p.unexpectedToken()
+		return invalid, gqerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 	}
 
 	if err := p.doParse(); err != nil {
-		return ErrQ, err
+		return invalid, err
 	}
 
 	if err := p.parsePostValidate(); err != nil {
-		return ErrQ, err
+		return invalid, err
 	}
 
 	p.postProcess()
@@ -543,18 +414,15 @@ func (p *parser) parse() (Query, error) {
 	return p.path[0], nil
 }
 
-func newParser(spec string) (*parser, error) {
-	if !strings.HasSuffix(spec, string(qcmd.Sep)) {
-		spec += string(qcmd.At)
-	}
-	if !strings.ContainsRune(spec, qcmd.Move) {
-		spec += string(qcmd.Move) + string(qcmd.At)
+func newGQueryParser(spec string) *gParser {
+	if !strings.HasSuffix(spec, qcmd.Sep.String()) {
+		spec += qcmd.At.String()
 	}
 
 	//nolint:exhaustruct
 	zeroState := state{}
 
-	p := parser{
+	p := gParser{
 		spec:    spec,
 		state:   zeroState,
 		global:  qflag.QFlag(0),
@@ -565,20 +433,27 @@ func newParser(spec string) (*parser, error) {
 	}
 	p.reset()
 
-	return &p, nil
+	return &p
 }
 
-func doParse(
+func parse(
 	spec string,
 ) (Query, error) {
-	p, err := newParser(spec)
+	spec, err := dialects.Normalized(spec)
 	if err != nil {
-		return ErrQ, err
+		return invalid, err
 	}
 
-	q, err := p.parse()
+	var q Query
+	switch M(dialects.DialectOf(spec)) {
+	case dialects.Giraffe:
+		q, err = newGQueryParser(spec).parse()
+
+	case dialects.Http:
+	}
+
 	if err != nil {
-		return ErrQ, err
+		return invalid, err
 	}
 
 	return q, nil
@@ -587,11 +462,11 @@ func doParse(
 func Parse(
 	spec string,
 ) (Query, error) {
-	cached, ok := gqcache.Get[Query](spec)
+	cached, ok := inmem.Get[Query](spec)
 
 	if !ok {
-		query, err := doParse(spec)
-		gqcache.Set(spec, query, err)
+		query, err := parse(spec)
+		inmem.Set(spec, query, err)
 		return query, err
 	}
 

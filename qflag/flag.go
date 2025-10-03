@@ -56,10 +56,8 @@ func (f QFlag) String0() string {
 
 	f.ReconstructPreModIn(&sb)
 
-	sb.WriteByte(qcmd.At)
+	sb.WriteByte(qcmd.At.Byte())
 	sb.WriteString(strconv.Itoa(f.Seq()))
-
-	f.ReconstructPostModIn(&sb)
 
 	return sb.String()
 }
@@ -75,42 +73,27 @@ func (f QFlag) ReconstructPreModIn(
 	sb *strings.Builder,
 ) {
 	if f&QModOverwrit != 0 {
-		sb.WriteByte(qcmd.Overwrite)
+		sb.WriteByte(qcmd.Overwrite.Byte())
 	}
 
 	if f&QModeMaybe != 0 {
-		sb.WriteByte(qcmd.Maybe)
+		sb.WriteByte(qcmd.Maybe.Byte())
 	}
 
 	if f&QModAppend != 0 {
-		sb.WriteByte(qcmd.Append)
+		sb.WriteByte(qcmd.Append.Byte())
 	}
 
 	if f&QModDelete != 0 {
-		sb.WriteByte(qcmd.Delete)
+		sb.WriteByte(qcmd.Delete.Byte())
 	}
 
 	if f&QModeMake != 0 {
-		sb.WriteByte(qcmd.Make)
+		sb.WriteByte(qcmd.Make.Byte())
 	}
 
 	if f&QModSelf != 0 {
-		sb.WriteByte(qcmd.Self)
-	}
-}
-
-func (f QFlag) ReconstructPostMod() string {
-	sb := strings.Builder{}
-	f.ReconstructPostModIn(&sb)
-
-	return sb.String()
-}
-
-func (f QFlag) ReconstructPostModIn(
-	sb *strings.Builder,
-) {
-	if f&QModMover != 0 {
-		sb.WriteByte(qcmd.Move)
+		sb.WriteByte(qcmd.Self.Byte())
 	}
 }
 

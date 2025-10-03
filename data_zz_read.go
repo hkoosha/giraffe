@@ -7,10 +7,11 @@ import (
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/g"
-	"github.com/hkoosha/giraffe/internal/gquery"
+	"github.com/hkoosha/giraffe/internal/queryimpl"
+	"github.com/hkoosha/giraffe/qcmd"
 )
 
-func (d Datum) hasShallow(q queryimpl.Query) bool {
+func (d Datum) hasShallow(q queryimpl.Pipeline) bool {
 	qf := q.Flags()
 	dt := d.typ
 
@@ -101,7 +102,7 @@ func (d Datum) len() int {
 }
 
 func (d Datum) get(
-	q queryimpl.Query,
+	q queryimpl.Pipeline,
 ) (Datum, error) {
 	qf := q.Flags()
 	dt := d.typ
@@ -154,15 +155,15 @@ func (d Datum) get(
 	}
 }
 
-func (d Datum) tree() []queryimpl.Query {
-	var tr []queryimpl.Query
+func (d Datum) tree() []queryimpl.Pipeline {
+	var tr []queryimpl.Pipeline
 	tree(&tr, &d, []string{})
 
 	return tr
 }
 
 func tree(
-	tr *[]queryimpl.Query,
+	tr *[]queryimpl.Pipeline,
 	d *Datum,
 	path []string,
 ) bool {
@@ -177,7 +178,7 @@ func tree(
 	// property (which would result in the same path). Hence, we signal the
 	// parent call to bail out.
 	case !dt.IsObj():
-		q := Q(strings.Join(path, CmdSep)).impl()
+		q := Q(strings.Join(path, qcmd.Sep.String())).impl()
 		*tr = append(*tr, q)
 
 		return true
@@ -186,7 +187,7 @@ func tree(
 		return false
 
 	case d.len() == 0:
-		q := Q(strings.Join(path, CmdSep)).impl()
+		q := Q(strings.Join(path, qcmd.Sep.String())).impl()
 		*tr = append(*tr, q)
 
 		return false
@@ -205,7 +206,7 @@ func tree(
 // ==============================================================================.
 
 func newDataReadOnlyError(
-	query queryimpl.Query,
+	query queryimpl.Pipeline,
 ) error {
 	return newDataReadError(
 		query,
@@ -215,7 +216,7 @@ func newDataReadOnlyError(
 }
 
 func newDataReadIndeterministicQueryError(
-	query queryimpl.Query,
+	query queryimpl.Pipeline,
 ) error {
 	return newDataReadError(
 		query,
@@ -225,7 +226,7 @@ func newDataReadIndeterministicQueryError(
 }
 
 func newDataReadOutOfBoundsError(
-	query queryimpl.Query,
+	query queryimpl.Pipeline,
 ) error {
 	return newDataReadError(
 		query,
@@ -235,7 +236,7 @@ func newDataReadOutOfBoundsError(
 }
 
 func newDataReadMissingKeyError(
-	query queryimpl.Query,
+	query queryimpl.Pipeline,
 ) error {
 	return newDataReadError(
 		query,
@@ -259,7 +260,7 @@ func newDataReadIntegerOverflowError(
 }
 
 func newDataReadUnexpectedTypeError(
-	query queryimpl.Query,
+	query queryimpl.Pipeline,
 	expecting Type,
 	actual Type,
 ) error {
@@ -275,7 +276,7 @@ func newDataReadUnexpectedTypeError(
 }
 
 func newDataReadError(
-	query queryimpl.Query,
+	query queryimpl.Pipeline,
 	code uint64,
 	msg string,
 	extra ...string,

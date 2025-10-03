@@ -1,0 +1,175 @@
+package gqerrors
+
+import (
+	"fmt"
+	"math"
+	"strconv"
+	"strings"
+
+	. "github.com/hkoosha/giraffe/internal/dot0"
+)
+
+// ErrStart Keep in sync with errors.go in giraffe.
+const ErrStart = uint64(math.MaxInt32)
+
+const (
+	ErrCodeEmpty = iota + ErrStart
+	ErrCodeDuplicatedCmd
+	ErrCodeConflictingCmd
+	ErrCodeUnexpectedToken
+	ErrCodeUnexpectedSegments
+	ErrCodeNestingTooDeep
+	ErrCodeNotWritable
+	ErrCodeUnclosedExtern
+)
+
+//goland:noinspection GoNameStartsWithPackageName
+type qError struct {
+	Msg  string
+	Code uint64
+}
+
+func (e *qError) Error() string {
+	return fmt.Sprintf("query error #%d: %s", e.Code, e.Msg)
+}
+
+func NewError(
+	code uint64,
+	msg string,
+) error {
+	return E(&qError{
+		Code: code,
+		Msg:  msg,
+	})
+}
+
+func NewNotWritableError(
+	q string,
+) error {
+	return NewError(
+		ErrCodeNotWritable,
+		fmt.Sprintf(
+			"wrong modifier: need=read, have=write, query=%s",
+			q,
+		),
+	)
+}
+
+func NewParseError(
+	code uint64,
+	at int,
+	spec string,
+	msg string,
+	extra ...string,
+) error {
+	sb := strings.Builder{}
+	sb.Grow(len(spec) + len(msg) + 16)
+
+	sb.WriteString("query parse error, ")
+	sb.WriteString(msg)
+	sb.WriteString(": at=")
+	sb.WriteString(strconv.Itoa(at))
+	sb.WriteString(", query=")
+	sb.WriteString(spec)
+
+	for _, e := range extra {
+		sb.WriteString(", ")
+		sb.WriteString(e)
+	}
+
+	return NewError(code, sb.String())
+}
+
+func UnexpectedTokenError(
+	at int,
+	spec string,
+	actual byte,
+) error {
+	return NewParseError(
+		ErrCodeUnexpectedToken,
+		at,
+		spec,
+		"expected token not seen",
+		"actual="+string(actual),
+	)
+}
+
+func UnexpectedSegmentError(
+	at int,
+	spec string,
+	segment int,
+) error {
+	return NewParseError(
+		ErrCodeUnexpectedSegments,
+		at,
+		spec,
+		"expected number of segments",
+		"actual="+strconv.Itoa(segment),
+	)
+}
+
+func UnclosedExternError(
+	at int,
+	spec string,
+	segment int,
+) error {
+	return NewParseError(
+		ErrCodeUnclosedExtern,
+		at,
+		spec,
+		"unclosed extern specification",
+		"actual="+strconv.Itoa(segment),
+	)
+}
+
+func ConflictingCmdError(
+	at int,
+	spec string,
+	conflictWith byte,
+) error {
+	return NewParseError(
+		ErrCodeConflictingCmd,
+		at,
+		spec,
+		"conflicting command",
+		"cmd="+string(conflictWith),
+	)
+}
+
+func DuplicatedCmdError(
+	at int,
+	spec string,
+	actual byte,
+) error {
+	return NewParseError(
+		ErrCodeDuplicatedCmd,
+		at,
+		spec,
+		"duplicated command",
+		"cmd="+string(actual),
+	)
+}
+
+func EmptyError(
+	at int,
+	spec string,
+) error {
+	return NewParseError(
+		ErrCodeEmpty,
+		at,
+		spec,
+		"query is empty",
+	)
+}
+
+func NestingTooDeepError(
+	at int,
+	spec string,
+) error {
+	return NewParseError(
+		ErrCodeNestingTooDeep,
+		at,
+		spec,
+		"query nesting is too deep",
+	)
+}

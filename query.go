@@ -1,10 +1,29 @@
 package giraffe
 
+import (
+	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/internal/queryimpl"
+)
+
 // Query NEVER INSTANTIATE DIRECTLY. NEVER CAST TO. NEVER CAST FROM.
 type Query string
 
+func (q Query) impl() queryimpl.Pipeline {
+	return M(queryimpl.Parse(string(q)))
+}
+
 func (q Query) String() string {
 	return q.impl().String()
+}
+
+func (q Query) Segments() []Segment {
+	segImpl := q.impl().Segments()
+	seg := make([]Segment, len(segImpl))
+	for i, s := range segImpl {
+		seg[i] = Segment(s.String())
+	}
+
+	return seg
 }
 
 func (q Query) Plus(other Query) Query {

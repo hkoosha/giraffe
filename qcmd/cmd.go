@@ -5,25 +5,33 @@ import (
 )
 
 const (
-	Dialect   = '~'
-	Pipe      = '|'
-	Extern    = '^'
-	Append    = '+'
-	Overwrite = '='
-	Delete    = '!'
-	Make      = '$'
-	Maybe     = '?'
-	Sep       = '.'
-	Escape    = '\\'
-	At        = '@'
-	Self      = '#'
-	Move      = '>'
+	Dialect   Cmd = '~'
+	Append    Cmd = '+'
+	Overwrite Cmd = '='
+	Delete    Cmd = '!'
+	Make      Cmd = '$'
+	Maybe     Cmd = '?'
+	Sep       Cmd = '.'
+	Escape    Cmd = '\\'
+	At        Cmd = '@'
+	Self      Cmd = '#'
+
+	Pipe Cmd = '|'
 )
 
-var all = map[rune]struct{}{
+type Cmd byte
+
+func (c Cmd) String() string {
+	return string(c)
+}
+
+func (c Cmd) Byte() byte {
+	return byte(c)
+}
+
+var all = map[Cmd]struct{}{
 	Dialect:   {},
 	Pipe:      {},
-	Extern:    {},
 	Append:    {},
 	Overwrite: {},
 	Delete:    {},
@@ -33,9 +41,8 @@ var all = map[rune]struct{}{
 	Escape:    {},
 	At:        {},
 	Self:      {},
-	Move:      {},
 }
 
-func All() map[rune]struct{} {
+func All() map[Cmd]struct{} {
 	return maps.Clone(all)
 }

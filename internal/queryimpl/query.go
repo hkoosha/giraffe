@@ -4,12 +4,26 @@ import (
 	"strings"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/internal/queryimpl/gqerrors"
 	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/qflag"
 )
 
+func newQuery(
+	path *[]Query,
+	ref string,
+	flags qflag.QFlag,
+) Query {
+	return Query{
+		// Debug: newDebug(),
+
+		Path:  path,
+		ref:   ref,
+		flags: flags,
+	}
+}
+
 type Query struct {
-	Debug DebugImpl
 	Path  *[]Query
 	ref   string
 	flags qflag.QFlag
@@ -65,26 +79,96 @@ func (q Query) String() string {
 	return q.string0()
 }
 
-//nolint:nonamedreturns
-func (q Query) Segments() (
-	s0 Query,
-	s1 Query,
-	ok bool,
+func (q Query) string0() string {
+	sb := strings.Builder{}
+
+	for j, p := range *q.Path {
+		if j > 0 {
+			sb.WriteByte(qcmd.Sep.Byte())
+
+			if q.flags.Seq() == j {
+				sb.WriteByte(qcmd.At.Byte())
+			}
+		}
+
+		sb.WriteString(p.flags.ReconstructPreMod())
+		sb.WriteString(p.ref)
+	}
+
+	return sb.String()
+}
+
+func (q Query) bef(
+	sb *strings.Builder,
 ) {
-	// TODO go through mem cache.
-
-	mover := q.Root()
-	for !mover.flags.IsLeaf() && !mover.flags.IsMover() {
-		mover = mover.Next()
-	}
-	if !mover.flags.IsMover() {
-		return ErrQ, ErrQ, false
+	if q.Flags().IsRoot() {
+		return
 	}
 
-	s0 = mover.UpTo(true)
-	s1 = mover.Originating(false)
+	path := *q.Path
+	for i := range q.flags.Seq() {
+		qI := path[i]
+		sb.WriteString(qI.flags.ReconstructPreMod())
+		sb.WriteString(qI.ref)
+		sb.WriteByte(qcmd.Sep.Byte())
+	}
+}
 
-	return s0, s1, true
+func (q Query) aft(
+	sb *strings.Builder,
+) {
+	if q.Flags().IsLeaf() {
+		return
+	}
+
+	path := *q.Path
+	for i := q.flags.Seq() + 1; i < len(path); i++ {
+		sb.WriteByte(qcmd.Sep.Byte())
+
+		qI := path[i]
+		sb.WriteString(qI.flags.ReconstructPreMod())
+		sb.WriteString(qI.ref)
+	}
+}
+
+func (q Query) Reconstructed() string {
+	sb := strings.Builder{}
+	q.reconstructInAs(&sb, q.flags)
+	return sb.String()
+}
+
+func (q Query) reconstructedIn(
+	sb *strings.Builder,
+) {
+	q.reconstructInAs(sb, q.flags)
+}
+
+func (q Query) reconstructedAs(
+	flags qflag.QFlag,
+) Query {
+	sb := strings.Builder{}
+
+	q.bef(&sb)
+	q.reconstructInAs(&sb, flags)
+	q.aft(&sb)
+
+	flagged := M(Parse(sb.String()))
+
+	return flagged.at(q.flags.Seq())
+}
+
+func (q Query) reconstructInAs(
+	sb *strings.Builder,
+	flags qflag.QFlag,
+) {
+	flags.ReconstructPreModIn(sb)
+	sb.WriteString(q.ref)
+}
+
+func (q Query) at(
+	seq int,
+) Query {
+	return (*q.Path)[seq]
 }
 
 // =====================================.
@@ -140,12 +224,12 @@ func (q Query) WithoutOverwrite() Query {
 	return q.reconstructedAs(q.flags & ^qflag.QModOverwrit)
 }
 
-// Plus panics if the resulting query is too deep, set by MaxQueryDepth.
+// Plus panics if the resulting query is too deep, set by MaxDepth.
 func (q Query) Plus(other Query) Query {
 	return q.PlusS(other.String())
 }
 
-// PlusS panics if the resulting query is too deep, set by MaxQueryDepth.
+// PlusS panics if the resulting query is too deep, set by MaxDepth.
 func (q Query) PlusS(other string) Query {
 	sb := strings.Builder{}
 
@@ -153,19 +237,16 @@ func (q Query) PlusS(other string) Query {
 
 	sb.WriteString(q.flags.ReconstructPreMod())
 	sb.WriteString(q.ref)
-	sb.WriteString(q.flags.ReconstructPostMod())
-	sb.WriteByte(qcmd.Sep)
+	sb.WriteByte(qcmd.Sep.Byte())
 	sb.WriteString(other)
 
 	return M(Parse(sb.String())).at(q.flags.Seq())
 }
-
-// =====================================.
 
 func (q Query) MustReadonly() error {
 	if !q.flags.IsReadonly() {
 		return nil
 	}
 
-	return newQueryNotWritableError(q)
+	return gqerrors.NewNotWritableError(q.String())
 }

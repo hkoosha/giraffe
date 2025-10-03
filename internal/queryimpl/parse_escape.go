@@ -18,11 +18,13 @@ func Escaped(
 	sb.Grow(len(spec))
 
 	for _, c := range spec {
-		if _, ok := commands[c]; ok {
-			sb.WriteRune(qcmd.Escape)
+		// TODO cast fix
+		if _, ok := commands[qcmd.Cmd(c)]; ok {
+			sb.WriteByte(qcmd.Escape.Byte())
 		}
 
-		sb.WriteRune(c)
+		// TODO cast fix
+		sb.WriteByte(byte(c))
 	}
 
 	return spec
