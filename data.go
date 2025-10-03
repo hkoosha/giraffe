@@ -153,7 +153,7 @@ func (d Datum) String() string {
 		return fmt.Sprintf("Dat[%s]", d.typ.String())
 	}
 
-	return d.String0()
+	return d.string0()
 }
 
 func (d Datum) Pretty() string {
