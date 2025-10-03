@@ -1,10 +1,5 @@
 package giraffe
 
-import (
-	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/gquery"
-)
-
 // Query NEVER INSTANTIATE DIRECTLY. NEVER CAST TO. NEVER CAST FROM.
 type Query string
 
