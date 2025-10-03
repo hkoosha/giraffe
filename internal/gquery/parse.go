@@ -1,23 +1,14 @@
 package gquery
 
 import (
-	"math"
 	"strings"
+
+	"github.com/hkoosha/giraffe/internal/gquery/gqcmd"
 )
 
 // TODO: no 'overwrite' and 'maybe' at the same time.
 
 // TODO: better conflicting cmd checks.
-
-var (
-	ErrCodeQueryParseEmptyQuery         uint64 = math.MaxUint64
-	ErrCodeQueryParseDuplicatedCmd      uint64 = math.MaxUint64
-	ErrCodeQueryParseConflictingCmd     uint64 = math.MaxUint64
-	ErrCodeQueryParseUnexpectedToken    uint64 = math.MaxUint64
-	ErrCodeQueryParseUnexpectedSegments uint64 = math.MaxUint64
-	ErrCodeQueryParseNestingTooDeep     uint64 = math.MaxUint64
-	ErrCodeQueryParseNotWritable        uint64 = math.MaxUint64
-)
 
 func Escaped(
 	spec string,
@@ -27,7 +18,7 @@ func Escaped(
 
 	for _, c := range spec {
 		if _, ok := commands[c]; ok {
-			sb.WriteRune(CmdEscape)
+			sb.WriteRune(gqcmd.Escape)
 		}
 
 		sb.WriteRune(c)

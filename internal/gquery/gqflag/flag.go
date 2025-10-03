@@ -1,15 +1,17 @@
-package gquery
+package gqflag
 
 import (
 	"strconv"
 	"strings"
+
+	"github.com/hkoosha/giraffe/internal/gquery/gqcmd"
 )
 
 //goland:noinspection SpellCheckingInspection
 const (
 	QModSelf     QFlag = 0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000
 	QModOverwrit QFlag = 0b01000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000
-	QModIndet    QFlag = 0b00100000_00000000_00000000_00000000_00000000_00000000_00000000_00000000
+	QModIndeter  QFlag = 0b00100000_00000000_00000000_00000000_00000000_00000000_00000000_00000000
 	QModeMaybe   QFlag = 0b00010000_00000000_00000000_00000000_00000000_00000000_00000000_00000000
 	QModeMake    QFlag = 0b00001000_00000000_00000000_00000000_00000000_00000000_00000000_00000000
 	QModAppend   QFlag = 0b00000100_00000000_00000000_00000000_00000000_00000000_00000000_00000000
@@ -30,7 +32,7 @@ const (
 	SequenceMask QFlag = 0b00000000_00000000_11111111_00000000_00000000_00000000_00000000_00000000
 	ModMask      QFlag = 0b11111111_11111111_00000000_00000000_00000000_00000000_00000000_00000000
 
-	seqShift = 40
+	SeqShift = 40
 )
 
 type QFlag uint64
@@ -52,68 +54,68 @@ func (f QFlag) String0() string {
 		return "invalid flag: 0b" + strconv.FormatUint(uint64(f), 2)
 	}
 
-	f.reconstructPreModIn(&sb)
+	f.ReconstructPreModIn(&sb)
 
-	sb.WriteByte(CmdAt)
+	sb.WriteByte(gqcmd.At)
 	sb.WriteString(strconv.Itoa(f.Seq()))
 
-	f.reconstructPostModIn(&sb)
+	f.ReconstructPostModIn(&sb)
 
 	return sb.String()
 }
 
-func (f QFlag) reconstructPreMod() string {
+func (f QFlag) ReconstructPreMod() string {
 	sb := strings.Builder{}
-	f.reconstructPreModIn(&sb)
+	f.ReconstructPreModIn(&sb)
 
 	return sb.String()
 }
 
-func (f QFlag) reconstructPreModIn(
+func (f QFlag) ReconstructPreModIn(
 	sb *strings.Builder,
 ) {
 	if f&QModOverwrit != 0 {
-		sb.WriteByte(CmdOverwrite)
+		sb.WriteByte(gqcmd.Overwrite)
 	}
 
 	if f&QModeMaybe != 0 {
-		sb.WriteByte(CmdMaybe)
+		sb.WriteByte(gqcmd.Maybe)
 	}
 
 	if f&QModAppend != 0 {
-		sb.WriteByte(CmdAppend)
+		sb.WriteByte(gqcmd.Append)
 	}
 
 	if f&QModDelete != 0 {
-		sb.WriteByte(CmdDelete)
+		sb.WriteByte(gqcmd.Delete)
 	}
 
 	if f&QModeMake != 0 {
-		sb.WriteByte(CmdMake)
+		sb.WriteByte(gqcmd.Make)
 	}
 
 	if f&QModSelf != 0 {
-		sb.WriteByte(CmdSelf)
+		sb.WriteByte(gqcmd.Self)
 	}
 }
 
-func (f QFlag) reconstructPostMod() string {
+func (f QFlag) ReconstructPostMod() string {
 	sb := strings.Builder{}
-	f.reconstructPostModIn(&sb)
+	f.ReconstructPostModIn(&sb)
 
 	return sb.String()
 }
 
-func (f QFlag) reconstructPostModIn(
+func (f QFlag) ReconstructPostModIn(
 	sb *strings.Builder,
 ) {
 	if f&QModMover != 0 {
-		sb.WriteByte(CmdMove)
+		sb.WriteByte(gqcmd.Move)
 	}
 }
 
 func (f QFlag) IsIndeterministic() bool {
-	return f&QModIndet != 0
+	return f&QModIndeter != 0
 }
 
 func (f QFlag) IsMaybe() bool {
@@ -187,5 +189,5 @@ func (f QFlag) Val() int {
 
 func (f QFlag) Seq() int {
 	//nolint:gosec
-	return int((f & SequenceMask) >> seqShift)
+	return int((f & SequenceMask) >> SeqShift)
 }

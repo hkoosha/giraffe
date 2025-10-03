@@ -5,19 +5,20 @@ import (
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/gquery"
+	"github.com/hkoosha/giraffe/internal/gquery/gcmd"
 )
 
 //goland:noinspection GoUnusedConst
 const (
-	CmdOverwrite = string(gquery.CmdOverwrite)
-	CmdMake      = string(gquery.CmdMake)
-	CmdMaybe     = string(gquery.CmdMaybe)
-	CmdAppend    = string(gquery.CmdAppend)
-	CmdDelete    = string(gquery.CmdDelete)
-	CmdSep       = string(gquery.CmdSep)
-	CmdEscape    = string(gquery.CmdEscape)
-	CmdAt        = string(gquery.CmdAt)
-	CmdSelf      = string(gquery.CmdSelf)
+	CmdOverwrite = string(gqcmd.CmdOverwrite)
+	CmdMake      = string(gqcmd.CmdMake)
+	CmdMaybe     = string(gqcmd.CmdMaybe)
+	CmdAppend    = string(gqcmd.CmdAppend)
+	CmdDelete    = string(gqcmd.CmdDelete)
+	CmdSep       = string(gqcmd.CmdSep)
+	CmdEscape    = string(gqcmd.CmdEscape)
+	CmdAt        = string(gqcmd.CmdAt)
+	CmdSelf      = string(gqcmd.CmdSelf)
 )
 
 func Escaped(

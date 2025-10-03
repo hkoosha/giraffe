@@ -2,19 +2,35 @@ package gquery
 
 import (
 	"fmt"
+	"math"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/internal/gquery/gqflag"
 )
 
-var ErrQ = newQuery(nil, "", QFlag(0))
+// ErrStart Keep in sync with errors.go in giraffe.
+const ErrStart = uint64(math.MaxInt32)
+
+const (
+	ErrCodeQueryParseEmptyQuery = iota + ErrStart
+	ErrCodeQueryParseDuplicatedCmd
+	ErrCodeQueryParseConflictingCmd
+	ErrCodeQueryParseUnexpectedToken
+	ErrCodeQueryParseUnexpectedSegments
+	ErrCodeQueryParseNestingTooDeep
+	ErrCodeQueryParseNotWritable
+	ErrCodeQueryParseUnclosedExtern
+)
+
+var ErrQ = newQuery(nil, "", gqflag.QFlag(0))
 
 //goland:noinspection GoNameStartsWithPackageName
-type QueryError struct {
+type queryError struct {
 	Msg  string
 	Code uint64
 }
 
-func (e *QueryError) Error() string {
+func (e *queryError) Error() string {
 	return fmt.Sprintf("query error #%d: %s", e.Code, e.Msg)
 }
 
@@ -22,7 +38,7 @@ func newQueryError(
 	code uint64,
 	msg string,
 ) error {
-	return E(&QueryError{
+	return E(&queryError{
 		Code: code,
 		Msg:  msg,
 	})

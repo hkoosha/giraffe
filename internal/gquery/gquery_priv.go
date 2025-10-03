@@ -5,9 +5,11 @@ import (
 	"strings"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/internal/gquery/gqcmd"
+	"github.com/hkoosha/giraffe/internal/gquery/gqflag"
 )
 
-// MaxQueryDepth must fit in the QFlag in the sequence part, i.e., 8 bits.
+// MaxQueryDepth must fit in the gqflag.QFlag in the sequence part, i.e., 8 bits.
 const MaxQueryDepth = 255
 
 var uintRegex = regexp.MustCompile(`^\d+$`)
@@ -15,7 +17,7 @@ var uintRegex = regexp.MustCompile(`^\d+$`)
 func newQuery(
 	path *[]Query,
 	ref string,
-	flags QFlag,
+	flags gqflag.QFlag,
 ) Query {
 	return Query{
 		Path:  path,
@@ -44,7 +46,7 @@ func (q Query) reconstructedIn(
 }
 
 func (q Query) reconstructedAs(
-	flags QFlag,
+	flags gqflag.QFlag,
 ) Query {
 	sb := strings.Builder{}
 
@@ -59,11 +61,11 @@ func (q Query) reconstructedAs(
 
 func (q Query) reconstructInAs(
 	sb *strings.Builder,
-	flags QFlag,
+	flags gqflag.QFlag,
 ) {
-	flags.reconstructPreModIn(sb)
+	flags.ReconstructPreModIn(sb)
 	sb.WriteString(q.ref)
-	flags.reconstructPostModIn(sb)
+	flags.ReconstructPostModIn(sb)
 }
 
 func (q Query) string0() string {
@@ -71,16 +73,16 @@ func (q Query) string0() string {
 
 	for j, p := range *q.Path {
 		if j > 0 {
-			sb.WriteByte(CmdSep)
+			sb.WriteByte(gqcmd.Sep)
 
 			if q.flags.Seq() == j {
-				sb.WriteByte(CmdAt)
+				sb.WriteByte(gqcmd.At)
 			}
 		}
 
-		sb.WriteString(p.flags.reconstructPreMod())
+		sb.WriteString(p.flags.ReconstructPreMod())
 		sb.WriteString(p.ref)
-		sb.WriteString(q.flags.reconstructPostMod())
+		sb.WriteString(q.flags.ReconstructPostMod())
 	}
 
 	return sb.String()
@@ -96,10 +98,10 @@ func (q Query) bef(
 	path := *q.Path
 	for i := range q.flags.Seq() {
 		qI := path[i]
-		sb.WriteString(qI.flags.reconstructPreMod())
+		sb.WriteString(qI.flags.ReconstructPreMod())
 		sb.WriteString(qI.ref)
-		sb.WriteString(qI.flags.reconstructPostMod())
-		sb.WriteByte(CmdSep)
+		sb.WriteString(qI.flags.ReconstructPostMod())
+		sb.WriteByte(gqcmd.Sep)
 	}
 }
 
@@ -112,11 +114,11 @@ func (q Query) aft(
 
 	path := *q.Path
 	for i := q.flags.Seq() + 1; i < len(path); i++ {
-		sb.WriteByte(CmdSep)
+		sb.WriteByte(gqcmd.Sep)
 
 		qI := path[i]
-		sb.WriteString(qI.flags.reconstructPreMod())
+		sb.WriteString(qI.flags.ReconstructPreMod())
 		sb.WriteString(qI.ref)
-		sb.WriteString(qI.flags.reconstructPostMod())
+		sb.WriteString(qI.flags.ReconstructPostMod())
 	}
 }

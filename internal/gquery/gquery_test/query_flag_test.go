@@ -12,7 +12,7 @@ import (
 
 func TestQFlag_Mods(t *testing.T) {
 	qFlags := []gquery.QFlag{
-		gquery.QModIndet,
+		gquery.QModIndeter,
 		gquery.QModeMaybe,
 		gquery.QModeMake,
 		gquery.QModAppend,

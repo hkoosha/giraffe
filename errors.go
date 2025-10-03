@@ -7,22 +7,16 @@ import (
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/g"
 	"github.com/hkoosha/giraffe/internal/gquery"
+	"github.com/hkoosha/giraffe/internal/gquery/gqflag"
 )
 
+//goland:noinspection GoUnusedConst
 const (
 	ErrCodeUnexpectedNil uint64 = iota + 1
 	ErrCodeInvalidDatum
 	ErrCodeInvalidJsonable
 	ErrCodeCastError
 	ErrCodeOverflowError
-
-	ErrCodeQueryParseEmptyQuery
-	ErrCodeQueryParseDuplicatedCmd
-	ErrCodeQueryParseConflictingCmd
-	ErrCodeQueryParseUnexpectedToken
-	ErrCodeQueryParseUnexpectedSegments
-	ErrCodeQueryParseNestingTooDeep
-	ErrCodeQueryParseNotWritable
 
 	ErrCodeDataMakeUnexpectedType
 	ErrCodeDataMakeUnimplementedType
@@ -51,15 +45,20 @@ const (
 	ErrCodeDataModifyOperationTakesNoValue
 )
 
+//goland:noinspection GoUnusedConst
+const (
+	ErrCodeQueryParseEmptyQuery         = gquery.ErrCodeQueryParseEmptyQuery
+	ErrCodeQueryParseDuplicatedCmd      = gquery.ErrCodeQueryParseDuplicatedCmd
+	ErrCodeQueryParseConflictingCmd     = gquery.ErrCodeQueryParseConflictingCmd
+	ErrCodeQueryParseUnexpectedToken    = gquery.ErrCodeQueryParseUnexpectedToken
+	ErrCodeQueryParseUnexpectedSegments = gquery.ErrCodeQueryParseUnexpectedSegments
+	ErrCodeQueryParseNestingTooDeep     = gquery.ErrCodeQueryParseNestingTooDeep
+	ErrCodeQueryParseNotWritable        = gquery.ErrCodeQueryParseNotWritable
+	ErrCodeQueryParseUnclosedExtern     = gquery.ErrCodeQueryParseUnclosedExtern
+)
+
 //nolint:reassign
 func init() {
-	gquery.ErrCodeQueryParseEmptyQuery = ErrCodeQueryParseEmptyQuery
-	gquery.ErrCodeQueryParseDuplicatedCmd = ErrCodeQueryParseDuplicatedCmd
-	gquery.ErrCodeQueryParseConflictingCmd = ErrCodeQueryParseConflictingCmd
-	gquery.ErrCodeQueryParseUnexpectedToken = ErrCodeQueryParseUnexpectedToken
-	gquery.ErrCodeQueryParseUnexpectedSegments = ErrCodeQueryParseUnexpectedSegments
-	gquery.ErrCodeQueryParseNestingTooDeep = ErrCodeQueryParseNestingTooDeep
-	gquery.ErrCodeQueryParseNotWritable = ErrCodeQueryParseNotWritable
 }
 
 func getDataErrRepr() string {
@@ -146,7 +145,7 @@ func newTypeCastError(
 
 func newQueryTypeCastError(
 	have Type,
-	need gquery.QFlag,
+	need gqflag.QFlag,
 	extra ...string,
 ) error {
 	needTyp := Arr

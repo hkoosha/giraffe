@@ -4,24 +4,8 @@ import (
 	"strings"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-)
-
-const (
-	cmdSepStr = string(CmdSep)
-
-	CmdExtern    = '^'
-	CmdAppend    = '+'
-	CmdOverwrite = '='
-	CmdDelete    = '!'
-	CmdMake      = '$'
-	CmdMaybe     = '?'
-	CmdSep       = '.'
-	CmdEscape    = '\\'
-	CmdAt        = '@'
-	CmdSelf      = '#'
-	CmdMove      = '>'
-
-	CmdIndeterministic = '~'
+	"github.com/hkoosha/giraffe/internal/gquery/gqcmd"
+	"github.com/hkoosha/giraffe/internal/gquery/gqflag"
 )
 
 // DebugImpl to enable debug, it is needed to switch this alias to QueryDebug.
@@ -33,10 +17,10 @@ type Query struct {
 	Debug DebugImpl
 	Path  *[]Query
 	ref   string
-	flags QFlag
+	flags gqflag.QFlag
 }
 
-func (q Query) Flags() QFlag {
+func (q Query) Flags() gqflag.QFlag {
 	return q.flags
 }
 
@@ -86,53 +70,24 @@ func (q Query) String() string {
 	return q.string0()
 }
 
-// Segment0 TODO go through mem cache.
-func (q Query) Segment0() (Query, bool) {
-	mover := q.Root()
-	for !mover.flags.IsLeaf() && !mover.flags.IsMover() {
-		mover = mover.Next()
-	}
-
-	if !mover.flags.IsMover() {
-		return ErrQ, false
-	}
-
-	return mover.UpTo(true), true
-}
-
-// Segment1 TODO go through mem cache.
-func (q Query) Segment1() (Query, bool) {
-	mover := q.Root()
-	for !mover.flags.IsLeaf() && !mover.flags.IsMover() {
-		mover = mover.Next()
-	}
-
-	if !mover.flags.IsMover() {
-		return ErrQ, false
-	}
-
-	if mover.flags.IsMover() {
-		return mover.Originating(false), true
-	}
-
-	return ErrQ, false
-}
-
 //nolint:nonamedreturns
 func (q Query) Segments() (
 	s0 Query,
 	s1 Query,
 	ok bool,
 ) {
-	s0, ok = q.Segment0()
-	if !ok {
+	// TODO go through mem cache.
+
+	mover := q.Root()
+	for !mover.flags.IsLeaf() && !mover.flags.IsMover() {
+		mover = mover.Next()
+	}
+	if !mover.flags.IsMover() {
 		return ErrQ, ErrQ, false
 	}
 
-	s1, ok = q.Segment1()
-	if !ok {
-		return ErrQ, ErrQ, false
-	}
+	s0 = mover.UpTo(true)
+	s1 = mover.Originating(false)
 
 	return s0, s1, true
 }
@@ -175,19 +130,19 @@ func (q Query) Originating(withSelf bool) Query {
 // =====================================.
 
 func (q Query) WithWrite() Query {
-	return q.reconstructedAs(q.flags | QModWrite)
+	return q.reconstructedAs(q.flags | gqflag.QModWrite)
 }
 
 func (q Query) WithMake() Query {
-	return q.reconstructedAs(q.flags | QModeMake)
+	return q.reconstructedAs(q.flags | gqflag.QModeMake)
 }
 
 func (q Query) WithOverwrite() Query {
-	return q.reconstructedAs(q.flags | QModOverwrit)
+	return q.reconstructedAs(q.flags | gqflag.QModOverwrit)
 }
 
 func (q Query) WithoutOverwrite() Query {
-	return q.reconstructedAs(q.flags & ^QModOverwrit)
+	return q.reconstructedAs(q.flags & ^gqflag.QModOverwrit)
 }
 
 // Plus panics if the resulting query is too deep, set by MaxQueryDepth.
@@ -201,10 +156,10 @@ func (q Query) PlusS(other string) Query {
 
 	q.bef(&sb)
 
-	sb.WriteString(q.flags.reconstructPreMod())
+	sb.WriteString(q.flags.ReconstructPreMod())
 	sb.WriteString(q.ref)
-	sb.WriteString(q.flags.reconstructPostMod())
-	sb.WriteByte(CmdSep)
+	sb.WriteString(q.flags.ReconstructPostMod())
+	sb.WriteByte(gqcmd.Sep)
 	sb.WriteString(other)
 
 	return M(parse(sb.String())).at(q.flags.Seq())
