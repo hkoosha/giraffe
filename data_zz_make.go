@@ -146,7 +146,7 @@ func _ofExpandable(
 
 	it := r.MapRange()
 	for it.Next() {
-		var q queryimpl.Query
+		var q queryimpl.DialecticalQuery
 		if qCast, ok := it.Key().Interface().(Query); ok {
 			q = qCast.impl()
 		} else if qCast, ok := it.Key().Interface().(Query); ok {
@@ -300,7 +300,7 @@ func _ofMap(
 			o[key.String()] = d
 			d.val = Ref(any(o))
 		} else if key.CanInterface() && key.CanConvert(tQuery) {
-			var q queryimpl.Query
+			var q queryimpl.DialecticalQuery
 			if qCast, ok := key.Interface().(Query); ok {
 				q = qCast.impl()
 			} else if qCast, ok := key.Interface().(Query); ok {

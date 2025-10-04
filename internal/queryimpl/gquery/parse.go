@@ -8,7 +8,6 @@ import (
 
 	"github.com/hkoosha/giraffe/dialects"
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/inmem"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
 	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/qflag"
@@ -286,7 +285,8 @@ func (p *gParser) doParse() error {
 	p.i++
 	p.i += len(dialects.Giraffe.String())
 
-	for p.i, p.c = range p.spec {
+	for p.i = range p.spec {
+		p.c = p.spec[p.i]
 		switch consumed, err := p.preParse(); {
 		case err != nil:
 			return err
@@ -436,39 +436,8 @@ func newGQueryParser(spec string) *gParser {
 	return &p
 }
 
-func parse(
-	spec string,
-) (Query, error) {
-	spec, err := dialects.Normalized(spec)
-	if err != nil {
-		return invalid, err
-	}
-
-	var q Query
-	switch M(dialects.DialectOf(spec)) {
-	case dialects.Giraffe:
-		q, err = newGQueryParser(spec).parse()
-
-	case dialects.Http:
-	}
-
-	if err != nil {
-		return invalid, err
-	}
-
-	return q, nil
-}
-
 func Parse(
 	spec string,
 ) (Query, error) {
-	cached, ok := inmem.Get[Query](spec)
-
-	if !ok {
-		query, err := parse(spec)
-		inmem.Set(spec, query, err)
-		return query, err
-	}
-
-	return cached.Unpack()
+	return newGQueryParser(spec).parse()
 }

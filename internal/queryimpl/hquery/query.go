@@ -1,4 +1,4 @@
-package gquery
+package hquery
 
 import (
 	"strings"

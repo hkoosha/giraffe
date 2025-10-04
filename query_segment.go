@@ -8,7 +8,7 @@ import (
 // Segment NEVER INSTANTIATE DIRECTLY. NEVER CAST TO. NEVER CAST FROM.
 type Segment string
 
-func (q Segment) impl() queryimpl.Query {
+func (q Segment) impl() queryimpl.DialecticalQuery {
 	return M(queryimpl.Parse(string(q)))
 }
 

@@ -1,4 +1,4 @@
-package gquery
+package hquery
 
 import (
 	"regexp"
@@ -286,7 +286,8 @@ func (p *gParser) doParse() error {
 	p.i++
 	p.i += len(dialects.Giraffe.String())
 
-	for p.i, p.c = range p.spec {
+	for p.i = range p.spec {
+		p.c = p.spec[p.i]
 		switch consumed, err := p.preParse(); {
 		case err != nil:
 			return err

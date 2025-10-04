@@ -6,8 +6,8 @@ import (
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/g"
-	"github.com/hkoosha/giraffe/internal/gquery"
-	"github.com/hkoosha/giraffe/internal/gquery/gqflag"
+	"github.com/hkoosha/giraffe/internal/queryerrors"
+	"github.com/hkoosha/giraffe/qflag"
 )
 
 //goland:noinspection GoUnusedConst
@@ -47,14 +47,12 @@ const (
 
 //goland:noinspection GoUnusedConst
 const (
-	ErrCodeQueryParseEmptyQuery         = queryimpl.ErrCodeQueryParseEmptyQuery
-	ErrCodeQueryParseDuplicatedCmd      = queryimpl.ErrCodeQueryParseDuplicatedCmd
-	ErrCodeQueryParseConflictingCmd     = queryimpl.ErrCodeQueryParseConflictingCmd
-	ErrCodeQueryParseUnexpectedToken    = queryimpl.ErrCodeQueryParseUnexpectedToken
-	ErrCodeQueryParseUnexpectedSegments = queryimpl.ErrCodeQueryParseUnexpectedSegments
-	ErrCodeQueryParseNestingTooDeep     = queryimpl.ErrCodeQueryParseNestingTooDeep
-	ErrCodeQueryParseNotWritable        = queryimpl.ErrCodeQueryParseNotWritable
-	ErrCodeQueryParseUnclosedExtern     = queryimpl.ErrCodeQueryParseUnclosedExtern
+	ErrCodeQueryParseEmptyQuery      = queryerrors.ErrCodeEmpty
+	ErrCodeQueryParseDuplicatedCmd   = queryerrors.ErrCodeDuplicatedCmd
+	ErrCodeQueryParseConflictingCmd  = queryerrors.ErrCodeConflictingCmd
+	ErrCodeQueryParseUnexpectedToken = queryerrors.ErrCodeUnexpectedToken
+	ErrCodeQueryParseNestingTooDeep  = queryerrors.ErrCodeNestingTooDeep
+	ErrCodeQueryParseNotWritable     = queryerrors.ErrCodeNotWritable
 )
 
 //nolint:reassign
@@ -145,7 +143,7 @@ func newTypeCastError(
 
 func newQueryTypeCastError(
 	have Type,
-	need gqflag.QFlag,
+	need qflag.QFlag,
 	extra ...string,
 ) error {
 	needTyp := Arr

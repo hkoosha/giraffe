@@ -225,8 +225,8 @@ func (q Query) WithoutOverwrite() Query {
 }
 
 // Plus panics if the resulting query is too deep, set by MaxDepth.
-func (q Query) Plus(other Query) Query {
-	return q.PlusS(other.String())
+func (q Query) Plus(other string) (Query, error) {
+	return q.PlusS(other), nil
 }
 
 // PlusS panics if the resulting query is too deep, set by MaxDepth.

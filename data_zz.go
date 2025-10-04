@@ -246,7 +246,7 @@ func (d Datum) nest(
 		if err != nil {
 			return errD, err
 		}
-		qK = q.Plus(qK)
+		qK = Query(q.String() + qcmd.Sep.String() + qK.String())
 
 		nested, err = nested.Set(qK, v)
 		if err != nil {
@@ -258,7 +258,7 @@ func (d Datum) nest(
 }
 
 func (d Datum) set(
-	q queryimpl.Query,
+	q queryimpl.DialecticalQuery,
 	value any,
 ) (Datum, error) {
 	if !d.typ.IsArr() && !d.typ.IsObj() {
@@ -274,7 +274,7 @@ func (d Datum) set(
 }
 
 func (d Datum) has(
-	q queryimpl.Query,
+	q queryimpl.DialecticalQuery,
 ) bool {
 	switch {
 	case q.Flags().IsObj() && d.typ.IsObj():
@@ -368,7 +368,7 @@ func newMergeClashingKeysError(
 }
 
 func newDataWriteUnexpectedValueError(
-	q queryimpl.Query,
+	q queryimpl.DialecticalQuery,
 	v any,
 ) error {
 	return newDataWriteError(
