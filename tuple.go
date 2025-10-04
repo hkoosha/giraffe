@@ -5,7 +5,7 @@ import (
 )
 
 func TupleOf[V Safe](
-	q Query,
+	q GQuery,
 	v V,
 ) Tuple {
 	return Tuple{
@@ -15,7 +15,7 @@ func TupleOf[V Safe](
 }
 
 type Tuple struct {
-	Query Query
+	Query GQuery
 	Dat   Datum
 }
 
@@ -27,11 +27,11 @@ func (t *Tuple) Implode() Datum {
 	return Of1(t.Query, t.Dat)
 }
 
-func (t *Tuple) Unpack() (Query, Datum) {
+func (t *Tuple) Unpack() (GQuery, Datum) {
 	return t.Query, t.Dat
 }
 
-func GetQuery(t Tuple) Query {
+func GetQuery(t Tuple) GQuery {
 	return t.Query
 }
 

@@ -6,9 +6,6 @@ import (
 	"github.com/hkoosha/giraffe/qcmd"
 )
 
-// TODO: no 'overwrite' and 'maybe' at the same time.
-// TODO: better conflicting cmd checks.
-
 var commands = qcmd.All()
 
 func Escaped(

@@ -4,12 +4,12 @@ import (
 	"strings"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/queryimpl"
+	"github.com/hkoosha/giraffe/internal/queryimpl/dialectical"
 )
 
 func modify(
 	d *Datum,
-	q queryimpl.DialecticalQuery,
+	q dialectical.DialecticalQuery,
 	value any,
 ) error {
 	switch {
@@ -46,7 +46,7 @@ func modify(
 
 func move(
 	d *Datum,
-	q queryimpl.DialecticalQuery,
+	q dialectical.DialecticalQuery,
 ) error {
 	seg0, seg1, ok := q.Segments()
 	if !ok {
@@ -74,7 +74,7 @@ func move(
 
 func del(
 	d *Datum,
-	q queryimpl.DialecticalQuery,
+	q dialectical.DialecticalQuery,
 ) error {
 	qf := q.Flags()
 	dt := d.typ
@@ -97,7 +97,7 @@ func del(
 
 	default:
 		obj := d.obj()
-		delete(obj, q.Named())
+		delete(obj, q.Attr())
 		a := any(obj)
 		d.val = &a
 	}
@@ -109,7 +109,7 @@ func del(
 
 func set(
 	d *Datum,
-	q queryimpl.DialecticalQuery,
+	q dialectical.DialecticalQuery,
 	value Datum,
 ) error {
 	switch {
@@ -123,7 +123,7 @@ func set(
 
 func setObj(
 	d *Datum,
-	q queryimpl.DialecticalQuery,
+	q dialectical.DialecticalQuery,
 	item Datum,
 ) error {
 	qf := q.Flags()
@@ -147,24 +147,24 @@ func setObj(
 
 	switch {
 	case qf.IsLeaf() && dt.IsObj():
-		d.obj()[q.Named()] = item
+		d.obj()[q.Attr()] = item
 
 	case qf.IsLeaf() && dt.isZero():
 		*d = _newDatum(
 			Obj, map[string]Datum{
-				q.Named(): item,
+				q.Attr(): item,
 			},
 		)
 
 	case !qf.IsLeaf() && dt.IsObj():
 		dd := d.obj()
-		ddI := dd[q.Named()]
+		ddI := dd[q.Attr()]
 
 		if err := set(&ddI, q.Next(), item); err != nil {
 			return err
 		}
 
-		dd[q.Named()] = ddI
+		dd[q.Attr()] = ddI
 
 	case !qf.IsLeaf() && dt.isZero():
 		dd := _newDatum(Type(0), nil)
@@ -174,7 +174,7 @@ func setObj(
 
 		*d = _newDatum(
 			Obj, map[string]Datum{
-				q.Named(): dd,
+				q.Attr(): dd,
 			},
 		)
 
@@ -187,7 +187,7 @@ func setObj(
 
 func arrSet(
 	d *Datum,
-	q queryimpl.DialecticalQuery,
+	q dialectical.DialecticalQuery,
 	item Datum,
 ) error {
 	qf := q.Flags()
@@ -240,7 +240,7 @@ func arrSet(
 // ==============================================================================.
 
 func newDataWriteOverwriteErr(
-	query queryimpl.DialecticalQuery,
+	query dialectical.DialecticalQuery,
 ) error {
 	return newDataWriteError(
 		query,
@@ -250,7 +250,7 @@ func newDataWriteOverwriteErr(
 }
 
 func newDataWriteMissingKeyError(
-	query queryimpl.DialecticalQuery,
+	query dialectical.DialecticalQuery,
 ) error {
 	return newDataWriteError(
 		query,
@@ -260,7 +260,7 @@ func newDataWriteMissingKeyError(
 }
 
 func newDataWriteMoveUnsegmentedQuery(
-	query queryimpl.DialecticalQuery,
+	query dialectical.DialecticalQuery,
 ) error {
 	return newDataWriteError(
 		query,
@@ -270,7 +270,7 @@ func newDataWriteMoveUnsegmentedQuery(
 }
 
 func newDataWriteError(
-	query queryimpl.DialecticalQuery,
+	query dialectical.DialecticalQuery,
 	code uint64,
 	msg string,
 	extra ...string,

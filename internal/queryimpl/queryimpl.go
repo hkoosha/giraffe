@@ -4,68 +4,43 @@ import (
 	"fmt"
 
 	"github.com/hkoosha/giraffe/dialects"
-	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/inmem"
+	"github.com/hkoosha/giraffe/internal/queryimpl/dialectical"
 	"github.com/hkoosha/giraffe/internal/queryimpl/gquery"
-	"github.com/hkoosha/giraffe/internal/queryimpl/hquery"
 	"github.com/hkoosha/giraffe/qflag"
 )
 
-var invalid = DialecticalQuery{}
-
-type QueryImpl interface {
-	fmt.Stringer
-
-	Flags() qflag.QFlag
-
-	Plus(other string) (QueryImpl, error)
-}
-
-type DialecticalQuery struct {
-	Dialect dialects.Dialect
-	QueryImpl
-	impl QueryImpl
-}
-
-func (q DialecticalQuery) String() string {
-	return q.impl.String()
-}
-
-func (q DialecticalQuery) Flags() qflag.QFlag {
-	return q.impl.Flags()
-}
+// MaxDepth must fit in the gqflag.QFlag in the sequence part, i.e., 8 bits.
+const MaxDepth = 255
 
 func parse(
 	spec string,
-) (DialecticalQuery, error) {
-	spec, err := dialects.Normalized(spec)
+) (dialectical.DialecticalQuery, error) {
+	dq := dialectical.New()
+
+	dialect, spec, err := dialects.Normalized(spec)
 	if err != nil {
-		return invalid, err
+		return dq, err
 	}
 
-	q := DialecticalQuery{
-		Dialect: M(dialects.DialectOf(spec)),
-	}
-
-	switch q.Dialect {
-	case dialects.Giraffe:
-		q.impl, err = gquery.Parse(spec)
-
-	case dialects.Http:
-		q.impl, err = hquery.Parse(spec)
+	var impl QueryImpl
+	switch dialect {
+	case dialects.Giraffe1v1:
+		impl, err = gquery.Parse(spec)
 	}
 
 	if err != nil {
-		q = invalid
+		return dq, err
 	}
 
-	return q, err
+	dq = dq.WithDialect(dialect).WithImpl(impl)
+	return dq, nil
 }
 
 func Parse(
 	spec string,
-) (DialecticalQuery, error) {
-	cached, ok := inmem.Get[DialecticalQuery](spec)
+) (dialectical.DialecticalQuery, error) {
+	cached, ok := inmem.Get[dialectical.DialecticalQuery](spec)
 
 	if !ok {
 		query, err := parse(spec)
@@ -74,4 +49,24 @@ func Parse(
 	}
 
 	return cached.Unpack()
+}
+
+type QueryImpl interface {
+	fmt.Stringer
+
+	Flags() qflag.QFlag
+
+	Plus(query string) (QueryImpl, error)
+
+	Attr() string
+	Index() int
+
+	Root() QueryImpl
+	Leaf() QueryImpl
+	Prev() QueryImpl
+	Next() QueryImpl
+
+	WithoutOverwrite() QueryImpl
+	WithOverwrite() QueryImpl
+	WithMake() QueryImpl
 }

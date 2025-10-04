@@ -9,7 +9,7 @@ import (
 	"github.com/hkoosha/giraffe/internal"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/gdatum"
-	"github.com/hkoosha/giraffe/internal/queryimpl"
+	"github.com/hkoosha/giraffe/internal/queryimpl/dialectical"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
@@ -22,7 +22,7 @@ var (
 
 	_datumPtrType = reflect.TypeOf((*Datum)(nil))
 	_prohibited   = map[reflect.Type]z.NA{
-		reflect.TypeOf((*Query)(nil)).Elem():         z.None,
+		reflect.TypeOf((*GQuery)(nil)).Elem():        z.None,
 		reflect.TypeOf((*Type)(nil)).Elem():          z.None,
 		reflect.TypeOf((*Tuple)(nil)).Elem():         z.None,
 		reflect.TypeOf((*reflect.Value)(nil)).Elem(): z.None,
@@ -33,7 +33,7 @@ var (
 	jsonNumberType = reflect.TypeOf((*json.Number)(nil)).Elem()
 	strType        = reflect.TypeOf((*string)(nil)).Elem()
 
-	tQuery = reflect.TypeOf((*Query)(nil)).Elem()
+	tQuery = reflect.TypeOf((*GQuery)(nil)).Elem()
 )
 
 func ofJsonable(
@@ -146,10 +146,10 @@ func _ofExpandable(
 
 	it := r.MapRange()
 	for it.Next() {
-		var q queryimpl.DialecticalQuery
-		if qCast, ok := it.Key().Interface().(Query); ok {
+		var q dialectical.DialecticalQuery
+		if qCast, ok := it.Key().Interface().(GQuery); ok {
 			q = qCast.impl()
-		} else if qCast, ok := it.Key().Interface().(Query); ok {
+		} else if qCast, ok := it.Key().Interface().(GQuery); ok {
 			q = qCast.impl()
 		} else {
 			panic(EF(
@@ -300,10 +300,10 @@ func _ofMap(
 			o[key.String()] = d
 			d.val = Ref(any(o))
 		} else if key.CanInterface() && key.CanConvert(tQuery) {
-			var q queryimpl.DialecticalQuery
-			if qCast, ok := key.Interface().(Query); ok {
+			var q dialectical.DialecticalQuery
+			if qCast, ok := key.Interface().(GQuery); ok {
 				q = qCast.impl()
-			} else if qCast, ok := key.Interface().(Query); ok {
+			} else if qCast, ok := key.Interface().(GQuery); ok {
 				q = qCast.impl()
 			} else {
 				panic(EF(
@@ -470,7 +470,7 @@ func newDataMakeUnmarshalError(
 }
 
 func newDataMakeDuplicatedKeyError(
-	q Query,
+	q GQuery,
 ) error {
 	return E(newDataMakeError(
 		ErrCodeDataMakeDuplicateKey,

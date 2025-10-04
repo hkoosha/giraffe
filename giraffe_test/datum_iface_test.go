@@ -26,7 +26,7 @@ var (
 )
 
 type (
-	Query = giraffe.Query
+	Query = giraffe.GQuery
 	Datum = giraffe.Datum
 	Type  = giraffe.Type
 )

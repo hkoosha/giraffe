@@ -23,7 +23,7 @@ func TestParse(t *testing.T) {
 		actual := path[0]
 
 		assert.Equal(t, "k0", actual.String())
-		assert.Equal(t, "k0", actual.Named())
+		assert.Equal(t, "k0", actual.Attr())
 		assert.Equal(t, 0, actual.Flags().Seq())
 		assert.Equal(t, actual, actual.Root())
 		assert.Equal(t, actual, actual.Leaf())
@@ -49,7 +49,7 @@ func TestParse(t *testing.T) {
 		k1 := path[1]
 
 		assert.Equal(t, "k0.k1", k0.String())
-		assert.Equal(t, "k0", k0.Named())
+		assert.Equal(t, "k0", k0.Attr())
 		assert.Equal(t, 0, k0.Flags().Seq())
 		assert.Equal(t, k0, k0.Root())
 		assert.Equal(t, k1, k0.Leaf())
@@ -61,7 +61,7 @@ func TestParse(t *testing.T) {
 		assert.Equal(t, k1, k0.Next())
 
 		assert.Equal(t, "k0.@k1", k1.String())
-		assert.Equal(t, "k1", k1.Named())
+		assert.Equal(t, "k1", k1.Attr())
 		assert.Equal(t, 1, k1.Flags().Seq())
 		assert.Equal(t, k0, k1.Root())
 		assert.Equal(t, k1, k1.Leaf())
@@ -83,10 +83,10 @@ func TestNext(t *testing.T) {
 		q, err := gquery.Parse(spec)
 		require.NoError(t, err)
 
-		assert.Equal(t, "dynamic", q.Named())
-		assert.Equal(t, "static", q.Next().Named())
-		assert.Equal(t, "thingy", q.Next().Next().Named())
-		assert.Equal(t, "foo", q.Next().Next().Next().Named())
+		assert.Equal(t, "dynamic", q.Attr())
+		assert.Equal(t, "static", q.Next().Attr())
+		assert.Equal(t, "thingy", q.Next().Next().Attr())
+		assert.Equal(t, "foo", q.Next().Next().Next().Attr())
 
 		require.Panics(t, func() { q.Next().Next().Next().Next() })
 	})

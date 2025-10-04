@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/queryimpl"
+	"github.com/hkoosha/giraffe/internal/queryimpl/dialectical"
 	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
@@ -229,7 +229,7 @@ func (d Datum) merge(
 }
 
 func (d Datum) nest(
-	q Query,
+	q GQuery,
 ) (Datum, error) {
 	if q.impl().Flags().IsIndeterministic() {
 		panic("TODO: fix non deterministic flag for nest")
@@ -242,11 +242,11 @@ func (d Datum) nest(
 
 	nested := OfEmpty()
 	for k, v := range obj {
-		qK, err := Parse(k)
+		qK, err := GQParse(k)
 		if err != nil {
 			return errD, err
 		}
-		qK = Query(q.String() + qcmd.Sep.String() + qK.String())
+		qK = GQuery(q.String() + qcmd.Sep.String() + qK.String())
 
 		nested, err = nested.Set(qK, v)
 		if err != nil {
@@ -258,7 +258,7 @@ func (d Datum) nest(
 }
 
 func (d Datum) set(
-	q queryimpl.DialecticalQuery,
+	q dialectical.DialecticalQuery,
 	value any,
 ) (Datum, error) {
 	if !d.typ.IsArr() && !d.typ.IsObj() {
@@ -274,11 +274,11 @@ func (d Datum) set(
 }
 
 func (d Datum) has(
-	q queryimpl.DialecticalQuery,
+	q dialectical.DialecticalQuery,
 ) bool {
 	switch {
 	case q.Flags().IsObj() && d.typ.IsObj():
-		v, ok := d.obj()[q.Named()]
+		v, ok := d.obj()[q.Attr()]
 		if !ok {
 			return false
 		}
@@ -359,16 +359,18 @@ func newMergeIncompatibleTypesError(
 func newMergeClashingKeysError(
 	key []string,
 ) error {
-	q := z.Applied(key, Escaped)
+	key = z.Applied(key, func(it string) string {
+		return strings.ReplaceAll(it, ".", `\.`)
+	})
 
 	return newDataMakeError(
 		ErrCodeDataMergeClashingKeys,
-		"clashing keys: ["+strings.Join(q, qcmd.Sep.String())+"]",
+		"clashing keys: ["+strings.Join(key, qcmd.Sep.String())+"]",
 	)
 }
 
 func newDataWriteUnexpectedValueError(
-	q queryimpl.DialecticalQuery,
+	q dialectical.DialecticalQuery,
 	v any,
 ) error {
 	return newDataWriteError(

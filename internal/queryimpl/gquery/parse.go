@@ -9,16 +9,12 @@ import (
 	"github.com/hkoosha/giraffe/dialects"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
+	"github.com/hkoosha/giraffe/internal/queryimpl"
 	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/qflag"
 )
 
-// MaxDepth must fit in the gqflag.QFlag in the sequence part, i.e., 8 bits.
-const MaxDepth = 255
-
 var uintRegex = regexp.MustCompile(`^\d+$`)
-
-var invalid = newQuery(nil, "", qflag.QFlag(0))
 
 type state struct {
 	ref     strings.Builder
@@ -28,7 +24,7 @@ type state struct {
 	escaped bool
 }
 
-type gParser struct {
+type parser struct {
 	spec    string
 	path    []Query
 	state   state
@@ -39,17 +35,17 @@ type gParser struct {
 	c byte
 }
 
-func (p *gParser) reset() {
+func (p *parser) reset() {
 	//nolint:exhaustruct
 	p.state = state{}
 	p.state.ref.Grow(64)
 }
 
-func (p *gParser) last() *Query {
+func (p *parser) last() *Query {
 	return &p.path[len(p.path)-1]
 }
 
-func (p *gParser) onEscape() error {
+func (p *parser) onEscape() error {
 	switch { //nolint:gocritic
 	case p.state.isFin:
 		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
@@ -61,7 +57,7 @@ func (p *gParser) onEscape() error {
 	return nil
 }
 
-func (p *gParser) onEscaped() error {
+func (p *parser) onEscaped() error {
 	if p.state.isFin || !p.state.noCmd {
 		panic(EF("unreachable: invalid escape in query"))
 	}
@@ -72,7 +68,7 @@ func (p *gParser) onEscaped() error {
 	return nil
 }
 
-func (p *gParser) onSelf() error {
+func (p *parser) onSelf() error {
 	switch { //nolint:gocritic
 	case p.state.noCmd:
 		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
@@ -85,7 +81,7 @@ func (p *gParser) onSelf() error {
 	return nil
 }
 
-func (p *gParser) onAppend() error {
+func (p *parser) onAppend() error {
 	switch {
 	case p.state.noCmd:
 		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
@@ -105,7 +101,7 @@ func (p *gParser) onAppend() error {
 	return nil
 }
 
-func (p *gParser) onDelete() error {
+func (p *parser) onDelete() error {
 	switch {
 	case p.state.noCmd:
 		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
@@ -126,7 +122,7 @@ func (p *gParser) onDelete() error {
 	return nil
 }
 
-func (p *gParser) onMake() error {
+func (p *parser) onMake() error {
 	switch {
 	case p.state.noCmd:
 		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
@@ -146,7 +142,7 @@ func (p *gParser) onMake() error {
 	return nil
 }
 
-func (p *gParser) onMaybe() error {
+func (p *parser) onMaybe() error {
 	switch {
 	case p.state.noCmd:
 		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
@@ -165,7 +161,7 @@ func (p *gParser) onMaybe() error {
 	return nil
 }
 
-func (p *gParser) onOverwrite() error {
+func (p *parser) onOverwrite() error {
 	switch {
 	case p.state.noCmd:
 		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
@@ -182,7 +178,7 @@ func (p *gParser) onOverwrite() error {
 	return nil
 }
 
-func (p *gParser) onSep() error {
+func (p *parser) onSep() error {
 	str := p.state.ref.String()
 
 	switch {
@@ -193,7 +189,7 @@ func (p *gParser) onSep() error {
 		return queryerrors.EmptyError(p.i, p.spec)
 	}
 
-	if p.global.Seq() >= MaxDepth {
+	if p.global.Seq() >= queryimpl.MaxDepth {
 		return queryerrors.NestingTooDeepError(p.i, p.spec)
 	}
 
@@ -242,7 +238,7 @@ func (p *gParser) onSep() error {
 	return nil
 }
 
-func (p *gParser) onMove() error {
+func (p *parser) onMove() error {
 	p.segment++
 
 	if p.segment > 2 {
@@ -260,13 +256,13 @@ func (p *gParser) onMove() error {
 	return nil
 }
 
-func (p *gParser) onRune() error {
+func (p *parser) onRune() error {
 	p.state.ref.WriteByte(p.c)
 
 	return nil
 }
 
-func (p *gParser) preParse() (bool, error) {
+func (p *parser) preParse() (bool, error) {
 	switch {
 	case p.state.escaped:
 		if err := p.onEscaped(); err != nil {
@@ -280,10 +276,10 @@ func (p *gParser) preParse() (bool, error) {
 	return true, nil
 }
 
-func (p *gParser) doParse() error {
+func (p *parser) doParse() error {
 	// for dialect
 	p.i++
-	p.i += len(dialects.Giraffe.String())
+	p.i += len(dialects.Giraffe1v1.String())
 
 	for p.i = range p.spec {
 		p.c = p.spec[p.i]
@@ -349,7 +345,7 @@ func (p *gParser) doParse() error {
 	return nil
 }
 
-func (p *gParser) parsePostValidate() error {
+func (p *parser) parsePostValidate() error {
 	switch {
 	case len(p.path) == 0:
 		return queryerrors.EmptyError(p.i, p.spec)
@@ -362,7 +358,7 @@ func (p *gParser) parsePostValidate() error {
 	}
 }
 
-func (p *gParser) postProcess() {
+func (p *parser) postProcess() {
 	p.path = slices.Clip(p.path)
 
 	if len(p.path) == 1 {
@@ -371,7 +367,7 @@ func (p *gParser) postProcess() {
 
 	isMake := false
 	for i := range p.path {
-		p.path[i].Path = &p.path
+		p.path[i].path = &p.path
 
 		if isMake {
 			p.path[i].flags |= qflag.QModeMake
@@ -396,16 +392,19 @@ func (p *gParser) postProcess() {
 	// debugPopulateQueries(p.path)
 }
 
-func (p *gParser) parse() (Query, error) {
+func (p *parser) parse() (Query, error) {
 	if strings.HasPrefix(p.spec, string(qcmd.Sep)) {
+		invalid := newQuery(nil, "", qflag.QFlag(0))
 		return invalid, queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 	}
 
 	if err := p.doParse(); err != nil {
+		invalid := newQuery(nil, "", qflag.QFlag(0))
 		return invalid, err
 	}
 
 	if err := p.parsePostValidate(); err != nil {
+		invalid := newQuery(nil, "", qflag.QFlag(0))
 		return invalid, err
 	}
 
@@ -414,7 +413,7 @@ func (p *gParser) parse() (Query, error) {
 	return p.path[0], nil
 }
 
-func newGQueryParser(spec string) *gParser {
+func newGQueryParser(spec string) *parser {
 	if !strings.HasSuffix(spec, qcmd.Sep.String()) {
 		spec += qcmd.At.String()
 	}
@@ -422,7 +421,7 @@ func newGQueryParser(spec string) *gParser {
 	//nolint:exhaustruct
 	zeroState := state{}
 
-	p := gParser{
+	p := parser{
 		spec:    spec,
 		state:   zeroState,
 		global:  qflag.QFlag(0),
@@ -436,8 +435,14 @@ func newGQueryParser(spec string) *gParser {
 	return &p
 }
 
-func Parse(
+func parse(
 	spec string,
 ) (Query, error) {
 	return newGQueryParser(spec).parse()
+}
+
+func Parse(
+	spec string,
+) (queryimpl.QueryImpl, error) {
+	return parse(spec)
 }

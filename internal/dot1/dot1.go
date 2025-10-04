@@ -24,12 +24,12 @@ func OfN(
 
 func Q(
 	q string,
-) giraffe.Query {
+) giraffe.GQuery {
 	return giraffe.Q(q)
 }
 
 func P[V giraffe.Safe](
-	q giraffe.Query,
+	q giraffe.GQuery,
 	v V,
 ) giraffe.Tuple {
 	return giraffe.TupleOf(q, v)

@@ -6,18 +6,18 @@ import (
 )
 
 type FnMissingKeysErrorState struct {
-	missing []giraffe.Query
+	missing []giraffe.GQuery
 }
 
 func (e *FnMissingKeysErrorState) String(_ *HippoError) string {
-	return "missing keys: " + g.JoinedFn(e.missing, func(it giraffe.Query) string {
+	return "missing keys: " + g.JoinedFn(e.missing, func(it giraffe.GQuery) string {
 		return it.String()
 	})
 }
 
 // NewFnMissingKeysError Private function, do not call outside hippo package.
 func NewFnMissingKeysError(
-	missing []giraffe.Query,
+	missing []giraffe.GQuery,
 ) error {
 	return NewHippoError(
 		ErrCodeMissingKeys,

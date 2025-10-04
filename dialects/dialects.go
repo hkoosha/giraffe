@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	Giraffe Dialect = "giraffe"
-	Http    Dialect = "http"
+	Giraffe1v1 Dialect = "giraffe1v1"
+	Http1v1    Dialect = "http1v1"
+
 	Unknown Dialect = ""
 )
 
@@ -28,7 +29,7 @@ func (d Dialect) matches(
 ) {
 	switch {
 	case len(spec) < 1 || spec[0] != qcmd.Dialect.Byte():
-		matched = d == Giraffe
+		matched = d == Giraffe1v1
 		explicit = false
 
 	default:
@@ -43,11 +44,11 @@ func (d Dialect) matches(
 func dialectOf(
 	spec string,
 ) (_ Dialect, explicit bool, _ error) {
-	if ex, ok := Giraffe.matches(spec); ok {
-		return Giraffe, ex, nil
+	if ex, ok := Giraffe1v1.matches(spec); ok {
+		return Giraffe1v1, ex, nil
 	}
-	if ex, ok := Http.matches(spec); ok {
-		return Http, ex, nil
+	if ex, ok := Http1v1.matches(spec); ok {
+		return Http1v1, ex, nil
 	}
 
 	return Unknown, false, errUnknown
@@ -62,15 +63,15 @@ func DialectOf(
 
 func Normalized(
 	spec string,
-) (string, error) {
+) (Dialect, string, error) {
 	d, explicit, err := dialectOf(spec)
 	if err != nil {
-		return "", err
+		return Unknown, "", err
 	}
 
 	if !explicit {
 		spec = qcmd.Dialect.String() + d.String() + qcmd.Sep.String() + spec
 	}
 
-	return spec, nil
+	return d, spec, nil
 }

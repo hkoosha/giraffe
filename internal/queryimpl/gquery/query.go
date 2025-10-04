@@ -5,6 +5,7 @@ import (
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
+	"github.com/hkoosha/giraffe/internal/queryimpl"
 	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/qflag"
 )
@@ -17,14 +18,14 @@ func newQuery(
 	return Query{
 		// Debug: newDebug(),
 
-		Path:  path,
+		path:  path,
 		ref:   ref,
 		flags: flags,
 	}
 }
 
 type Query struct {
-	Path  *[]Query
+	path  *[]Query
 	ref   string
 	flags qflag.QFlag
 }
@@ -33,7 +34,7 @@ func (q Query) Flags() qflag.QFlag {
 	return q.flags
 }
 
-func (q Query) Named() string {
+func (q Query) Attr() string {
 	if !q.flags.IsObj() {
 		return ""
 	}
@@ -49,17 +50,17 @@ func (q Query) Index() int {
 	return q.flags.Val()
 }
 
-func (q Query) Root() Query {
-	return (*q.Path)[0]
+func (q Query) Root() queryimpl.QueryImpl {
+	return (*q.path)[0]
 }
 
-func (q Query) Leaf() Query {
-	return (*q.Path)[len(*q.Path)-1]
+func (q Query) Leaf() queryimpl.QueryImpl {
+	return (*q.path)[len(*q.path)-1]
 }
 
-func (q Query) Prev() Query {
+func (q Query) Prev() queryimpl.QueryImpl {
 	if seq := q.flags.Seq() - 1; seq >= 0 {
-		prev := (*q.Path)[seq]
+		prev := (*q.path)[seq]
 
 		return prev
 	}
@@ -67,12 +68,17 @@ func (q Query) Prev() Query {
 	panic("unreachable: no prev")
 }
 
-func (q Query) Next() Query {
-	if seq := q.flags.Seq() + 1; seq < len(*q.Path) {
-		return (*q.Path)[seq]
+func (q Query) Next() queryimpl.QueryImpl {
+	if seq := q.flags.Seq() + 1; seq < len(*q.path) {
+		return (*q.path)[seq]
 	}
 
 	panic("unreachable: no next")
+}
+
+// Plus panics if the resulting query is too deep, set by iface.MaxDepth.
+func (q Query) Plus(other string) (queryimpl.QueryImpl, error) {
+	return q.PlusS(other), nil
 }
 
 func (q Query) String() string {
@@ -82,7 +88,7 @@ func (q Query) String() string {
 func (q Query) string0() string {
 	sb := strings.Builder{}
 
-	for j, p := range *q.Path {
+	for j, p := range *q.path {
 		if j > 0 {
 			sb.WriteByte(qcmd.Sep.Byte())
 
@@ -105,7 +111,7 @@ func (q Query) bef(
 		return
 	}
 
-	path := *q.Path
+	path := *q.path
 	for i := range q.flags.Seq() {
 		qI := path[i]
 		sb.WriteString(qI.flags.ReconstructPreMod())
@@ -121,7 +127,7 @@ func (q Query) aft(
 		return
 	}
 
-	path := *q.Path
+	path := *q.path
 	for i := q.flags.Seq() + 1; i < len(path); i++ {
 		sb.WriteByte(qcmd.Sep.Byte())
 
@@ -152,7 +158,7 @@ func (q Query) reconstructedAs(
 	q.reconstructInAs(&sb, flags)
 	q.aft(&sb)
 
-	flagged := M(Parse(sb.String()))
+	flagged := M(parse(sb.String()))
 
 	return flagged.at(q.flags.Seq())
 }
@@ -168,7 +174,7 @@ func (q Query) reconstructInAs(
 func (q Query) at(
 	seq int,
 ) Query {
-	return (*q.Path)[seq]
+	return (*q.path)[seq]
 }
 
 // =====================================.
@@ -187,7 +193,7 @@ func (q Query) UpTo(withSelf bool) Query {
 		q.reconstructedIn(&sb)
 	}
 
-	return M(Parse(sb.String()))
+	return M(parse(sb.String()))
 }
 
 // Originating TODO go through mem cache.
@@ -203,7 +209,7 @@ func (q Query) Originating(withSelf bool) Query {
 	}
 	q.aft(&sb)
 
-	return M(Parse(sb.String()))
+	return M(parse(sb.String()))
 }
 
 // =====================================.
@@ -224,12 +230,7 @@ func (q Query) WithoutOverwrite() Query {
 	return q.reconstructedAs(q.flags & ^qflag.QModOverwrit)
 }
 
-// Plus panics if the resulting query is too deep, set by MaxDepth.
-func (q Query) Plus(other string) (Query, error) {
-	return q.PlusS(other), nil
-}
-
-// PlusS panics if the resulting query is too deep, set by MaxDepth.
+// PlusS panics if the resulting query is too deep, set by iface.MaxDepth.
 func (q Query) PlusS(other string) Query {
 	sb := strings.Builder{}
 
@@ -240,7 +241,7 @@ func (q Query) PlusS(other string) Query {
 	sb.WriteByte(qcmd.Sep.Byte())
 	sb.WriteString(other)
 
-	return M(Parse(sb.String())).at(q.flags.Seq())
+	return M(parse(sb.String())).at(q.flags.Seq())
 }
 
 func (q Query) MustReadonly() error {

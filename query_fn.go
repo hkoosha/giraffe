@@ -8,58 +8,51 @@ import (
 	"github.com/hkoosha/giraffe/qcmd"
 )
 
-func Escaped(
-	spec string,
-) string {
-	return queryimpl.Escaped(spec)
-}
-
-func Q[T interface{ Query | string }](
+func Q[T interface{ GQuery | string }](
 	spec T,
-) Query {
-	//nolint:gocritic
-	if asQ, ok := any(spec).(Query); ok {
-		return M(Parse(asQ.impl().Reconstructed()))
-	} else if asStr, ok := any(spec).(string); ok {
-		return M(Parse(asStr))
-	} else {
-		panic("unknown type for Q: " + reflect.TypeOf(spec).String())
+) GQuery {
+	switch q := any(spec).(type) {
+	case GQuery:
+		return M(GQParse(q.impl().String()))
+
+	default:
+		panic("unknown query type: " + reflect.TypeOf(spec).String())
 	}
 }
 
-func QErr() Query {
+func GQErr() GQuery {
 	return ""
 }
 
-func Parse(
+func GQParse(
 	spec string,
-) (Query, error) {
+) (GQuery, error) {
 	if _, err := queryimpl.Parse(spec); err != nil {
 		return "", err
 	}
 
-	return Query(spec), nil
+	return GQuery(spec), nil
 }
 
-func Parser(
+func GQParser(
 	prefix string,
-) func(string) (Query, error) {
+) func(string) (GQuery, error) {
 	if prefix != "" {
 		prefix += qcmd.Sep.String()
 		M(queryimpl.Parse(prefix + "dummy"))
 	}
 
-	return func(spec string) (Query, error) {
-		return Parse(prefix + spec)
+	return func(spec string) (GQuery, error) {
+		return GQParse(prefix + spec)
 	}
 }
 
-func ParserMust(
+func GQParserMust(
 	prefix string,
-) func(string) Query {
-	parser := Parser(prefix)
+) func(string) GQuery {
+	parser := GQParser(prefix)
 
-	return func(spec string) Query {
+	return func(spec string) GQuery {
 		return M(parser(spec))
 	}
 }

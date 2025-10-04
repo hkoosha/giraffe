@@ -15,7 +15,7 @@ import (
 	"github.com/hkoosha/giraffe/internal"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/gdatum"
-	"github.com/hkoosha/giraffe/internal/queryimpl"
+	"github.com/hkoosha/giraffe/internal/queryimpl/dialectical"
 	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
@@ -37,10 +37,10 @@ func Of[V Safe](v V) Datum {
 }
 
 func Of1[V Safe](
-	q Query,
+	q GQuery,
 	v V,
 ) Datum {
-	m := map[Query]V{
+	m := map[GQuery]V{
 		q.WithMake(): v,
 	}
 
@@ -124,22 +124,22 @@ type Safe interface {
 		[]Datum |
 		[][]Datum |
 		map[string]Datum |
-		map[Query]Datum |
-		map[Query]bool |
-		map[Query]string |
-		map[Query]int |
-		map[Query]int64 |
-		map[Query]uint64 |
+		map[GQuery]Datum |
+		map[GQuery]bool |
+		map[GQuery]string |
+		map[GQuery]int |
+		map[GQuery]int64 |
+		map[GQuery]uint64 |
 		map[string][]Datum |
-		map[Query][]Datum |
-		map[Query][]bool |
-		map[Query][]string |
-		map[Query][]int |
-		map[Query][]int64 |
-		map[Query][]uint64
+		map[GQuery][]Datum |
+		map[GQuery][]bool |
+		map[GQuery][]string |
+		map[GQuery][]int |
+		map[GQuery][]int64 |
+		map[GQuery][]uint64
 }
 
-type Implode = map[Query]Datum
+type Implode = map[GQuery]Datum
 
 // ============================================================================.
 
@@ -252,7 +252,7 @@ func (d Datum) Merge(
 }
 
 func (d Datum) Set(
-	query Query,
+	query GQuery,
 	value any,
 ) (Datum, error) {
 	return d.set(query.impl(), value)
@@ -270,7 +270,7 @@ func (d Datum) Append(
 func (d Datum) Query(
 	q string,
 ) (Datum, error) {
-	query, err := Parse(q)
+	query, err := GQParse(q)
 	if err != nil {
 		return errD, err
 	}
@@ -279,13 +279,13 @@ func (d Datum) Query(
 }
 
 func (d Datum) Nest(
-	q Query,
+	q GQuery,
 ) (Datum, error) {
 	return d.nest(q)
 }
 
 func (d Datum) Get(
-	q Query,
+	q GQuery,
 ) (Datum, error) {
 	return d.get(q.impl())
 }
@@ -316,7 +316,7 @@ func (d Datum) Iter2() (iter.Seq2[string, Datum], error) {
 func (d Datum) At(
 	index int,
 ) (Datum, error) {
-	k, err := Parse(strconv.Itoa(index))
+	k, err := GQParse(strconv.Itoa(index))
 	if err != nil {
 		return OfErr(), err
 	}
@@ -325,14 +325,14 @@ func (d Datum) At(
 }
 
 func (d Datum) Has(
-	query Query,
+	query GQuery,
 ) bool {
 	return d.has(query.impl())
 }
 
-func (d Datum) Tree() []Query {
-	return z.Applied(d.tree(), func(it queryimpl.DialecticalQuery) Query {
-		return Query(it.String())
+func (d Datum) Tree() []GQuery {
+	return z.Applied(d.tree(), func(it dialectical.DialecticalQuery) GQuery {
+		return GQuery(it.String())
 	})
 }
 
@@ -602,7 +602,7 @@ func (d Datum) Strs() ([]string, error) {
 
 // =====================================.
 
-func (d Datum) QUSz(q Query) (uint, error) {
+func (d Datum) QUSz(q GQuery) (uint, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return 0, err
@@ -611,7 +611,7 @@ func (d Datum) QUSz(q Query) (uint, error) {
 	return get.USz()
 }
 
-func (d Datum) QU08(q Query) (uint8, error) {
+func (d Datum) QU08(q GQuery) (uint8, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return 0, err
@@ -620,7 +620,7 @@ func (d Datum) QU08(q Query) (uint8, error) {
 	return get.U08()
 }
 
-func (d Datum) QU16(q Query) (uint16, error) {
+func (d Datum) QU16(q GQuery) (uint16, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return 0, err
@@ -629,7 +629,7 @@ func (d Datum) QU16(q Query) (uint16, error) {
 	return get.U16()
 }
 
-func (d Datum) QU32(q Query) (uint32, error) {
+func (d Datum) QU32(q GQuery) (uint32, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return 0, err
@@ -638,7 +638,7 @@ func (d Datum) QU32(q Query) (uint32, error) {
 	return get.U32()
 }
 
-func (d Datum) QU64(q Query) (uint64, error) {
+func (d Datum) QU64(q GQuery) (uint64, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return 0, err
@@ -647,7 +647,7 @@ func (d Datum) QU64(q Query) (uint64, error) {
 	return get.U64()
 }
 
-func (d Datum) QISz(q Query) (int, error) {
+func (d Datum) QISz(q GQuery) (int, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return 0, err
@@ -656,7 +656,7 @@ func (d Datum) QISz(q Query) (int, error) {
 	return get.ISz()
 }
 
-func (d Datum) QI08(q Query) (int8, error) {
+func (d Datum) QI08(q GQuery) (int8, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return 0, err
@@ -665,7 +665,7 @@ func (d Datum) QI08(q Query) (int8, error) {
 	return get.I08()
 }
 
-func (d Datum) QI16(q Query) (int16, error) {
+func (d Datum) QI16(q GQuery) (int16, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return 0, err
@@ -674,7 +674,7 @@ func (d Datum) QI16(q Query) (int16, error) {
 	return get.I16()
 }
 
-func (d Datum) QI32(q Query) (int32, error) {
+func (d Datum) QI32(q GQuery) (int32, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return 0, err
@@ -683,7 +683,7 @@ func (d Datum) QI32(q Query) (int32, error) {
 	return get.I32()
 }
 
-func (d Datum) QI64(q Query) (int64, error) {
+func (d Datum) QI64(q GQuery) (int64, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return 0, err
@@ -692,7 +692,7 @@ func (d Datum) QI64(q Query) (int64, error) {
 	return get.I64()
 }
 
-func (d Datum) QUSzs(q Query) ([]uint, error) {
+func (d Datum) QUSzs(q GQuery) ([]uint, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return nil, err
@@ -701,7 +701,7 @@ func (d Datum) QUSzs(q Query) ([]uint, error) {
 	return get.USzs()
 }
 
-func (d Datum) QU64s(q Query) ([]uint64, error) {
+func (d Datum) QU64s(q GQuery) ([]uint64, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return nil, err
@@ -710,7 +710,7 @@ func (d Datum) QU64s(q Query) ([]uint64, error) {
 	return get.U64s()
 }
 
-func (d Datum) QISzs(q Query) ([]int, error) {
+func (d Datum) QISzs(q GQuery) ([]int, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return nil, err
@@ -719,7 +719,7 @@ func (d Datum) QISzs(q Query) ([]int, error) {
 	return get.ISzs()
 }
 
-func (d Datum) QI64s(q Query) ([]int64, error) {
+func (d Datum) QI64s(q GQuery) ([]int64, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return nil, err
@@ -728,7 +728,7 @@ func (d Datum) QI64s(q Query) ([]int64, error) {
 	return get.I64s()
 }
 
-func (d Datum) QStrs(q Query) ([]string, error) {
+func (d Datum) QStrs(q GQuery) ([]string, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return nil, err
@@ -737,7 +737,7 @@ func (d Datum) QStrs(q Query) ([]string, error) {
 	return get.Strs()
 }
 
-func (d Datum) QInt(q Query) (*big.Int, error) {
+func (d Datum) QInt(q GQuery) (*big.Int, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return nil, err
@@ -746,7 +746,7 @@ func (d Datum) QInt(q Query) (*big.Int, error) {
 	return get.Int()
 }
 
-func (d Datum) QFlt(q Query) (*big.Float, error) {
+func (d Datum) QFlt(q GQuery) (*big.Float, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return nil, err
@@ -755,7 +755,7 @@ func (d Datum) QFlt(q Query) (*big.Float, error) {
 	return get.Flt()
 }
 
-func (d Datum) QBln(q Query) (bool, error) {
+func (d Datum) QBln(q GQuery) (bool, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return false, err
@@ -764,7 +764,7 @@ func (d Datum) QBln(q Query) (bool, error) {
 	return get.Bln()
 }
 
-func (d Datum) QStr(q Query) (string, error) {
+func (d Datum) QStr(q GQuery) (string, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return "", err
@@ -773,7 +773,7 @@ func (d Datum) QStr(q Query) (string, error) {
 	return get.Str()
 }
 
-func (d Datum) QFmtStr(q Query) (string, error) {
+func (d Datum) QFmtStr(q GQuery) (string, error) {
 	get, err := d.Get(q)
 	if err != nil {
 		return "", err

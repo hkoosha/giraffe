@@ -67,13 +67,13 @@ func OK(
 // Q query.
 func Q(
 	q string,
-) giraffe.Query {
+) giraffe.GQuery {
 	return giraffe.Q(q)
 }
 
 // P pair.
 func P[V giraffe.Safe](
-	q giraffe.Query,
+	q giraffe.GQuery,
 	v V,
 ) giraffe.Tuple {
 	return giraffe.TupleOf(q, v)
@@ -84,7 +84,7 @@ func Of0[V giraffe.Safe](v V) giraffe.Datum {
 }
 
 func Of1[V giraffe.Safe](
-	q giraffe.Query,
+	q giraffe.GQuery,
 	v V,
 ) giraffe.Datum {
 	return giraffe.Of1(q, v)

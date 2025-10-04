@@ -84,14 +84,14 @@ func FnCtxOf(
 
 type Fn struct {
 	exe        Exe
-	replicated map[giraffe.Query]giraffe.Query
-	swapped    map[giraffe.Query]giraffe.Query
-	scoped     giraffe.Query
+	replicated map[giraffe.GQuery]giraffe.GQuery
+	swapped    map[giraffe.GQuery]giraffe.GQuery
+	scoped     giraffe.GQuery
 	name       string
-	inputs     []giraffe.Query
-	outputs    []giraffe.Query
-	optionals  []giraffe.Query
-	selected   []giraffe.Query
+	inputs     []giraffe.GQuery
+	outputs    []giraffe.GQuery
+	optionals  []giraffe.GQuery
+	selected   []giraffe.GQuery
 	typ        typing.Type
 }
 
@@ -114,7 +114,7 @@ func (f *Fn) IsValid() bool {
 }
 
 func (f *Fn) AndReplicate(
-	replicated map[giraffe.Query]giraffe.Query,
+	replicated map[giraffe.GQuery]giraffe.GQuery,
 ) *Fn {
 	f.ensure()
 
@@ -127,7 +127,7 @@ func (f *Fn) AndReplicate(
 }
 
 func (f *Fn) WithReplicated(
-	replicated map[giraffe.Query]giraffe.Query,
+	replicated map[giraffe.GQuery]giraffe.GQuery,
 ) *Fn {
 	f.ensure()
 
@@ -137,7 +137,7 @@ func (f *Fn) WithReplicated(
 }
 
 func (f *Fn) AndSwapping(
-	swapping map[giraffe.Query]giraffe.Query,
+	swapping map[giraffe.GQuery]giraffe.GQuery,
 ) *Fn {
 	f.ensure()
 
@@ -150,7 +150,7 @@ func (f *Fn) AndSwapping(
 }
 
 func (f *Fn) WithSwapping(
-	swapping map[giraffe.Query]giraffe.Query,
+	swapping map[giraffe.GQuery]giraffe.GQuery,
 ) *Fn {
 	f.ensure()
 
@@ -160,7 +160,7 @@ func (f *Fn) WithSwapping(
 }
 
 func (f *Fn) AndScope(
-	scope giraffe.Query,
+	scope giraffe.GQuery,
 ) *Fn {
 	f.ensure()
 
@@ -168,7 +168,7 @@ func (f *Fn) AndScope(
 }
 
 func (f *Fn) WithScope(
-	scope giraffe.Query,
+	scope giraffe.GQuery,
 ) *Fn {
 	f.ensure()
 
@@ -178,13 +178,13 @@ func (f *Fn) WithScope(
 }
 
 func (f *Fn) AndInputs(
-	inputs ...giraffe.Query,
+	inputs ...giraffe.GQuery,
 ) *Fn {
 	return f.WithInput(append(inputs, f.inputs...)...)
 }
 
 func (f *Fn) WithInput(
-	inputs ...giraffe.Query,
+	inputs ...giraffe.GQuery,
 ) *Fn {
 	f.ensure()
 
@@ -194,13 +194,13 @@ func (f *Fn) WithInput(
 }
 
 func (f *Fn) AndOptionals(
-	optionals ...giraffe.Query,
+	optionals ...giraffe.GQuery,
 ) *Fn {
 	return f.WithOptional(append(optionals, f.optionals...)...)
 }
 
 func (f *Fn) WithOptional(
-	optionals ...giraffe.Query,
+	optionals ...giraffe.GQuery,
 ) *Fn {
 	f.ensure()
 
@@ -210,13 +210,13 @@ func (f *Fn) WithOptional(
 }
 
 func (f *Fn) AndOutputs(
-	outputs ...giraffe.Query,
+	outputs ...giraffe.GQuery,
 ) *Fn {
 	return f.WithOutput(append(outputs, f.outputs...)...)
 }
 
 func (f *Fn) WithOutput(
-	outputs ...giraffe.Query,
+	outputs ...giraffe.GQuery,
 ) *Fn {
 	f.ensure()
 
@@ -226,13 +226,13 @@ func (f *Fn) WithOutput(
 }
 
 func (f *Fn) AndSelect(
-	select_ ...giraffe.Query,
+	select_ ...giraffe.GQuery,
 ) *Fn {
 	return f.Select(append(select_, f.selected...)...)
 }
 
 func (f *Fn) Select(
-	select_ ...giraffe.Query,
+	select_ ...giraffe.GQuery,
 ) *Fn {
 	f.ensure()
 
@@ -275,13 +275,13 @@ func (f *Fn) String() string {
 
 func chkDatPresent(
 	dat giraffe.Datum,
-	keys []giraffe.Query,
+	keys []giraffe.GQuery,
 ) error {
 	if len(keys) == 0 {
 		return nil
 	}
 
-	var missing []giraffe.Query
+	var missing []giraffe.GQuery
 	for _, k := range keys {
 		if !dat.Has(k) {
 			missing = append(missing, k)
@@ -340,7 +340,7 @@ func (f *Fn) select_(
 		return dat, nil
 	}
 
-	selected := make(map[giraffe.Query]giraffe.Datum, len(f.selected))
+	selected := make(map[giraffe.GQuery]giraffe.Datum, len(f.selected))
 	for _, k := range f.selected {
 		if !dat.Has(k) {
 			continue
@@ -372,7 +372,7 @@ func (f *Fn) swap(
 		return OfErr(), err
 	}
 
-	ret := make(map[giraffe.Query]giraffe.Datum, M(dat.Len()))
+	ret := make(map[giraffe.GQuery]giraffe.Datum, M(dat.Len()))
 	for k, v := range iter {
 		k := Q(k)
 		if swapTo, ok := f.replicated[k]; ok {
