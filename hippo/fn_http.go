@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/hkoosha/giraffe"
@@ -12,22 +13,53 @@ import (
 	. "github.com/hkoosha/giraffe/internal/dot1"
 )
 
+const (
+	httpInputEndpoint = "endpoint"
+	httpInputPath     = "path"
+
+	httpInputHeader   = "header"
+	httpInputBody     = "body"
+	httpInputUrlQuery = "query"
+	httpInputMethod   = "method"
+	httpInputOkCodes  = "ok_codes"
+
+	httpOutputStatus  = "status"
+	httpOutputBody    = "body"
+	httpOutputHeaders = "headers"
+)
+
 var (
-	httpPathVarRe    = regexp.MustCompile("^(:)?([a-zA-Z0-9-_]+)$")
-	httpSimpleNameRe = regexp.MustCompile("^[a-zA-Z0-9-_]+$")
+	nameRe = regexp.MustCompile("^[a-zA-Z0-9-_]+$")
+	addrRe = regexp.MustCompile(`^(http|https)://(?P<addr>[a-zA-Z0-9-_.]{1,255})(:(?P<port>\d{1,5}))?$`)
+
+	addrReNames = slices.DeleteFunc(addrRe.SubexpNames()[1:], func(it string) bool {
+		return it == ""
+	})
 )
 
 type HttpFn struct {
-	cnx        conn.Conn[any]
-	urlQueries map[string]giraffe.Query
-	urlParts   []string
+	cnx       conn.Conn[any]
+	endpoints map[string]string
 }
 
-func (e *HttpFn) shallow() *HttpFn {
-	cp := *e
-	cp.urlQueries = maps.Clone(e.urlQueries)
-	cp.urlParts = slices.Clone(e.urlParts)
-	return &cp
+func (e *HttpFn) Fn() *Fn {
+	return MustFnOf(e.exe).
+		WithInput(
+			Q(httpInputEndpoint),
+			Q(httpInputPath),
+		).
+		WithOptional(
+			Q(httpInputHeader),
+			Q(httpInputBody),
+			Q(httpInputUrlQuery),
+			Q(httpInputMethod),
+			Q(httpInputOkCodes),
+		).
+		WithOutput(
+			Q(httpOutputStatus),
+			Q(httpOutputBody),
+			Q(httpOutputHeaders),
+		)
 }
 
 func (e *HttpFn) WithConn(
@@ -38,79 +70,200 @@ func (e *HttpFn) WithConn(
 	return cp
 }
 
-func (e *HttpFn) WithPath(
-	path ...string,
+func (e *HttpFn) WithEndpoints(
+	endpoints map[string]string,
 ) *HttpFn {
-	var flat []string
-
-	for _, p := range path {
-		for _, s := range strings.Split(p, "/") {
-			if !httpPathVarRe.MatchString(s) {
-				panic(EF("invalid path: %v", path))
+	for name, addr := range endpoints {
+		if !nameRe.MatchString(name) {
+			panic(EF("invalid endpoint name: %s", name))
+		}
+		if !addrRe.MatchString(addr) {
+			panic(EF("invalid endpoint address: %s", addr))
+		}
+		matches := addrRe.FindStringSubmatch(addr)
+		groups := make(map[string]string)
+		for i, n := range addrReNames {
+			if i != 0 && n != "" {
+				groups[name] = matches[i]
 			}
-			flat = append(flat, s)
+		}
+
+		if strings.Contains(groups["address"], "..") {
+			panic(EF("invalid endpoint address: %s", addr))
+		}
+
+		if groups["port"] != "" {
+			port := M(strconv.Atoi(groups["port"]))
+			if port < 1 || 65534 < port {
+				panic(EF("invalid endpoint port: %s", addr))
+			}
 		}
 	}
 
 	cp := e.shallow()
-	cp.urlParts = flat
+	cp.endpoints = maps.Clone(endpoints)
 	return cp
 }
 
-func (e *HttpFn) WithUrlQueries(
-	queries map[string]giraffe.Query,
-) *HttpFn {
-	for name := range queries {
-		if !httpSimpleNameRe.MatchString(name) {
-			panic(EF("invalid http queries: %s, %v", name, queries))
+func (e *HttpFn) shallow() *HttpFn {
+	cp := *e
+	cp.endpoints = maps.Clone(e.endpoints)
+	return &cp
+}
+
+func (e *HttpFn) getEndpoint(
+	dat giraffe.Datum,
+) (string, error) {
+	qvEndpointName := M(dat.QStr(httpInputEndpoint))
+
+	endpoint, ok := e.endpoints[qvEndpointName]
+	if !ok {
+		return "", EF("missing endpoint: %s", qvEndpointName)
+	}
+
+	return endpoint, nil
+}
+
+func (e *HttpFn) getPath(
+	dat giraffe.Datum,
+	endpoint string,
+) (string, error) {
+	pathParts := []string{endpoint}
+
+	for _, part := range strings.Split(M(dat.QStr(httpInputPath)), "/") {
+		switch {
+		case strings.HasPrefix(part, ":"):
+			pValue, err := dat.Query(part[1:])
+			if err != nil {
+				return "", err
+			}
+			if pValue.Type().IsInt() {
+				pathParts = append(pathParts, M(pValue.Int()).String())
+			} else if pValue.Type().IsStr() {
+				pathParts = append(pathParts, M(pValue.Str()))
+			} else {
+				panic("todo")
+			}
+
+		default:
+			pathParts = append(pathParts, part)
 		}
 	}
 
-	cp := e.shallow()
-	cp.urlQueries = maps.Clone(queries)
-	return cp
+	return conn.Join(pathParts...), nil
+}
+
+func (e *HttpFn) getUrlQuery(
+	dat giraffe.Datum,
+) (string, error) {
+	if !dat.Has(Q(httpInputUrlQuery)) {
+		return "", nil
+	}
+
+	kv, err := dat.QKv(httpInputUrlQuery)
+	if err != nil {
+		return "", err
+	}
+
+	uQueries := make([]string, 0, len(kv))
+	for k, v := range kv {
+		uQueries = append(uQueries, k+"="+v)
+	}
+
+	return strings.Join(uQueries, "&"), nil
+}
+
+func (e *HttpFn) getHeaders(
+	dat giraffe.Datum,
+) (map[string]string, error) {
+	if dat.Has(Q(httpInputHeader)) {
+		return map[string]string{}, nil
+	}
+
+	return dat.QKv(httpInputHeader)
+}
+
+func (e *HttpFn) getBody(
+	dat giraffe.Datum,
+) ([]byte, error) {
+	if !dat.Has(Q(httpInputBody)) {
+		return nil, nil
+	}
+
+	b, err := dat.Query(httpInputBody)
+	if err != nil {
+		return nil, err
+	}
+
+	return b.MarshalJSON()
+}
+
+func (e *HttpFn) getMethod(
+	dat giraffe.Datum,
+	hasBody bool,
+) (string, error) {
+	if !dat.Has(Q(httpInputMethod)) {
+		if hasBody {
+			return http.MethodPost, nil
+		} else {
+			return http.MethodGet, nil
+		}
+	}
+
+	// TODO prevent get with body?
+
+	return dat.QStr(httpInputMethod)
 }
 
 func (e *HttpFn) exe(
 	ctx Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
-	path := make([]string, 0, len(e.urlParts)+1+len(e.urlQueries))
-	for _, v := range e.urlParts {
-		switch {
-		case v[0] == ':':
-			vq, err := dat.Query(v[1:])
-			if err != nil {
-				return OfErr(), err
-			}
-			vqStr, err := vq.FmtStr()
-			if err != nil {
-				return OfErr(), err
-			}
-			path = append(path, vqStr)
-
-		default:
-			path = append(path, v)
-		}
-	}
-
-	path = append(path, "?")
-	for name, q := range e.urlQueries {
-		str, err := dat.QFmtStr(q)
-		if err != nil {
-			return OfErr(), err
-		}
-		path = append(path, name+"="+str)
-	}
-
-	body, err := e.cnx.Call(ctx, http.NoBody, path...)
+	endpoint, err := e.getEndpoint(dat)
 	if err != nil {
 		return OfErr(), err
 	}
 
-	return giraffe.FromJsonable(body)
-}
+	path, err := e.getPath(dat, endpoint)
+	if err != nil {
+		return OfErr(), err
+	}
 
-func (e *HttpFn) Fn() *Fn {
-	return MustFnOf(e.exe)
+	uQuery, err := e.getUrlQuery(dat)
+	if err != nil {
+		return OfErr(), err
+	}
+	if len(uQuery) > 0 {
+		path += "?" + uQuery
+	}
+
+	headers, err := e.getHeaders(dat)
+	if err != nil {
+		return OfErr(), err
+	}
+
+	body, err := e.getBody(dat)
+	if err != nil {
+		return OfErr(), err
+	}
+
+	method, err := e.getMethod(dat, len(body) > 0)
+	if err != nil {
+		return OfErr(), err
+	}
+
+	// TODO ok codes
+
+	cnx := e.cnx.
+		Cfg().
+		WithHeaderOverwrites(true, headers).
+		WithMethod(method).
+		Conn()
+
+	resp, err := cnx.Call(ctx, body, path)
+	if err != nil {
+		return OfErr(), err
+	}
+
+	return giraffe.FromJsonable(resp)
 }

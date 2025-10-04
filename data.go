@@ -344,6 +344,31 @@ func (d Datum) Keys() ([]string, error) {
 	return slices.Collect(maps.Keys(val)), nil
 }
 
+func (d Datum) Kv() (map[string]string, error) {
+	keys, err := d.Keys()
+	if err != nil {
+		return nil, err
+	}
+
+	kv := make(map[string]string, len(keys))
+
+	for _, k := range keys {
+		str, err := d.Query(internal.Escaped(k))
+		if err != nil {
+			return nil, err
+		}
+
+		v, err := str.Str()
+		if err != nil {
+			return nil, err
+		}
+
+		kv[k] = v
+	}
+
+	return kv, nil
+}
+
 func (d Datum) Len() (int, error) {
 	return d.tryLen()
 }
@@ -779,4 +804,13 @@ func (d Datum) QFmtStr(q Query) (string, error) {
 	}
 
 	return get.FmtStr()
+}
+
+func (d Datum) QKv(q Query) (map[string]string, error) {
+	get, err := d.Get(q)
+	if err != nil {
+		return nil, err
+	}
+
+	return get.Kv()
 }

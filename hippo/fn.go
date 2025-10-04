@@ -11,6 +11,9 @@ import (
 	"github.com/hkoosha/giraffe/typing"
 )
 
+// TODO check duplicates.
+// TODO check clashing
+
 type ExeCtx = func(
 	Context,
 	giraffe.Datum,

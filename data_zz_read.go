@@ -197,7 +197,7 @@ func tree(
 
 	default:
 		for k, v := range d.obj() {
-			if tree(tr, &v, append(slices.Clone(path), internal.Escaped(k))) {
+			if tree(tr, &v, append(slices.Clone(path), internal.Escaped(k).String())) {
 				return false
 			}
 		}
