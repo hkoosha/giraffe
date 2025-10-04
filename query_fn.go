@@ -3,8 +3,8 @@ package giraffe
 import (
 	"reflect"
 
+	"github.com/hkoosha/giraffe/internal"
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/queryimpl"
 	"github.com/hkoosha/giraffe/qcmd"
 )
 
@@ -27,7 +27,7 @@ func GQErr() GQuery {
 func GQParse(
 	spec string,
 ) (GQuery, error) {
-	if _, err := queryimpl.Parse(spec); err != nil {
+	if _, err := internal.Parse(spec); err != nil {
 		return "", err
 	}
 
@@ -39,7 +39,7 @@ func GQParser(
 ) func(string) (GQuery, error) {
 	if prefix != "" {
 		prefix += qcmd.Sep.String()
-		M(queryimpl.Parse(prefix + "dummy"))
+		M(internal.Parse(prefix + "dummy"))
 	}
 
 	return func(spec string) (GQuery, error) {

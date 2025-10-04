@@ -1,8 +1,8 @@
 package giraffe
 
 import (
+	"github.com/hkoosha/giraffe/internal"
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/queryimpl"
 	"github.com/hkoosha/giraffe/internal/queryimpl/dialectical"
 )
 
@@ -10,7 +10,7 @@ import (
 type GQuery string
 
 func (q GQuery) impl() dialectical.DialecticalQuery {
-	return M(queryimpl.Parse(string(q)))
+	return M(internal.Parse(string(q)))
 }
 
 func (q GQuery) String() string {
