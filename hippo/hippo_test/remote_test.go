@@ -83,7 +83,7 @@ func TestServer_Ekran(t *testing.T) {
 			Plan:          "plan0",
 		}
 
-		err := ekran(t.Context(), bytes.NewReader(M(json.Marshal(req))), &out)
+		err := ekran(hippo.ContextOf(t.Context()), bytes.NewReader(M(json.Marshal(req))), &out)
 		require.NoError(t, err, "ekran failed: %s", t11y.FmtStacktraceOf(err))
 
 		var fin any
@@ -152,7 +152,7 @@ func TestServer_Http(t *testing.T) {
 
 		cln := mkCln(srv)
 
-		fin, err := cln.Ekran(t.Context(), giraffe.Of1("meow", 333))
+		fin, err := cln.Ekran(hippo.ContextOf(t.Context()), giraffe.Of1("meow", 333))
 		require.NoError(t, err)
 
 		t.Log(fin.Pretty())

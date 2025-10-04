@@ -109,7 +109,6 @@ func (n *PipelineFn) WithAfter(
 	return clone
 }
 
-//nolint:contextcheck
 func (n *PipelineFn) Ekran(
 	ctx Context,
 	dat giraffe.Datum,
