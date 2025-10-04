@@ -1,6 +1,7 @@
 package g11y
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"testing"
 
 	"github.com/hkoosha/giraffe/g11y/internal"
 	"github.com/hkoosha/giraffe/internal/g"
@@ -201,7 +203,7 @@ func FmtStacktraces(
 
 	j := 0
 	for i := range traces {
-		if _, ok := drop[i]; !ok {
+		if _, dropped := drop[i]; !dropped && len(traces[i]) > 0 {
 			traces[j] = traces[i]
 			j++
 		}
@@ -210,14 +212,14 @@ func FmtStacktraces(
 
 	var sb strings.Builder
 	for i, t := range traces {
-		if len(t) > 0 {
+		if len(traces) > 1 {
 			sb.WriteString("trace ")
 			sb.WriteString(strconv.Itoa(i))
 			sb.WriteString(":\n")
-			for _, tl := range t {
-				sb.WriteString(tl)
-				sb.WriteString("\n")
-			}
+		}
+		for _, tl := range t {
+			sb.WriteString(tl)
+			sb.WriteString("\n")
 		}
 	}
 
@@ -265,4 +267,54 @@ func FmtMsg(
 	}
 
 	return msg
+}
+
+func TNoError(
+	t *testing.T,
+	err error,
+) {
+	t.Helper()
+
+	if err == nil {
+		return
+	}
+
+	content := []struct{ label, content string }{
+		{"G11y Trace", FmtStacktraceOf(err)},
+		{"Error", fmt.Sprintf("Received unexpected error:\n%+v", err)},
+		{"Test", t.Name()},
+	}
+
+	longest := len("Error Trace")
+
+	var sb0 strings.Builder
+	for _, v := range content {
+		sb1 := strings.Builder{}
+		for i, scanner := 0, bufio.NewScanner(strings.NewReader(v.content)); scanner.Scan(); i++ {
+			if i != 0 {
+				sb1.WriteString("\n\t" + strings.Repeat(" ", longest+1) + "\t")
+			}
+			sb1.WriteString(scanner.Text())
+		}
+
+		sb0.WriteByte('\t')
+		sb0.WriteString(v.label)
+		sb0.WriteByte(':')
+		sb0.WriteString(strings.Repeat(" ", longest-len(v.label)))
+		sb0.WriteByte('\t')
+		sb0.WriteString(sb1.String())
+		sb0.WriteByte('\n')
+	}
+
+	t.Errorf("\n%s", ""+sb0.String())
+	t.FailNow()
+}
+
+func TPreamble(
+	t *testing.T,
+) {
+	t.Helper()
+
+	// TODO undo on cleanup?
+	EnableDefaultTracer()
 }

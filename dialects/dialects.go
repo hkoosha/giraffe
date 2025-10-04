@@ -63,19 +63,34 @@ func DialectOf(
 	return d, err
 }
 
-func Normalized(
+func Denormalized(
 	spec string,
 ) (Dialect, string, error) {
-	d, explicit, err := dialectOf(spec)
+	dialect, explicit, err := dialectOf(spec)
 	if err != nil {
 		return Unknown, "", err
 	}
 
 	if !explicit {
-		spec = qcmd.Dialect.String() + d.String() + qcmd.Sep.String() + spec
+		spec = qcmd.Dialect.String() + dialect.String() + qcmd.Sep.String() + spec
 	}
 
-	return d, spec, nil
+	return dialect, spec, nil
+}
+
+func Normalized(
+	spec string,
+) (Dialect, string, error) {
+	dialect, explicit, err := dialectOf(spec)
+	if err != nil {
+		return Unknown, "", err
+	}
+
+	if explicit {
+		spec = spec[len(qcmd.Dialect.String())+len(dialect.String())+1:]
+	}
+
+	return dialect, spec, nil
 }
 
 func ErrUnknown() error {

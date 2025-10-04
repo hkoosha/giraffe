@@ -376,11 +376,6 @@ func (p *parser) postProcess() {
 }
 
 func (p *parser) parse() (GiraffeQuery, error) {
-	if strings.HasPrefix(p.spec, string(qcmd.Sep)) {
-		invalid := newQuery(nil, "", qflag.QFlag(0))
-		return invalid, queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
-	}
-
 	if err := p.doParse(); err != nil {
 		invalid := newQuery(nil, "", qflag.QFlag(0))
 		return invalid, err
@@ -422,5 +417,8 @@ func Parse(
 	maxDepth uint,
 	spec string,
 ) (GiraffeQuery, error) {
+	if !strings.HasSuffix(spec, qcmd.Sep.String()) {
+		spec += qcmd.Sep.String()
+	}
 	return newParser(maxDepth, spec).parse()
 }
