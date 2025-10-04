@@ -4,38 +4,30 @@ import (
 	"github.com/hkoosha/giraffe/dialects"
 	"github.com/hkoosha/giraffe/internal/inmem"
 	"github.com/hkoosha/giraffe/internal/queryimpl"
-	"github.com/hkoosha/giraffe/internal/queryimpl/dialectical"
 	"github.com/hkoosha/giraffe/internal/queryimpl/gquery"
 )
 
 func parse(
 	spec string,
-) (dialectical.DialecticalQuery, error) {
-	dq := dialectical.New()
-
+) (gquery.GiraffeQuery, error) {
 	dialect, spec, err := dialects.Normalized(spec)
 	if err != nil {
-		return dq, err
+		return gquery.GiraffeQuery{}, err
 	}
 
-	var impl queryimpl.QueryImpl
 	switch dialect {
 	case dialects.Giraffe1v1:
-		impl, err = gquery.Parse(queryimpl.MaxDepth, spec)
-	}
+		return gquery.Parse(queryimpl.MaxDepth, spec)
 
-	if err != nil {
-		return dq, err
+	default:
+		return gquery.GiraffeQuery{}, dialects.ErrUnknown()
 	}
-
-	dq = dq.WithDialect(dialect).WithImpl(impl)
-	return dq, nil
 }
 
 func Parse(
 	spec string,
-) (dialectical.DialecticalQuery, error) {
-	cached, ok := inmem.Get[dialectical.DialecticalQuery](spec)
+) (gquery.GiraffeQuery, error) {
+	cached, ok := inmem.Get[gquery.GiraffeQuery](spec)
 
 	if !ok {
 		query, err := parse(spec)
@@ -44,4 +36,11 @@ func Parse(
 	}
 
 	return cached.Unpack()
+}
+
+func Escaped(
+	spec string,
+) string {
+	// TODO :D
+	return spec
 }

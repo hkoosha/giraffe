@@ -4,27 +4,19 @@ import (
 	"strings"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/queryimpl/dialectical"
 )
 
 func modify(
 	d *Datum,
-	q dialectical.DialecticalQuery,
+	q queryT,
 	value any,
 ) error {
 	switch {
-	case value != nil && (q.Flags().IsDelete() || q.Flags().IsMove()):
+	case value != nil && q.Flags().IsDelete():
 		return newDataWriteUnexpectedValueError(q, value)
 
 	case q.Flags().IsDelete():
 		if err := del(d, q); err != nil {
-			return err
-		}
-
-		return nil
-
-	case q.Flags().IsMove():
-		if err := move(d, q); err != nil {
 			return err
 		}
 
@@ -44,37 +36,9 @@ func modify(
 	}
 }
 
-func move(
-	d *Datum,
-	q dialectical.DialecticalQuery,
-) error {
-	seg0, seg1, ok := q.Segments()
-	if !ok {
-		return newDataWriteMoveUnsegmentedQuery(q)
-	}
-
-	prev, err := d.get(seg0)
-	if err != nil {
-		return err
-	}
-
-	if dErr := del(d, seg0); dErr != nil {
-		return dErr
-	}
-
-	newD, err := d.set(seg1, prev)
-	if err != nil {
-		return err
-	}
-
-	*d = newD
-
-	return nil
-}
-
 func del(
 	d *Datum,
-	q dialectical.DialecticalQuery,
+	q queryT,
 ) error {
 	qf := q.Flags()
 	dt := d.typ
@@ -109,7 +73,7 @@ func del(
 
 func set(
 	d *Datum,
-	q dialectical.DialecticalQuery,
+	q queryT,
 	value Datum,
 ) error {
 	switch {
@@ -123,7 +87,7 @@ func set(
 
 func setObj(
 	d *Datum,
-	q dialectical.DialecticalQuery,
+	q queryT,
 	item Datum,
 ) error {
 	qf := q.Flags()
@@ -187,7 +151,7 @@ func setObj(
 
 func arrSet(
 	d *Datum,
-	q dialectical.DialecticalQuery,
+	q queryT,
 	item Datum,
 ) error {
 	qf := q.Flags()
@@ -240,7 +204,7 @@ func arrSet(
 // ==============================================================================.
 
 func newDataWriteOverwriteErr(
-	query dialectical.DialecticalQuery,
+	query queryT,
 ) error {
 	return newDataWriteError(
 		query,
@@ -250,7 +214,7 @@ func newDataWriteOverwriteErr(
 }
 
 func newDataWriteMissingKeyError(
-	query dialectical.DialecticalQuery,
+	query queryT,
 ) error {
 	return newDataWriteError(
 		query,
@@ -259,18 +223,8 @@ func newDataWriteMissingKeyError(
 	)
 }
 
-func newDataWriteMoveUnsegmentedQuery(
-	query dialectical.DialecticalQuery,
-) error {
-	return newDataWriteError(
-		query,
-		ErrCodeDataWriteUnsegmentedQuery,
-		"move query has no or too many segments",
-	)
-}
-
 func newDataWriteError(
-	query dialectical.DialecticalQuery,
+	query queryT,
 	code uint64,
 	msg string,
 	extra ...string,

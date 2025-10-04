@@ -239,24 +239,6 @@ func (p *parser) onSep() error {
 	return nil
 }
 
-func (p *parser) onMove() error {
-	p.segment++
-
-	if p.segment > 2 {
-		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
-	}
-
-	p.global |= qflag.QModMove
-
-	if err := p.onSep(); err != nil {
-		return err
-	}
-
-	p.last().flags |= qflag.QModMover
-
-	return nil
-}
-
 func (p *parser) onRune() error {
 	p.state.ref.WriteByte(p.c)
 
@@ -414,7 +396,7 @@ func (p *parser) parse() (GiraffeQuery, error) {
 	return p.path[0], nil
 }
 
-func newGQueryParser(
+func newParser(
 	maxDepth uint,
 	spec string,
 ) *parser {
@@ -440,16 +422,9 @@ func newGQueryParser(
 	return &p
 }
 
-func parse(
-	maxDepth uint,
-	spec string,
-) (GiraffeQuery, error) {
-	return newGQueryParser(maxDepth, spec).parse()
-}
-
 func Parse(
 	maxDepth uint,
 	spec string,
-) (queryimpl.QueryImpl, error) {
-	return parse(maxDepth, spec)
+) (GiraffeQuery, error) {
+	return newParser(maxDepth, spec).parse()
 }

@@ -5,18 +5,25 @@ import (
 )
 
 const (
-	Dialect   Cmd = '~'
+	// Write
+
 	Append    Cmd = '+'
 	Overwrite Cmd = '='
 	Delete    Cmd = '!'
 	Make      Cmd = '$'
-	Maybe     Cmd = '?'
-	Sep       Cmd = '.'
-	Escape    Cmd = '\\'
-	At        Cmd = '@'
-	Self      Cmd = '#'
 
-	Pipe Cmd = '|'
+	// Read
+
+	Maybe  Cmd = '?'
+	Sep    Cmd = '.'
+	Escape Cmd = '\\'
+	At     Cmd = '@'
+	Self   Cmd = '#'
+
+	// Control
+
+	Dialect Cmd = '~'
+	Pipe    Cmd = '|'
 )
 
 type Cmd byte

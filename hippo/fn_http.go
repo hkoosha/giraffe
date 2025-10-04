@@ -20,7 +20,7 @@ var (
 
 type HttpFn struct {
 	cnx        conn.Conn[any]
-	urlQueries map[string]giraffe.GQuery
+	urlQueries map[string]giraffe.Query
 	urlParts   []string
 }
 
@@ -59,7 +59,7 @@ func (e *HttpFn) WithPath(
 }
 
 func (e *HttpFn) WithUrlQueries(
-	queries map[string]giraffe.GQuery,
+	queries map[string]giraffe.Query,
 ) *HttpFn {
 	for name := range queries {
 		if !httpSimpleNameRe.MatchString(name) {

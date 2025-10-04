@@ -1,47 +1,66 @@
 package giraffe
 
 import (
-	"github.com/hkoosha/giraffe/internal"
-	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/queryimpl/dialectical"
+	"github.com/hkoosha/giraffe/dialects"
+	"github.com/hkoosha/giraffe/qflag"
 )
 
-// GQuery NEVER INSTANTIATE DIRECTLY. NEVER CAST TO. NEVER CAST FROM.
-type GQuery string
+// Query NEVER INSTANTIATE DIRECTLY. NEVER CAST TO. NEVER CAST FROM.
+type Query string
 
-func (q GQuery) impl() dialectical.DialecticalQuery {
-	return M(internal.Parse(string(q)))
+func (q Query) Flags() qflag.QFlag {
+	// TODO implement me
+	panic("implement me")
 }
 
-func (q GQuery) String() string {
+func (q Query) Attr() string {
+	return q.impl().Attr()
+}
+
+func (q Query) Index() int {
+	return q.impl().Index()
+}
+
+func (q Query) Root() Query {
+	return Query(q.impl().Root().String())
+}
+
+func (q Query) Leaf() Query {
+	return Query(q.impl().Leaf().String())
+}
+
+func (q Query) Prev() Query {
+	return Query(q.impl().Prev().String())
+}
+
+func (q Query) Next() Query {
+	return Query(q.impl().Next().String())
+}
+
+func (q Query) String() string {
 	return q.impl().String()
 }
 
-func (q GQuery) Plus(other GQuery) (GQuery, error) {
-	sum, err := q.impl().Plus(other.impl())
-	if err != nil {
-		return "", err
-	}
-
-	return GQuery(sum.String()), nil
+func (q Query) Dialect() dialects.Dialect {
+	return q.impl().Dialect()
 }
 
-func (q GQuery) Parser() func(string) (GQuery, error) {
+func (q Query) Parser() func(string) (Query, error) {
 	return GQParser(q.impl().String())
 }
 
-func (q GQuery) ParserMust() func(string) GQuery {
+func (q Query) ParserMust() func(string) Query {
 	return GQParserMust(q.impl().String())
 }
 
-func (q GQuery) WithMake() GQuery {
-	return GQuery(q.impl().WithMake().String())
+func (q Query) WithMake() Query {
+	return Query(q.impl().WithMake().String())
 }
 
-func (q GQuery) WithOverwrite() GQuery {
-	return GQuery(q.impl().WithOverwrite().String())
+func (q Query) WithOverwrite() Query {
+	return Query(q.impl().WithOverwrite().String())
 }
 
-func (q GQuery) WithoutOverwrite() GQuery {
-	return GQuery(q.impl().WithoutOverwrite().String())
+func (q Query) WithoutOverwrite() Query {
+	return Query(q.impl().WithoutOverwrite().String())
 }

@@ -8,11 +8,11 @@ import (
 	"github.com/hkoosha/giraffe/qcmd"
 )
 
-func Q[T interface{ GQuery | string }](
+func Q[T interface{ Query | string }](
 	spec T,
-) GQuery {
+) Query {
 	switch q := any(spec).(type) {
-	case GQuery:
+	case Query:
 		return M(GQParse(q.impl().String()))
 
 	default:
@@ -20,39 +20,39 @@ func Q[T interface{ GQuery | string }](
 	}
 }
 
-func GQErr() GQuery {
+func GQErr() Query {
 	return ""
 }
 
 func GQParse(
 	spec string,
-) (GQuery, error) {
+) (Query, error) {
 	if _, err := internal.Parse(spec); err != nil {
 		return "", err
 	}
 
-	return GQuery(spec), nil
+	return Query(spec), nil
 }
 
 func GQParser(
 	prefix string,
-) func(string) (GQuery, error) {
+) func(string) (Query, error) {
 	if prefix != "" {
 		prefix += qcmd.Sep.String()
 		M(internal.Parse(prefix + "dummy"))
 	}
 
-	return func(spec string) (GQuery, error) {
+	return func(spec string) (Query, error) {
 		return GQParse(prefix + spec)
 	}
 }
 
 func GQParserMust(
 	prefix string,
-) func(string) GQuery {
+) func(string) Query {
 	parser := GQParser(prefix)
 
-	return func(spec string) GQuery {
+	return func(spec string) Query {
 		return M(parser(spec))
 	}
 }

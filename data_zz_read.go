@@ -5,14 +5,15 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/hkoosha/giraffe/internal"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/g"
-	"github.com/hkoosha/giraffe/internal/queryimpl"
-	"github.com/hkoosha/giraffe/internal/queryimpl/dialectical"
 	"github.com/hkoosha/giraffe/qcmd"
 )
 
-func (d Datum) hasShallow(q dialectical.DialecticalQuery) bool {
+func (d Datum) hasShallow(
+	q queryT,
+) bool {
 	qf := q.Flags()
 	dt := d.typ
 
@@ -103,7 +104,7 @@ func (d Datum) len() int {
 }
 
 func (d Datum) get(
-	q dialectical.DialecticalQuery,
+	q queryT,
 ) (Datum, error) {
 	qf := q.Flags()
 	dt := d.typ
@@ -156,15 +157,15 @@ func (d Datum) get(
 	}
 }
 
-func (d Datum) tree() []dialectical.DialecticalQuery {
-	var tr []dialectical.DialecticalQuery
+func (d Datum) tree() []queryT {
+	var tr []queryT
 	tree(&tr, &d, []string{})
 
 	return tr
 }
 
 func tree(
-	tr *[]dialectical.DialecticalQuery,
+	tr *[]queryT,
 	d *Datum,
 	path []string,
 ) bool {
@@ -195,7 +196,7 @@ func tree(
 
 	default:
 		for k, v := range d.obj() {
-			if tree(tr, &v, Appended(path, queryimpl.Escaped(k))) {
+			if tree(tr, &v, Appended(path, internal.Escaped(k))) {
 				return false
 			}
 		}
@@ -207,7 +208,7 @@ func tree(
 // ==============================================================================.
 
 func newDataReadOnlyError(
-	query dialectical.DialecticalQuery,
+	query queryT,
 ) error {
 	return newDataReadError(
 		query,
@@ -217,7 +218,7 @@ func newDataReadOnlyError(
 }
 
 func newDataReadIndeterministicQueryError(
-	query dialectical.DialecticalQuery,
+	query queryT,
 ) error {
 	return newDataReadError(
 		query,
@@ -227,7 +228,7 @@ func newDataReadIndeterministicQueryError(
 }
 
 func newDataReadOutOfBoundsError(
-	query dialectical.DialecticalQuery,
+	query queryT,
 ) error {
 	return newDataReadError(
 		query,
@@ -237,7 +238,7 @@ func newDataReadOutOfBoundsError(
 }
 
 func newDataReadMissingKeyError(
-	query dialectical.DialecticalQuery,
+	query queryT,
 ) error {
 	return newDataReadError(
 		query,
@@ -261,7 +262,7 @@ func newDataReadIntegerOverflowError(
 }
 
 func newDataReadUnexpectedTypeError(
-	query dialectical.DialecticalQuery,
+	query queryT,
 	expecting Type,
 	actual Type,
 ) error {
@@ -277,7 +278,7 @@ func newDataReadUnexpectedTypeError(
 }
 
 func newDataReadError(
-	query dialectical.DialecticalQuery,
+	query queryT,
 	code uint64,
 	msg string,
 	extra ...string,

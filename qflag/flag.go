@@ -22,9 +22,6 @@ const (
 	QModLeaf     QFlag = 0b00000000_00100000_00000000_00000000_00000000_00000000_00000000_00000000
 	QModSingle   QFlag = 0b00000000_00010000_00000000_00000000_00000000_00000000_00000000_00000000
 	QModWrite    QFlag = 0b00000000_00001000_00000000_00000000_00000000_00000000_00000000_00000000
-	QModMove     QFlag = 0b00000000_00000100_00000000_00000000_00000000_00000000_00000000_00000000
-	QModMover    QFlag = 0b00000000_00000010_00000000_00000000_00000000_00000000_00000000_00000000
-	QModExtern   QFlag = 0b00000000_00000001_00000000_00000000_00000000_00000000_00000000_00000000
 )
 
 const (
@@ -113,10 +110,6 @@ func (f QFlag) IsAppend() bool {
 	return f&QModAppend != 0
 }
 
-func (f QFlag) IsExtern() bool {
-	return f&QModExtern != 0
-}
-
 func (f QFlag) IsDelete() bool {
 	return f&QModDelete != 0
 }
@@ -153,16 +146,8 @@ func (f QFlag) IsWrite() bool {
 	return f&QModWrite != 0
 }
 
-func (f QFlag) IsMove() bool {
-	return f&QModMove != 0
-}
-
-func (f QFlag) IsMover() bool {
-	return f&QModMover != 0
-}
-
 func (f QFlag) IsReadonly() bool {
-	return !f.IsWrite() && !f.IsMove()
+	return !f.IsWrite()
 }
 
 func (f QFlag) Val() int {

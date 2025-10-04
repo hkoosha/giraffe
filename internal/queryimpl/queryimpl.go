@@ -3,6 +3,7 @@ package queryimpl
 import (
 	"fmt"
 
+	"github.com/hkoosha/giraffe/dialects"
 	"github.com/hkoosha/giraffe/qflag"
 )
 
@@ -13,8 +14,7 @@ type QueryImpl interface {
 	fmt.Stringer
 
 	Flags() qflag.QFlag
-
-	Plus(query string) (QueryImpl, error)
+	Dialect() dialects.Dialect
 
 	Attr() string
 	Index() int

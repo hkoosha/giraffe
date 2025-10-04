@@ -3,6 +3,7 @@ package gquery
 import (
 	"strings"
 
+	"github.com/hkoosha/giraffe/dialects"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
 	"github.com/hkoosha/giraffe/internal/queryimpl"
@@ -28,6 +29,14 @@ type GiraffeQuery struct {
 	path  *[]GiraffeQuery
 	ref   string
 	flags qflag.QFlag
+}
+
+func (q GiraffeQuery) Dialect() dialects.Dialect {
+	return dialects.Giraffe1v1
+}
+
+func (q GiraffeQuery) Escaped() dialects.Dialect {
+	return Escaped(q.String())
 }
 
 func (q GiraffeQuery) Flags() qflag.QFlag {
@@ -74,11 +83,6 @@ func (q GiraffeQuery) Next() queryimpl.QueryImpl {
 	}
 
 	panic("unreachable: no next")
-}
-
-// Plus panics if the resulting query is too deep, set by iface.MaxDepth.
-func (q GiraffeQuery) Plus(other string) (queryimpl.QueryImpl, error) {
-	return q.PlusS(other), nil
 }
 
 func (q GiraffeQuery) String() string {
@@ -158,7 +162,7 @@ func (q GiraffeQuery) reconstructedAs(
 	q.reconstructInAs(&sb, flags)
 	q.aft(&sb)
 
-	flagged := M(parse(
+	flagged := M(Parse(
 		queryimpl.MaxDepth,
 		sb.String(),
 	))
@@ -196,7 +200,7 @@ func (q GiraffeQuery) UpTo(withSelf bool) GiraffeQuery {
 		q.reconstructedIn(&sb)
 	}
 
-	return M(parse(
+	return M(Parse(
 		queryimpl.MaxDepth,
 		sb.String(),
 	))
@@ -215,7 +219,7 @@ func (q GiraffeQuery) Originating(withSelf bool) GiraffeQuery {
 	}
 	q.aft(&sb)
 
-	return M(parse(
+	return M(Parse(
 		queryimpl.MaxDepth,
 		sb.String(),
 	))
@@ -250,7 +254,7 @@ func (q GiraffeQuery) PlusS(other string) queryimpl.QueryImpl {
 	sb.WriteByte(qcmd.Sep.Byte())
 	sb.WriteString(other)
 
-	return M(parse(
+	return M(Parse(
 		queryimpl.MaxDepth,
 		sb.String(),
 	)).at(q.flags.Seq())

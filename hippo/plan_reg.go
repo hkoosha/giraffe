@@ -21,7 +21,7 @@ var FnRegistry_ = &FnRegistry{
 }
 
 type FnRegistry struct {
-	scope  *giraffe.GQuery
+	scope  *giraffe.Query
 	byType map[typing.Type]regEntry
 }
 

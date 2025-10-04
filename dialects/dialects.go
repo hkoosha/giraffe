@@ -14,6 +14,7 @@ const (
 )
 
 var errUnknown = errors.New("dialect unknown")
+var errMismatch = errors.New("dialect mismatch")
 
 type Dialect string
 
@@ -74,4 +75,12 @@ func Normalized(
 	}
 
 	return d, spec, nil
+}
+
+func ErrUnknown() error {
+	return errUnknown
+}
+
+func ErrMismatch() error {
+	return errMismatch
 }
