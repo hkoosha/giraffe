@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/hkoosha/giraffe"
-	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/t11y"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 func Inspect(v any) string {

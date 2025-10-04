@@ -11,8 +11,8 @@ import (
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/internal/privnames"
-	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/t11y"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 type Server func(context.Context, io.Reader, io.Writer) error

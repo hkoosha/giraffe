@@ -10,8 +10,8 @@ import (
 	"github.com/hkoosha/giraffe/g11y/finalizers"
 	"github.com/hkoosha/giraffe/g11y/otel/internal/metrics"
 	"github.com/hkoosha/giraffe/g11y/setup"
-	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/t11y"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 func NewMetricBuilder(

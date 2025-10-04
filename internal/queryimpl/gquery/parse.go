@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/hkoosha/giraffe/dialects"
-	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
 	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/qflag"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 var uintRegex = regexp.MustCompile(`^\d+$`)

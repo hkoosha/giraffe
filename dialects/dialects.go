@@ -3,8 +3,8 @@ package dialects
 import (
 	"errors"
 
-	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/qcmd"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 const (

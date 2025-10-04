@@ -35,6 +35,7 @@ var (
 
 // =============================================================================
 
+//nolint:err113
 func Extract(
 	pkg []*packages.Package,
 ) (map[string]string, error) {
@@ -60,6 +61,7 @@ func Extract(
 	}
 
 	enums := make(map[string]string)
+	//nolint:gocritic
 	for _, e := range pkg {
 		for _, n := range e.Types.Scope().Names() {
 			if c, ok := e.Types.Scope().Lookup(n).(*types.Const); ok {
@@ -78,6 +80,7 @@ func Extract(
 	return enums, nil
 }
 
+//nolint:err113
 func Check(
 	enums map[string]string,
 	transform func(name, value string) string,
@@ -87,7 +90,7 @@ func Check(
 	}
 
 	var bad []string
-	var seenValues = make(map[string]struct{})
+	seenValues := make(map[string]struct{})
 
 	for name, value := range enums {
 		expecting := transform(name, value)

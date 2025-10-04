@@ -8,7 +8,6 @@ import (
 	. "github.com/hkoosha/giraffe/internal/dot1"
 	"github.com/hkoosha/giraffe/internal/gstrings"
 	"github.com/hkoosha/giraffe/t11y"
-	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 var (
