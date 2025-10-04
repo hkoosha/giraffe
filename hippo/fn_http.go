@@ -1,6 +1,7 @@
 package hippo
 
 import (
+	"encoding/json"
 	"maps"
 	"net/http"
 	"regexp"
@@ -23,7 +24,6 @@ const (
 	httpInputMethod   = "method"
 	httpInputOkCodes  = "ok_codes"
 
-	httpOutputStatus  = "status"
 	httpOutputBody    = "body"
 	httpOutputHeaders = "headers"
 )
@@ -56,7 +56,6 @@ func (e *HttpFn) Fn() *Fn {
 			Q(httpInputOkCodes),
 		).
 		WithOutput(
-			Q(httpOutputStatus),
 			Q(httpOutputBody),
 			Q(httpOutputHeaders),
 		)
@@ -260,10 +259,20 @@ func (e *HttpFn) exe(
 		WithMethod(method).
 		Conn()
 
-	resp, err := cnx.Call(ctx, body, path)
+	resp, headers, err := cnx.CallWithHeaders(ctx, body, path)
 	if err != nil {
 		return OfErr(), err
 	}
 
-	return giraffe.FromJsonable(resp)
+	var deser any
+	if err := json.Unmarshal(resp, &deser); err != nil {
+		return OfErr(), err
+	}
+
+	ret := map[string]any{
+		httpOutputHeaders: headers,
+		httpOutputBody:    deser,
+	}
+
+	return giraffe.FromJsonable(ret)
 }

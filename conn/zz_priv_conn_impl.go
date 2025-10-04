@@ -148,6 +148,32 @@ func (c *connImpl[R]) Call(
 	return c.CallAs(ctx, c.cfg.http.defaultMethod, body, path...)
 }
 
+func (c *connImpl[R]) CallWithHeaders(
+	ctx context.Context,
+	body any,
+	path ...string,
+) (R, map[string]string, error) {
+	//nolint:bodyclose
+	resp, call, err := c.call(ctx, c.cfg.http.defaultMethod, body, path)
+	if err != nil {
+		return call, nil, err
+	}
+
+	headers := make(map[string]string, len(resp.Header))
+	for k, v := range resp.Header {
+		if len(v) > 0 {
+			panic("todo multivalued headers")
+		}
+		if len(v) == 0 {
+			panic("todo: empty headers")
+		}
+
+		headers[k] = v[0]
+	}
+
+	return call, headers, err
+}
+
 func (c *connImpl[R]) CallAs(
 	ctx context.Context,
 	method string,

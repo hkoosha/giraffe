@@ -198,6 +198,12 @@ type Conn[R any] interface {
 		path ...string,
 	) (R, error)
 
+	CallWithHeaders(
+		ctx context.Context,
+		body any,
+		path ...string,
+	) (R, map[string]string, error)
+
 	CallAs(
 		ctx context.Context,
 		method string,
