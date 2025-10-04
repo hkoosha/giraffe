@@ -8,7 +8,7 @@ import (
 
 	"github.com/hkoosha/giraffe/dialects"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
-	"github.com/hkoosha/giraffe/qcmd"
+	"github.com/hkoosha/giraffe/cmd"
 	"github.com/hkoosha/giraffe/qflag"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
@@ -267,47 +267,47 @@ func (p *parser) doParse() error {
 		}
 
 		switch p.c {
-		case qcmd.Escape.Byte():
+		case cmd.Escape.Byte():
 			if err := p.onEscape(); err != nil {
 				return err
 			}
 
-		case qcmd.Self.Byte():
+		case cmd.Self.Byte():
 			if err := p.onSelf(); err != nil {
 				return err
 			}
 
-		case qcmd.Append.Byte():
+		case cmd.Append.Byte():
 			if err := p.onAppend(); err != nil {
 				return err
 			}
 
-		case qcmd.Delete.Byte():
+		case cmd.Delete.Byte():
 			if err := p.onDelete(); err != nil {
 				return err
 			}
 
-		case qcmd.Make.Byte():
+		case cmd.Make.Byte():
 			if err := p.onMake(); err != nil {
 				return err
 			}
 
-		case qcmd.Maybe.Byte():
+		case cmd.Maybe.Byte():
 			if err := p.onMaybe(); err != nil {
 				return err
 			}
 
-		case qcmd.Overwrite.Byte():
+		case cmd.Overwrite.Byte():
 			if err := p.onOverwrite(); err != nil {
 				return err
 			}
 
-		case qcmd.Sep.Byte():
+		case cmd.Sep.Byte():
 			if err := p.onSep(); err != nil {
 				return err
 			}
 
-		case qcmd.At.Byte():
+		case cmd.At.Byte():
 			return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 
 		default:
@@ -409,8 +409,8 @@ func Parse(
 	maxDepth uint16,
 	spec string,
 ) (GiraffeQuery, error) {
-	if !strings.HasSuffix(spec, qcmd.Sep.String()) {
-		spec += qcmd.Sep.String()
+	if !strings.HasSuffix(spec, cmd.Sep.String()) {
+		spec += cmd.Sep.String()
 	}
 	return newParser(maxDepth, spec).parse()
 }

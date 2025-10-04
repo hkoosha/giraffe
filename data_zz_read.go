@@ -8,7 +8,7 @@ import (
 
 	"github.com/hkoosha/giraffe/internal"
 	"github.com/hkoosha/giraffe/internal/gstrings"
-	"github.com/hkoosha/giraffe/qcmd"
+	"github.com/hkoosha/giraffe/cmd"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
@@ -181,7 +181,7 @@ func tree(
 	// property (which would result in the same path). Hence, we signal the
 	// parent call to bail out.
 	case !dt.IsObj():
-		q := Q(strings.Join(path, qcmd.Sep.String())).impl()
+		q := Q(strings.Join(path, cmd.Sep.String())).impl()
 		*tr = append(*tr, q)
 
 		return true
@@ -190,7 +190,7 @@ func tree(
 		return false
 
 	case d.len() == 0:
-		q := Q(strings.Join(path, qcmd.Sep.String())).impl()
+		q := Q(strings.Join(path, cmd.Sep.String())).impl()
 		*tr = append(*tr, q)
 
 		return false

@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hkoosha/giraffe/qcmd"
+	"github.com/hkoosha/giraffe/cmd"
 )
 
 //goland:noinspection SpellCheckingInspection
@@ -53,7 +53,7 @@ func (f QFlag) String0() string {
 
 	f.ReconstructPreModIn(&sb)
 
-	sb.WriteByte(qcmd.At.Byte())
+	sb.WriteByte(cmd.At.Byte())
 	sb.WriteString(strconv.Itoa(f.Seq()))
 
 	return sb.String()
@@ -70,27 +70,27 @@ func (f QFlag) ReconstructPreModIn(
 	sb *strings.Builder,
 ) {
 	if f&QModOverwrit != 0 {
-		sb.WriteByte(qcmd.Overwrite.Byte())
+		sb.WriteByte(cmd.Overwrite.Byte())
 	}
 
 	if f&QModeMaybe != 0 {
-		sb.WriteByte(qcmd.Maybe.Byte())
+		sb.WriteByte(cmd.Maybe.Byte())
 	}
 
 	if f&QModAppend != 0 {
-		sb.WriteByte(qcmd.Append.Byte())
+		sb.WriteByte(cmd.Append.Byte())
 	}
 
 	if f&QModDelete != 0 {
-		sb.WriteByte(qcmd.Delete.Byte())
+		sb.WriteByte(cmd.Delete.Byte())
 	}
 
 	if f&QModeMake != 0 {
-		sb.WriteByte(qcmd.Make.Byte())
+		sb.WriteByte(cmd.Make.Byte())
 	}
 
 	if f&QModSelf != 0 {
-		sb.WriteByte(qcmd.Self.Byte())
+		sb.WriteByte(cmd.Self.Byte())
 	}
 }
 

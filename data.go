@@ -13,7 +13,7 @@ import (
 
 	"github.com/hkoosha/giraffe/internal"
 	"github.com/hkoosha/giraffe/internal/gdatum"
-	"github.com/hkoosha/giraffe/qcmd"
+	"github.com/hkoosha/giraffe/cmd"
 	"github.com/hkoosha/giraffe/t11y"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/zebra/z"
@@ -261,7 +261,7 @@ func (d Datum) Append(
 	value any,
 ) (Datum, error) {
 	return d.Set(
-		Q(qcmd.Append.String()),
+		Q(cmd.Append.String()),
 		value,
 	)
 }

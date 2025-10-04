@@ -1,4 +1,4 @@
-package genv
+package env
 
 const (
 	// Valid values for a switch (case-insensitive):

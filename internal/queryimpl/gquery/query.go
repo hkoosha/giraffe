@@ -7,7 +7,7 @@ import (
 	"github.com/hkoosha/giraffe/dialects"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
 	"github.com/hkoosha/giraffe/internal/queryimpl"
-	"github.com/hkoosha/giraffe/qcmd"
+	"github.com/hkoosha/giraffe/cmd"
 	"github.com/hkoosha/giraffe/qflag"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
@@ -99,10 +99,10 @@ func (q GiraffeQuery) string0() string {
 
 	for j, p := range *q.path {
 		if j > 0 {
-			sb.WriteByte(qcmd.Sep.Byte())
+			sb.WriteByte(cmd.Sep.Byte())
 
 			if q.flags.Seq() == j {
-				sb.WriteByte(qcmd.At.Byte())
+				sb.WriteByte(cmd.At.Byte())
 			}
 		}
 
@@ -125,7 +125,7 @@ func (q GiraffeQuery) bef(
 		qI := path[i]
 		sb.WriteString(qI.flags.ReconstructPreMod())
 		sb.WriteString(qI.ref)
-		sb.WriteByte(qcmd.Sep.Byte())
+		sb.WriteByte(cmd.Sep.Byte())
 	}
 }
 
@@ -138,7 +138,7 @@ func (q GiraffeQuery) aft(
 
 	path := *q.path
 	for i := q.flags.Seq() + 1; i < len(path); i++ {
-		sb.WriteByte(qcmd.Sep.Byte())
+		sb.WriteByte(cmd.Sep.Byte())
 
 		qI := path[i]
 		sb.WriteString(qI.flags.ReconstructPreMod())
@@ -256,7 +256,7 @@ func (q GiraffeQuery) PlusS(other string) queryimpl.QueryImpl {
 
 	sb.WriteString(q.flags.ReconstructPreMod())
 	sb.WriteString(q.ref)
-	sb.WriteByte(qcmd.Sep.Byte())
+	sb.WriteByte(cmd.Sep.Byte())
 	sb.WriteString(other)
 
 	return M(Parse(

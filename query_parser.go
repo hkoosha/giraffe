@@ -4,7 +4,7 @@ import (
 	"reflect"
 
 	"github.com/hkoosha/giraffe/internal"
-	"github.com/hkoosha/giraffe/qcmd"
+	"github.com/hkoosha/giraffe/cmd"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
@@ -41,7 +41,7 @@ func GQParser(
 	prefix string,
 ) func(string) (Query, error) {
 	if prefix != "" {
-		prefix += qcmd.Sep.String()
+		prefix += cmd.Sep.String()
 		M(internal.Parse(prefix + "dummy"))
 	}
 

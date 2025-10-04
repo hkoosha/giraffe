@@ -3,7 +3,7 @@ package dialects
 import (
 	"errors"
 
-	"github.com/hkoosha/giraffe/qcmd"
+	"github.com/hkoosha/giraffe/cmd"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
@@ -32,7 +32,7 @@ func (d Dialect) matches(
 	matched bool,
 ) {
 	switch {
-	case len(spec) < 1 || spec[0] != qcmd.Dialect.Byte():
+	case len(spec) < 1 || spec[0] != cmd.Dialect.Byte():
 		matched = d == Giraffe1v1
 		explicit = false
 
@@ -73,7 +73,7 @@ func Denormalized(
 	}
 
 	if !explicit {
-		spec = qcmd.Dialect.String() + dialect.String() + qcmd.Sep.String() + spec
+		spec = cmd.Dialect.String() + dialect.String() + cmd.Sep.String() + spec
 	}
 
 	return dialect, spec, nil
@@ -89,7 +89,7 @@ func Normalized(
 	}
 
 	if explicit {
-		spec = spec[len(qcmd.Dialect.String())+len(dialect.String())+1:]
+		spec = spec[len(cmd.Dialect.String())+len(dialect.String())+1:]
 	}
 
 	return dialect, spec, nil

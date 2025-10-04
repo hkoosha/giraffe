@@ -1,8 +1,4 @@
-package qcmd
-
-import (
-	"maps"
-)
+package cmd
 
 const (
 	// Write
@@ -48,8 +44,4 @@ var all = map[Cmd]struct{}{
 	Escape:    {},
 	At:        {},
 	Self:      {},
-}
-
-func All() map[Cmd]struct{} {
-	return maps.Clone(all)
 }

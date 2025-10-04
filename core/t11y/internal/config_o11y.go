@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"sync/atomic"
 
-	"github.com/hkoosha/giraffe/genv"
+	"github.com/hkoosha/giraffe/t11y/env"
 )
 
 var (
@@ -18,10 +18,10 @@ var (
 )
 
 func init() {
-	_ = IsDebug.CompareAndSwap(false, chk(genv.Debug))
-	_ = IsToString.CompareAndSwap(false, chk(genv.ToString))
-	_ = IsTracer.CompareAndSwap(false, chk(genv.Tracer))
-	_ = IsUnsafeError.CompareAndSwap(false, chk(genv.UnsafeErrors))
+	_ = IsDebug.CompareAndSwap(false, chk(env.Debug))
+	_ = IsToString.CompareAndSwap(false, chk(env.ToString))
+	_ = IsTracer.CompareAndSwap(false, chk(env.Tracer))
+	_ = IsUnsafeError.CompareAndSwap(false, chk(env.UnsafeErrors))
 }
 
 func chk(envVar string) bool {

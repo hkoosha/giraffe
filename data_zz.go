@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/hkoosha/giraffe/internal/queryimpl"
-	"github.com/hkoosha/giraffe/qcmd"
+	"github.com/hkoosha/giraffe/cmd"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
@@ -251,7 +251,7 @@ func (d Datum) nest(
 		if err != nil {
 			return errD, err
 		}
-		qK = Query(q.String() + qcmd.Sep.String() + qK.String())
+		qK = Query(q.String() + cmd.Sep.String() + qK.String())
 
 		nested, err = nested.Set(qK, v)
 		if err != nil {
@@ -370,7 +370,7 @@ func newMergeClashingKeysError(
 
 	return newDataMakeError(
 		ErrCodeDataMergeClashingKeys,
-		"clashing keys: ["+strings.Join(key, qcmd.Sep.String())+"]",
+		"clashing keys: ["+strings.Join(key, cmd.Sep.String())+"]",
 	)
 }
 

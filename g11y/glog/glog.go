@@ -1,15 +1,10 @@
 package glog
 
-import (
-	"github.com/hkoosha/giraffe/g11y/setup"
-)
-
 func Global() Lg {
 	return global
 }
 
 func SetGlobal(lg Lg) {
-	setup.Finish("giraffe", "log", "global")
 	global = lg
 }
 
