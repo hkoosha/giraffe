@@ -1,7 +1,7 @@
 package containers
 
 import (
-	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/t11y/glog"
 	"github.com/hkoosha/giraffe/g11y/gtx"
 )
 

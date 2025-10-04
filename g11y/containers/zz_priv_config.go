@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
-	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/t11y/glog"
 	"github.com/hkoosha/giraffe/t11y"
 )
 

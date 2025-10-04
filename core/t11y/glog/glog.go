@@ -1,11 +1,25 @@
 package glog
 
+import (
+	"errors"
+	"sync/atomic"
+)
+
+var once = atomic.Bool{}
+var errAlreadySet = errors.New("global logger already set")
+
 func Global() Lg {
 	return global
 }
 
-func SetGlobal(lg Lg) {
+func SetGlobal(lg Lg) error {
+	if !once.CompareAndSwap(false, true) {
+		return errAlreadySet
+	}
+
 	global = lg
+
+	return nil
 }
 
 type Lg interface {

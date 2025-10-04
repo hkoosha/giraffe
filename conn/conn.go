@@ -9,7 +9,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/hkoosha/giraffe/conn/internal"
-	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/t11y/glog"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
 

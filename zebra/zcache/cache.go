@@ -5,7 +5,7 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 
-	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/t11y/glog"
 	"github.com/hkoosha/giraffe/g11y/otel"
 	"github.com/hkoosha/giraffe/t11y"
 	. "github.com/hkoosha/giraffe/t11y/dot"
