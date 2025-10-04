@@ -8,10 +8,10 @@ import (
 
 	"github.com/hkoosha/giraffe/contrib/zap/gzapadapter"
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
-	"github.com/hkoosha/giraffe/t11y/gtx"
 	"github.com/hkoosha/giraffe/t11y"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/t11y/glog"
+	"github.com/hkoosha/giraffe/t11y/gtx"
 )
 
 const (
@@ -117,7 +117,7 @@ func (r *runner) Wait(
 ) error {
 	r.gotoFrom(stateTryingRunning, ready)
 
-	wg, ctx := errgroup.WithContext(ctx)
+	ctx, wg := ctx.Group()
 	for _, c := range r.containers {
 		wg.Go(func() error {
 			return c.Start(ctx)

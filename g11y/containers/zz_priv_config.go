@@ -1,7 +1,6 @@
 package containers
 
 import (
-	"context"
 	"errors"
 	"sync/atomic"
 	"time"
@@ -9,6 +8,7 @@ import (
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/t11y"
 	"github.com/hkoosha/giraffe/t11y/glog"
+	"github.com/hkoosha/giraffe/t11y/gtx"
 )
 
 var (
@@ -33,13 +33,13 @@ func (r *config) shallow() *config {
 // ============================================================================.
 
 func (r *config) Runner(
-	ctx context.Context,
+	ctx gtx.Context,
 ) Runner {
 	return GiraffeRunner(ctx, r)
 }
 
 func (r *config) Wait(
-	ctx context.Context,
+	ctx gtx.Context,
 	containers ...Container,
 ) error {
 	err := atomic.Value{}
@@ -47,7 +47,7 @@ func (r *config) Wait(
 }
 
 func (r *config) doWait(
-	ctx context.Context,
+	ctx gtx.Context,
 	err *atomic.Value,
 	containers ...Container,
 ) error {
@@ -64,13 +64,13 @@ func (r *config) doWait(
 	}
 
 	fin := func(
-		ctx context.Context,
+		ctx gtx.Context,
 		rn Runner,
 	) {
 		timer := time.NewTimer(timeout)
 		defer timer.Stop()
 
-		ctx, cancel := context.WithTimeout(ctx, timeout)
+		ctx, cancel := ctx.WithTimeout(timeout)
 		defer cancel()
 
 		done := make(chan error, 1)
@@ -107,7 +107,7 @@ func (r *config) doWait(
 }
 
 func (r *config) WaitOrDie(
-	ctx context.Context,
+	ctx gtx.Context,
 	containers ...Container,
 ) {
 	err := r.Wait(ctx, containers...)

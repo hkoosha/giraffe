@@ -1,10 +1,9 @@
 package containers
 
 import (
-	"context"
-
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/t11y/glog"
+	"github.com/hkoosha/giraffe/t11y/gtx"
 )
 
 type DebugCfg interface {
@@ -33,9 +32,9 @@ type Config interface {
 
 	GetAppRef() string
 
-	Runner(context.Context) Runner
-	Wait(context.Context, ...Container) error
-	WaitOrDie(context.Context, ...Container)
+	Runner(gtx.Context) Runner
+	Wait(gtx.Context, ...Container) error
+	WaitOrDie(gtx.Context, ...Container)
 
 	DebugCfg
 	LgCfg

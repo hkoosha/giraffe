@@ -20,8 +20,19 @@ type Context interface {
 	context.Context
 
 	Rand() Rand
-
 	Clock() Clock
+
+	With(k, v any) Context
+	WithTimeout(duration time.Duration) (Context, context.CancelFunc)
+
+	Group() (Context, Group)
+}
+
+type Group interface {
+	Wait() error
+	Go(f func() error)
+	SetLimit(int)
+	TryGo(f func() error) bool
 }
 
 func Of(ctx context.Context) Context {

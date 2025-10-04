@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
@@ -36,10 +38,26 @@ func (c impl) Value(key any) any {
 	return c.ctx.Value(key)
 }
 
-func (c impl) WithCtx(ctx context.Context) Context {
+func (c impl) With(k any, v any) Context {
+	return &impl{
+		ctx: context.WithValue(c.ctx, k, v),
+	}
+}
+
+func (c impl) WithTimeout(d time.Duration) (Context, context.CancelFunc) {
+	ctx, cancel := context.WithTimeout(c.ctx, d)
+
 	return &impl{
 		ctx: ctx,
-	}
+	}, cancel
+}
+
+func (c impl) Group() (Context, Group) {
+	group, ctx := errgroup.WithContext(c)
+
+	return &impl{
+		ctx: ctx,
+	}, group
 }
 
 // =====================================
