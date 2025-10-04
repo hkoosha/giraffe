@@ -400,10 +400,6 @@ func newParser(
 	maxDepth uint,
 	spec string,
 ) *parser {
-	if !strings.HasSuffix(spec, qcmd.Sep.String()) {
-		spec += qcmd.At.String()
-	}
-
 	//nolint:exhaustruct
 	zeroState := state{}
 

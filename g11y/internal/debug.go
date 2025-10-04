@@ -17,6 +17,8 @@ var (
 		// Go funcs.
 		regexp.MustCompile(regexp.QuoteMeta("runtime/debug.Stack(")),
 		regexp.MustCompile(regexp.QuoteMeta("^panic(")),
+		regexp.MustCompile(regexp.QuoteMeta("golang.org/toolchain")),
+		regexp.MustCompile(regexp.QuoteMeta("/giraffe/internal/queryerrors")),
 
 		// Giraffe packages.
 		regexp.MustCompile(regexp.QuoteMeta("/giraffe/g11y")),

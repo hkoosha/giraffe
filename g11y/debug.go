@@ -6,6 +6,8 @@ import (
 	"os"
 	"regexp"
 	"runtime/debug"
+	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/hkoosha/giraffe/g11y/internal"
@@ -40,7 +42,7 @@ func SetCollapsedLines(
 
 func FmtStacktrace(
 	stacktrace string,
-) string {
+) []string {
 	defer func() {
 		if r := recover(); r != nil {
 			_, _ = os.Stderr.WriteString("nested panic " + fmt.Sprintf("%+v", r))
@@ -49,20 +51,16 @@ func FmtStacktrace(
 	}()
 
 	fmtLine := func(
-		sb *strings.Builder,
 		line string,
 		fn string,
-	) {
-		if internal.GoSdkCode.MatchString(line) {
-			return
-		}
-
+	) string {
 		line = strings.TrimSpace(line)
 
 		if internal.FileLine.MatchString(line) {
 			line = strings.Split(line, " ")[0]
 		}
 
+		sb := strings.Builder{}
 		sb.Grow(len(line) + len(fn) + 3)
 
 		if internal.LineNum.MatchString(line) {
@@ -82,7 +80,7 @@ func FmtStacktrace(
 			sb.WriteString("()")
 		}
 
-		sb.WriteByte('\n')
+		return sb.String()
 	}
 
 	var skipped func(string) bool
@@ -97,6 +95,10 @@ func FmtStacktrace(
 		skipped = func(
 			line string,
 		) bool {
+			if internal.GoSdkCode.MatchString(line) {
+				return true
+			}
+
 			if skipping {
 				skipping = false
 				lastCollapse = nil
@@ -134,9 +136,9 @@ func FmtStacktrace(
 		}
 	}
 
-	sb := strings.Builder{}
-	fnName := ""
+	var lines []string
 
+	fnName := ""
 	for line := range strings.Lines(stacktrace) {
 		switch {
 		case skipped(line):
@@ -146,11 +148,14 @@ func FmtStacktrace(
 			fnName = internal.FnCall.FindStringSubmatch(line)[2]
 
 		default:
-			fmtLine(&sb, line, fnName)
+			l := fmtLine(line, fnName)
+			lines = append(lines, l)
 		}
 	}
 
-	return sb.String()
+	return slices.DeleteFunc(lines, func(it string) bool {
+		return strings.TrimSpace(it) == ""
+	})
 }
 
 func FmtStacktraces(
@@ -160,15 +165,64 @@ func FmtStacktraces(
 		return "<missing trace>\n\n" + string(debug.Stack())
 	}
 
-	var sb strings.Builder
+	var traces [][]string
+	for _, st := range stacktraces {
+		traces = append(traces, FmtStacktrace(st))
+	}
 
-	for i, st := range stacktraces {
-		if t := FmtStacktrace(st); strings.TrimSpace(t) != "" {
-			sb.WriteString(fmt.Sprintf("trace %d:\n%s\n", i, t))
+	isProper := func(smaller, bigger []string) bool {
+		if len(smaller) >= len(bigger) {
+			return false
+		}
+
+		sp := 0
+		for i := 0; i < len(bigger); i++ {
+			if bigger[i] == smaller[sp] {
+				sp++
+			} else {
+				sp = 0
+			}
+			if sp == len(smaller) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	drop := map[int]struct{}{}
+	for _, big := range traces {
+		for i, small := range traces {
+			if isProper(small, big) {
+				drop[i] = struct{}{}
+			}
 		}
 	}
 
-	if fin := sb.String(); fin != "" {
+	j := 0
+	for i := range traces {
+		if _, ok := drop[i]; !ok {
+			traces[j] = traces[i]
+			j++
+		}
+	}
+	traces = traces[:j]
+
+	var sb strings.Builder
+	for i, t := range traces {
+		if len(t) > 0 {
+			sb.WriteString("trace ")
+			sb.WriteString(strconv.Itoa(i))
+			sb.WriteString(":\n")
+			for _, tl := range t {
+				sb.WriteString(tl)
+				sb.WriteString("\n")
+			}
+		}
+	}
+
+	fin := sb.String()
+	if fin != "" {
 		return fin
 	}
 
@@ -191,8 +245,11 @@ func FmtStacktraceOf(
 		}
 	}
 
-	return "<missing trace>\n" +
-		FmtStacktrace(string(debug.Stack())) + "\n\n\n\n" + string(debug.Stack())
+	return fmt.Sprintf(
+		"<missing trace>\n%s\n\n\n\n%s",
+		strings.Join(FmtStacktrace(string(debug.Stack())), "\n"),
+		string(debug.Stack()),
+	)
 }
 
 func FmtMsg(

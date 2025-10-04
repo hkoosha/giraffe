@@ -15,6 +15,9 @@ func Q[T interface{ Query | string }](
 	case Query:
 		return M(GQParse(q.impl().String()))
 
+	case string:
+		return M(GQParse(q))
+
 	default:
 		panic("unknown query type: " + reflect.TypeOf(spec).String())
 	}

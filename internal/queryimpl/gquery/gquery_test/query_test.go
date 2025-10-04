@@ -13,11 +13,10 @@ func TestParse(t *testing.T) {
 	t.Run("test parse simple", func(t *testing.T) {
 		spec := "k0"
 
-		first, err := gquery.Parse(spec)
+		first, err := gquery.Parse(100, spec)
 		require.NoError(t, err)
 
-		require.NotNil(t, first.Path)
-		path := *first.Path
+		path := first.VisibleForTestingPath()
 		require.Len(t, path, 1)
 
 		actual := path[0]
@@ -38,11 +37,10 @@ func TestParse(t *testing.T) {
 	t.Run("test parse simple 2", func(t *testing.T) {
 		spec := "k0.k1"
 
-		first, err := gquery.Parse(spec)
+		first, err := gquery.Parse(100, spec)
 		require.NoError(t, err)
 
-		require.NotNil(t, first.Path)
-		path := *first.Path
+		path := first.VisibleForTestingPath()
 		require.Len(t, path, 2)
 
 		k0 := path[0]
@@ -80,7 +78,7 @@ func TestNext(t *testing.T) {
 	t.Run("test next", func(t *testing.T) {
 		spec := "dynamic.static.thingy.foo"
 
-		q, err := gquery.Parse(spec)
+		q, err := gquery.Parse(100, spec)
 		require.NoError(t, err)
 
 		assert.Equal(t, "dynamic", q.Attr())
@@ -94,7 +92,7 @@ func TestNext(t *testing.T) {
 
 func TestQuery_ToString(t *testing.T) {
 	t.Run("to string", func(t *testing.T) {
-		q, err := gquery.Parse("k0.k1.k2")
+		q, err := gquery.Parse(100, "k0.k1.k2")
 		require.NoError(t, err)
 		str := q.Next().String()
 		require.Equal(t, "k0.@k1.k2", str)

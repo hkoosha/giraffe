@@ -17,19 +17,20 @@ func setup() {
 func TestMerge(t *testing.T) {
 	t.Run("merge same values", func(t *testing.T) {
 		setup()
+
 		defer func() {
-			r := recover()
-			require.Nil(
-				t, r, "merge failed: %s", g11y.FmtStacktraceOf(r))
+			if r := recover(); r != nil {
+				require.Nil(t, r, g11y.FmtStacktraceOf(r))
+			}
 		}()
+	
+		q := giraffe.Q("a.bb.c")
 
-		d0 := giraffe.Of1("a.bb.c", 123)
-		d1 := giraffe.Of1("a.bb.c", 123)
+		d0 := giraffe.Of1(q, 123)
+		d1 := giraffe.Of1(q, 123)
+		dm, err := d0.Merge(d1)
 
-		dMerge, err := d0.Merge(d1)
-		require.NoError(
-			t, err, "merge failed: %s", g11y.FmtStacktraceOf(err))
-
-		assert.Equal(t, d0.Pretty(), dMerge.Pretty())
+		require.NoError(t, err, g11y.FmtStacktraceOf(err))
+		assert.Equal(t, d0.Pretty(), dm.Pretty())
 	})
 }

@@ -3,6 +3,7 @@ package dialects
 import (
 	"errors"
 
+	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/qcmd"
 )
 
@@ -52,7 +53,7 @@ func dialectOf(
 		return Http1v1, ex, nil
 	}
 
-	return Unknown, false, errUnknown
+	return Unknown, false, ErrUnknown()
 }
 
 func DialectOf(
@@ -78,9 +79,9 @@ func Normalized(
 }
 
 func ErrUnknown() error {
-	return errUnknown
+	return E(errUnknown)
 }
 
 func ErrMismatch() error {
-	return errMismatch
+	return E(errMismatch)
 }

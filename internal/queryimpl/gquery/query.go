@@ -1,6 +1,7 @@
 package gquery
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/hkoosha/giraffe/dialects"
@@ -31,11 +32,15 @@ type GiraffeQuery struct {
 	flags qflag.QFlag
 }
 
+func (q GiraffeQuery) VisibleForTestingPath() []GiraffeQuery {
+	return slices.Clone(*q.path)
+}
+
 func (q GiraffeQuery) Dialect() dialects.Dialect {
 	return dialects.Giraffe1v1
 }
 
-func (q GiraffeQuery) Escaped() dialects.Dialect {
+func (q GiraffeQuery) Escaped() string {
 	return Escaped(q.String())
 }
 

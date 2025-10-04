@@ -15,6 +15,7 @@ type QueryImpl interface {
 
 	Flags() qflag.QFlag
 	Dialect() dialects.Dialect
+	Escaped() string
 
 	Attr() string
 	Index() int
