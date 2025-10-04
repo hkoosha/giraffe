@@ -12,26 +12,31 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-//nolint:exhaustruct
-//goland:noinspection GoUnusedGlobalVariable
-var ReadPkgCfg = packages.Config{
-	Mode: packages.NeedName |
-		packages.NeedTypes |
-		packages.NeedTypesInfo |
-		packages.NeedSyntax,
-	Fset: token.NewFileSet(),
-	Dir:  ".",
-}
-
-var (
-	NoIgnore    = map[string]struct{}{}
-	NoOverwrite = map[string]string{}
-)
-
 var (
 	alphanum = regexp.MustCompile("[^a-zA-Z0-9]")
 	num      = regexp.MustCompile(`^\d.+`)
 )
+
+func ReadPkgCfg() *packages.Config {
+	//nolint:exhaustruct
+	//goland:noinspection GoUnusedGlobalVariable
+	return &packages.Config{
+		Mode: packages.NeedName |
+			packages.NeedTypes |
+			packages.NeedTypesInfo |
+			packages.NeedSyntax,
+		Fset: token.NewFileSet(),
+		Dir:  ".",
+	}
+}
+
+func NoIgnore() map[string]struct{} {
+	return map[string]struct{}{}
+}
+
+func NoOverwrite() map[string]string {
+	return map[string]string{}
+}
 
 // =============================================================================
 

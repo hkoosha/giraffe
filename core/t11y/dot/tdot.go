@@ -53,3 +53,18 @@ func Assertf(
 func N(name string, v any) t11y.Named {
 	return t11y.Of(name, v)
 }
+
+// =============================================================================
+
+func Ref[T any](t T) *T {
+	return &t
+}
+
+func Deref[V any](v *V) V {
+	if v == nil {
+		var res V
+		return res
+	}
+
+	return *v
+}

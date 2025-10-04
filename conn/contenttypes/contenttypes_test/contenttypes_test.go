@@ -7,7 +7,7 @@ import (
 	"golang.org/x/tools/go/packages"
 
 	_ "github.com/hkoosha/giraffe/conn/contenttypes"
-	"github.com/hkoosha/giraffe/testhelper"
+	"github.com/hkoosha/giraffe/contrib/gtesting/gtesting"
 )
 
 //goland:noinspection SpellCheckingInspection
@@ -22,17 +22,17 @@ func TestContentTypes(t *testing.T) {
 	t.Skip("casing func in enum helper pkg is not working yet")
 
 	t.Run("content_types casing", func(t *testing.T) {
-		pkg, err := packages.Load(testhelper.ReadPkgCfg(), "../")
+		pkg, err := packages.Load(gtesting.ReadPkgCfg(), "../")
 		require.NoError(t, err)
 
-		enums, err := testhelper.Extract(pkg)
+		enums, err := gtesting.Extract(pkg)
 		require.NoError(t, err)
 
-		err = testhelper.CheckWith(
+		err = gtesting.CheckWith(
 			enums,
-			testhelper.NoIgnore(),
+			gtesting.NoIgnore(),
 			exceptions,
-			testhelper.DashedTitleCasing,
+			gtesting.DashedTitleCasing,
 		)
 		require.NoError(t, err)
 	})

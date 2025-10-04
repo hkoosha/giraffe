@@ -1,64 +1,36 @@
 package dot
 
 import (
-	"errors"
-
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/t11y"
-	"github.com/hkoosha/giraffe/zebra/zptr"
+	"github.com/hkoosha/giraffe/t11y/dot"
 )
 
 // ================================================== ERROR MANAGEMENT SHORTCUTS.
 
-// T traced error if error, result if otherwise
-func T[A any](a A, err error) (A, error) {
-	if err != nil {
-		return a, E(err)
-	}
-
-	return a, nil
-}
-
 // E trace error(s).
 func E(err ...error) error {
-	switch {
-	case len(err) == 0:
-		return t11y.Traced(nil)
-
-	case len(err) == 1:
-		return t11y.Traced(err[0])
-
-	default:
-		return t11y.Traced(errors.Join(err...))
-	}
+	return dot.E(err...)
 }
 
 // EF trace formated error.
 func EF(format string, v ...any) error {
-	return t11y.TracedFmt(format, v...)
+	return dot.EF(format, v...)
 }
 
 // M Must.
-func M[A any](
-	a A,
-	err error,
-) A {
-	return t11y.Must(a, err)
+func M[A any](a A, err error) A {
+	return dot.M(a, err)
 }
 
 // N Named.
-func N(
-	name string,
-	v any,
-) t11y.Named {
-	return t11y.Of(name, v)
+func N(name string, v any) t11y.Named {
+	return dot.N(name, v)
 }
 
-func OK(
-	err error,
-) {
-	t11y.Ensure(err)
+func OK(err error) {
+	dot.OK(err)
 }
 
 // ======================================================= DATUM, QUERY, TUPLES.
@@ -118,11 +90,11 @@ func OfFn(
 func Ref[T any](
 	t T,
 ) *T {
-	return zptr.Ref[T](t)
+	return dot.Ref[T](t)
 }
 
 func Deref[T any](
 	t *T,
 ) T {
-	return zptr.Deref[T](t)
+	return dot.Deref[T](t)
 }

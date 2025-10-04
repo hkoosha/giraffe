@@ -8,25 +8,25 @@ import (
 	"golang.org/x/tools/go/packages"
 
 	_ "github.com/hkoosha/giraffe/conn/headers"
-	"github.com/hkoosha/giraffe/testhelper"
+	"github.com/hkoosha/giraffe/contrib/gtesting/gtesting"
 )
 
 func TestHeaders(t *testing.T) {
 	t.Skip("casing func in enum helper pkg is not working yet")
 
 	t.Run("content_types casing", func(t *testing.T) {
-		pkg, err := packages.Load(testhelper.ReadPkgCfg(), "../")
+		pkg, err := packages.Load(gtesting.ReadPkgCfg(), "../")
 		require.NoError(t, err)
 
-		enums, err := testhelper.Extract(pkg)
+		enums, err := gtesting.Extract(pkg)
 		require.NoError(t, err)
 
-		err = testhelper.CheckWith(
+		err = gtesting.CheckWith(
 			enums,
-			testhelper.NoIgnore(),
-			testhelper.NoOverwrite(),
+			gtesting.NoIgnore(),
+			gtesting.NoOverwrite(),
 			func(v string) string {
-				fixed := testhelper.DashedTitleCasing(v)
+				fixed := gtesting.DashedTitleCasing(v)
 				fixed = http.CanonicalHeaderKey(fixed)
 				return fixed
 			},
