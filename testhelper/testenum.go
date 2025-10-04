@@ -61,9 +61,9 @@ func Extract(
 	}
 
 	enums := make(map[string]string)
-	//nolint:go
 	for _, e := range pkg {
 		for _, n := range e.Types.Scope().Names() {
+			//nolint:gocritic
 			if c, ok := e.Types.Scope().Lookup(n).(*types.Const); ok {
 				name := c.Name()
 				value := constant.StringVal(c.Val())

@@ -3,9 +3,9 @@ package toggles
 import (
 	"sync"
 
-	"github.com/hkoosha/giraffe/t11y/glog"
 	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/t11y"
+	"github.com/hkoosha/giraffe/t11y/glog"
 )
 
 var _ Storage = (*InMemory)(nil)

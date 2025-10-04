@@ -3,8 +3,8 @@ package giraffe
 import (
 	"reflect"
 
-	"github.com/hkoosha/giraffe/internal"
 	"github.com/hkoosha/giraffe/cmd"
+	"github.com/hkoosha/giraffe/internal"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 

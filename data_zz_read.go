@@ -6,9 +6,9 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/hkoosha/giraffe/cmd"
 	"github.com/hkoosha/giraffe/internal"
 	"github.com/hkoosha/giraffe/internal/gstrings"
-	"github.com/hkoosha/giraffe/cmd"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 

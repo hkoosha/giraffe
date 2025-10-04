@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hkoosha/giraffe/cmd"
 	"github.com/hkoosha/giraffe/dialects"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
-	"github.com/hkoosha/giraffe/cmd"
 	"github.com/hkoosha/giraffe/qflag"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )

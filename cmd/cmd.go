@@ -32,6 +32,7 @@ func (c Cmd) Byte() byte {
 	return byte(c)
 }
 
+//nolint:unused
 var all = map[Cmd]struct{}{
 	Dialect:   {},
 	Pipe:      {},
