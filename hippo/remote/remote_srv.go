@@ -9,7 +9,7 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/hippo"
-	"github.com/hkoosha/giraffe/hippo/internal/privnames"
+	"github.com/hkoosha/giraffe/hippo/internal"
 	"github.com/hkoosha/giraffe/t11y"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
@@ -134,7 +134,7 @@ func NewServer(
 	templates = maps.Clone(templates)
 
 	for name, plan := range templates {
-		if !privnames.SimpleName.MatchString(name) {
+		if !internal.SimpleName.MatchString(name) {
 			return nil, EF("invalid plan name: %s", name)
 		}
 

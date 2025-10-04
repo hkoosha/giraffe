@@ -120,7 +120,8 @@ func write(
 
 func TestRunner(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
-		plan := hippo.Plan_.
+		plan := hippo.
+			MkPlan().
 			MustWithNext("my_fn0", hippo.MustFnOf(fn0)).
 			MustWithNext("my_fn1", hippo.MustFnOf(fn1)).
 			MustWithNext("my_fn2", hippo.MustFnOf(fn2))
@@ -155,7 +156,8 @@ func TestRunner(t *testing.T) {
 
 func TestRunner_Compensation(t *testing.T) {
 	t.Run("compensation by error message", func(t *testing.T) {
-		plan := hippo.Plan_.
+		plan := hippo.
+			MkPlan().
 			MustWithNext("f_0", fail("thingy")).
 			MustWithNext("m_1", mul(1)).
 			AndCompensator(
@@ -188,7 +190,8 @@ func TestRunner_Compensation(t *testing.T) {
 	})
 
 	t.Run("compensation by step", func(t *testing.T) {
-		plan := hippo.Plan_.
+		plan := hippo.
+			MkPlan().
 			MustWithNext("m_0", mul(0)).
 			MustWithNext("m_1", mul(1)).
 			MustWithNext("m_2", mul(2)).

@@ -6,18 +6,16 @@ import (
 	"strings"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/hippo/internal"
 	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
-	"github.com/hkoosha/giraffe/hippo/internal/privnames"
 	"github.com/hkoosha/giraffe/internal/gstrings"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/typing"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
-//goland:noinspection GoUnusedGlobalVariable
-var FnRegistry_ = &FnRegistry{
-	scope:  nil,
-	byType: make(map[typing.Type]regEntry),
+func MkFnRegistry() *FnRegistry {
+	return zeroRegistry
 }
 
 type FnRegistry struct {
@@ -76,7 +74,7 @@ func (r FnRegistry) WithNamed(
 		panic(EF("invalid fn"))
 	}
 
-	if !privnames.SimpleName.MatchString(name) {
+	if !internal.SimpleName.MatchString(name) {
 		return fnRegistryErr, hippoerr.NewPlanInvalidFnName(name)
 	}
 

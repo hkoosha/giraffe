@@ -1,4 +1,4 @@
-package privnames
+package internal
 
 import (
 	"regexp"

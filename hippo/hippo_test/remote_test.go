@@ -57,7 +57,8 @@ func mkEkran(
 		MustWithNamed("fn2", mkStep(2))
 
 	ekran, err := remote.NewServer(reg, map[string]*hippo.Plan{
-		"plan0": hippo.Plan_.
+		"plan0": hippo.
+			MkPlan().
 			MustAndRegistry(reg).
 			MustWithNextNamed("fn0").
 			MustWithNextNamed("fn1").
@@ -120,7 +121,8 @@ func TestServer_Http(t *testing.T) {
 		reg := hippo.FnRegistry{}.MustWithNamed("thingy", remoteFn)
 
 		pSrv, err := remote.NewServer(reg, map[string]*hippo.Plan{
-			"thingy": hippo.Plan_.
+			"thingy": hippo.
+				MkPlan().
 				MustAndRegistry(reg).
 				MustWithNextNamed("thingy"),
 		})
@@ -135,7 +137,8 @@ func TestServer_Http(t *testing.T) {
 	mkCln := func(
 		srv *httptest.Server,
 	) *hippo.PipelineFn {
-		plan := hippo.Plan_.
+		plan := hippo.
+			MkPlan().
 			MustWithNext("fn0", local).
 			MustWithNext("rm", remote.Remote(
 				srv.URL,

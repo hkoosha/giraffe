@@ -9,15 +9,8 @@ import (
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
-var Plan_ = &Plan{
-	compensator: Compensator{
-		comp: make([]compCondition, 0),
-	},
-	registry: FnRegistry{
-		scope:  nil,
-		byType: nil,
-	},
-	steps: make([]namedStep, 0),
+func MkPlan() *Plan {
+	return zeroPlan
 }
 
 type Plan struct {

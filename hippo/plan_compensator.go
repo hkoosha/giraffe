@@ -10,32 +10,6 @@ import (
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
-type compCondition struct {
-	onErr  *regexp.Regexp
-	onName *regexp.Regexp
-	fn     *Fn
-	onStep int
-}
-
-func (c compCondition) canCompensate(
-	sCtx *StepContext,
-	err error,
-) bool {
-	if c.onStep >= 0 && c.onStep != sCtx.stepNo {
-		return false
-	}
-
-	if c.onName != nil && !c.onName.MatchString(sCtx.stepName) {
-		return false
-	}
-
-	if c.onErr != nil && !c.onErr.MatchString(err.Error()) {
-		return false
-	}
-
-	return true
-}
-
 type Compensator struct {
 	comp []compCondition
 }
