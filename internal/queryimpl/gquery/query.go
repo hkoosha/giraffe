@@ -8,14 +8,13 @@ import (
 	"github.com/hkoosha/giraffe/dialects"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
 	"github.com/hkoosha/giraffe/internal/queryimpl"
-	"github.com/hkoosha/giraffe/qflag"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 func newQuery(
 	path *[]GiraffeQuery,
 	ref string,
-	flags qflag.QFlag,
+	flags cmd.QFlag,
 ) GiraffeQuery {
 	return GiraffeQuery{
 		// Debug: newDebug(),
@@ -29,7 +28,7 @@ func newQuery(
 type GiraffeQuery struct {
 	path  *[]GiraffeQuery
 	ref   string
-	flags qflag.QFlag
+	flags cmd.QFlag
 }
 
 func (q GiraffeQuery) VisibleForTestingPath() []GiraffeQuery {
@@ -44,7 +43,7 @@ func (q GiraffeQuery) Escaped() string {
 	return Escaped(q.String())
 }
 
-func (q GiraffeQuery) Flags() qflag.QFlag {
+func (q GiraffeQuery) Flags() cmd.QFlag {
 	return q.flags
 }
 
@@ -159,7 +158,7 @@ func (q GiraffeQuery) reconstructedIn(
 }
 
 func (q GiraffeQuery) reconstructedAs(
-	flags qflag.QFlag,
+	flags cmd.QFlag,
 ) GiraffeQuery {
 	sb := strings.Builder{}
 
@@ -177,7 +176,7 @@ func (q GiraffeQuery) reconstructedAs(
 
 func (q GiraffeQuery) reconstructInAs(
 	sb *strings.Builder,
-	flags qflag.QFlag,
+	flags cmd.QFlag,
 ) {
 	flags.ReconstructPreModIn(sb)
 	sb.WriteString(q.ref)
@@ -233,19 +232,19 @@ func (q GiraffeQuery) Originating(withSelf bool) GiraffeQuery {
 // =====================================.
 
 func (q GiraffeQuery) WithWrite() queryimpl.QueryImpl {
-	return q.reconstructedAs(q.flags | qflag.QModWrite)
+	return q.reconstructedAs(q.flags | cmd.QModWrite)
 }
 
 func (q GiraffeQuery) WithMake() queryimpl.QueryImpl {
-	return q.reconstructedAs(q.flags | qflag.QModeMake)
+	return q.reconstructedAs(q.flags | cmd.QModeMake)
 }
 
 func (q GiraffeQuery) WithOverwrite() queryimpl.QueryImpl {
-	return q.reconstructedAs(q.flags | qflag.QModOverwrit)
+	return q.reconstructedAs(q.flags | cmd.QModOverwrit)
 }
 
 func (q GiraffeQuery) WithoutOverwrite() queryimpl.QueryImpl {
-	return q.reconstructedAs(q.flags & ^qflag.QModOverwrit)
+	return q.reconstructedAs(q.flags & ^cmd.QModOverwrit)
 }
 
 // PlusS panics if the resulting query is too deep, set by iface.MaxDepth.

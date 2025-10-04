@@ -6,4 +6,5 @@ use (
 	contrib/proto
 	contrib/redis
 	contrib/zap
+	contrib/testing
 )

@@ -9,7 +9,6 @@ import (
 	"github.com/hkoosha/giraffe/cmd"
 	"github.com/hkoosha/giraffe/dialects"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
-	"github.com/hkoosha/giraffe/qflag"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
@@ -17,7 +16,7 @@ var uintRegex = regexp.MustCompile(`^\d+$`)
 
 type state struct {
 	ref     strings.Builder
-	flags   qflag.QFlag
+	flags   cmd.QFlag
 	isFin   bool
 	noCmd   bool
 	escaped bool
@@ -27,7 +26,7 @@ type parser struct {
 	spec     string
 	path     []GiraffeQuery
 	state    state
-	global   qflag.QFlag
+	global   cmd.QFlag
 	segment  int
 	i        int
 	maxDepth uint16
@@ -69,7 +68,7 @@ func (p *parser) onSelf() error {
 		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
 	}
 
-	p.state.flags |= qflag.QModSelf
+	p.state.flags |= cmd.QModSelf
 	p.state.isFin = true
 	p.state.noCmd = true
 
@@ -89,8 +88,8 @@ func (p *parser) onAppend() error {
 		return queryerrors.DuplicatedCmdError(p.i, p.spec, p.c)
 	}
 
-	p.global |= qflag.QModIndeter
-	p.state.flags |= qflag.QModAppend
+	p.global |= cmd.QModIndeter
+	p.state.flags |= cmd.QModAppend
 	p.state.isFin = true
 
 	return nil
@@ -111,7 +110,7 @@ func (p *parser) onDelete() error {
 		return queryerrors.DuplicatedCmdError(p.i, p.spec, p.c)
 	}
 
-	p.global |= qflag.QModDelete
+	p.global |= cmd.QModDelete
 	p.state.isFin = true
 
 	return nil
@@ -130,8 +129,8 @@ func (p *parser) onMake() error {
 		return queryerrors.DuplicatedCmdError(p.i, p.spec, p.c)
 	}
 
-	p.state.flags |= qflag.QModeMake
-	p.state.flags = qflag.QModeMake
+	p.state.flags |= cmd.QModeMake
+	p.state.flags = cmd.QModeMake
 
 	return nil
 }
@@ -149,7 +148,7 @@ func (p *parser) onMaybe() error {
 		return queryerrors.DuplicatedCmdError(p.i, p.spec, p.c)
 	}
 
-	p.state.flags = qflag.QModeMaybe
+	p.state.flags = cmd.QModeMaybe
 
 	return nil
 }
@@ -166,7 +165,7 @@ func (p *parser) onOverwrite() error {
 		return queryerrors.ConflictingCmdError(p.i, p.spec, p.c)
 	}
 
-	p.global = qflag.QModOverwrit
+	p.global = cmd.QModOverwrit
 
 	return nil
 }
@@ -200,10 +199,10 @@ func (p *parser) onSep() error {
 			return queryerrors.ConflictingCmdError(p.i, p.spec, p.c)
 		}
 
-		curr.flags |= qflag.QModArr
+		curr.flags |= cmd.QModArr
 
-		value := qflag.QFlag(M(strconv.ParseUint(str, 10, 64)))
-		if value&qflag.ValueMask != value {
+		value := cmd.QFlag(M(strconv.ParseUint(str, 10, 64)))
+		if value&cmd.ValueMask != value {
 			panic(EF("value too big: %v", value))
 		}
 
@@ -213,7 +212,7 @@ func (p *parser) onSep() error {
 		return queryerrors.ConflictingCmdError(p.i, p.spec, p.c)
 
 	default:
-		curr.flags |= qflag.QModObj
+		curr.flags |= cmd.QModObj
 	}
 
 	if p.global.IsDelete() && p.state.flags.IsMaybe() && !curr.flags.IsArr() {
@@ -225,8 +224,8 @@ func (p *parser) onSep() error {
 	p.reset()
 
 	seq := p.global.Seq()
-	p.global &= ^qflag.SequenceMask
-	p.global |= qflag.QFlag((seq + 1) << qflag.SeqShift) //nolint:gosec
+	p.global &= ^cmd.SequenceMask
+	p.global |= cmd.QFlag((seq + 1) << cmd.SeqShift) //nolint:gosec
 
 	return nil
 }
@@ -337,7 +336,7 @@ func (p *parser) postProcess() {
 	p.path = slices.Clip(p.path)
 
 	if len(p.path) == 1 {
-		p.path[0].flags |= qflag.QModSingle
+		p.path[0].flags |= cmd.QModSingle
 	}
 
 	isMake := false
@@ -345,22 +344,22 @@ func (p *parser) postProcess() {
 		p.path[i].path = &p.path
 
 		if isMake {
-			p.path[i].flags |= qflag.QModeMake
+			p.path[i].flags |= cmd.QModeMake
 		}
 		if p.path[i].flags.IsMake() {
 			isMake = true
 		}
 
 		if p.global.IsIndeterministic() {
-			p.path[i].flags |= qflag.QModIndeter
+			p.path[i].flags |= cmd.QModIndeter
 		}
 
 		if i == 0 {
-			p.path[i].flags |= qflag.QModRoot
+			p.path[i].flags |= cmd.QModRoot
 		}
 
 		if i == len(p.path)-1 {
-			p.path[i].flags |= qflag.QModLeaf
+			p.path[i].flags |= cmd.QModLeaf
 		}
 	}
 
@@ -369,12 +368,12 @@ func (p *parser) postProcess() {
 
 func (p *parser) parse() (GiraffeQuery, error) {
 	if err := p.doParse(); err != nil {
-		invalid := newQuery(nil, "", qflag.QFlag(0))
+		invalid := newQuery(nil, "", cmd.QFlag(0))
 		return invalid, err
 	}
 
 	if err := p.parsePostValidate(); err != nil {
-		invalid := newQuery(nil, "", qflag.QFlag(0))
+		invalid := newQuery(nil, "", cmd.QFlag(0))
 		return invalid, err
 	}
 
@@ -394,7 +393,7 @@ func newParser(
 		maxDepth: maxDepth,
 		spec:     spec,
 		state:    zeroState,
-		global:   qflag.QFlag(0),
+		global:   cmd.QFlag(0),
 		path:     make([]GiraffeQuery, 0, 32),
 		segment:  0,
 		i:        0,

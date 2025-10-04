@@ -7,17 +7,17 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/hkoosha/giraffe/qflag"
+	"github.com/hkoosha/giraffe/cmd"
 )
 
 func TestQFlag_Mods(t *testing.T) {
-	qFlags := []qflag.QFlag{
-		qflag.QModIndeter,
-		qflag.QModeMaybe,
-		qflag.QModeMake,
-		qflag.QModAppend,
-		qflag.QModArr,
-		qflag.QModObj,
+	qFlags := []cmd.QFlag{
+		cmd.QModIndeter,
+		cmd.QModeMaybe,
+		cmd.QModeMake,
+		cmd.QModAppend,
+		cmd.QModArr,
+		cmd.QModObj,
 	}
 
 	t.Run("bit count", func(t *testing.T) {
@@ -36,7 +36,7 @@ func TestQFlag_Mods(t *testing.T) {
 			assert.Equal(
 				t,
 				qFlag,
-				qFlag&qflag.ModMask,
+				qFlag&cmd.ModMask,
 			)
 		}
 	})

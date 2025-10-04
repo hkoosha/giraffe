@@ -11,9 +11,7 @@ import (
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
-const (
-	minId = 11
-)
+const minId = 11
 
 var (
 	idCnt atomic.Uint64

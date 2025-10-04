@@ -22,7 +22,7 @@ func TestContentTypes(t *testing.T) {
 	t.Skip("casing func in enum helper pkg is not working yet")
 
 	t.Run("content_types casing", func(t *testing.T) {
-		pkg, err := packages.Load(&testhelper.ReadPkgCfg, "../")
+		pkg, err := packages.Load(testhelper.ReadPkgCfg(), "../")
 		require.NoError(t, err)
 
 		enums, err := testhelper.Extract(pkg)
@@ -30,7 +30,7 @@ func TestContentTypes(t *testing.T) {
 
 		err = testhelper.CheckWith(
 			enums,
-			testhelper.NoIgnore,
+			testhelper.NoIgnore(),
 			exceptions,
 			testhelper.DashedTitleCasing,
 		)

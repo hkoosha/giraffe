@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/hkoosha/giraffe/cmd"
 	"github.com/hkoosha/giraffe/internal/gstrings"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
-	"github.com/hkoosha/giraffe/qflag"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
@@ -142,7 +142,7 @@ func newTypeCastError(
 
 func newQueryTypeCastError(
 	have Type,
-	need qflag.QFlag,
+	need cmd.QFlag,
 	extra ...string,
 ) error {
 	needTyp := Arr

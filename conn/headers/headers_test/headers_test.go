@@ -15,7 +15,7 @@ func TestHeaders(t *testing.T) {
 	t.Skip("casing func in enum helper pkg is not working yet")
 
 	t.Run("content_types casing", func(t *testing.T) {
-		pkg, err := packages.Load(&testhelper.ReadPkgCfg, "../")
+		pkg, err := packages.Load(testhelper.ReadPkgCfg(), "../")
 		require.NoError(t, err)
 
 		enums, err := testhelper.Extract(pkg)
@@ -23,8 +23,8 @@ func TestHeaders(t *testing.T) {
 
 		err = testhelper.CheckWith(
 			enums,
-			testhelper.NoIgnore,
-			testhelper.NoOverwrite,
+			testhelper.NoIgnore(),
+			testhelper.NoOverwrite(),
 			func(v string) string {
 				fixed := testhelper.DashedTitleCasing(v)
 				fixed = http.CanonicalHeaderKey(fixed)

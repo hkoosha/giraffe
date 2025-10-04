@@ -1,14 +1,14 @@
 package giraffe
 
 import (
+	"github.com/hkoosha/giraffe/cmd"
 	"github.com/hkoosha/giraffe/dialects"
-	"github.com/hkoosha/giraffe/qflag"
 )
 
 // Query NEVER INSTANTIATE DIRECTLY. NEVER CAST TO. NEVER CAST FROM.
 type Query string
 
-func (q Query) Flags() qflag.QFlag {
+func (q Query) Flags() cmd.QFlag {
 	return q.impl().Flags()
 }
 
