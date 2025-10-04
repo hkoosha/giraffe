@@ -25,11 +25,12 @@ type state struct {
 }
 
 type parser struct {
-	spec    string
-	path    []Query
-	state   state
-	global  qflag.QFlag
-	segment int
+	maxDepth uint
+	spec     string
+	path     []GiraffeQuery
+	state    state
+	global   qflag.QFlag
+	segment  int
 
 	i int
 	c byte
@@ -41,7 +42,7 @@ func (p *parser) reset() {
 	p.state.ref.Grow(64)
 }
 
-func (p *parser) last() *Query {
+func (p *parser) last() *GiraffeQuery {
 	return &p.path[len(p.path)-1]
 }
 
@@ -392,7 +393,7 @@ func (p *parser) postProcess() {
 	// debugPopulateQueries(p.path)
 }
 
-func (p *parser) parse() (Query, error) {
+func (p *parser) parse() (GiraffeQuery, error) {
 	if strings.HasPrefix(p.spec, string(qcmd.Sep)) {
 		invalid := newQuery(nil, "", qflag.QFlag(0))
 		return invalid, queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
@@ -413,7 +414,10 @@ func (p *parser) parse() (Query, error) {
 	return p.path[0], nil
 }
 
-func newGQueryParser(spec string) *parser {
+func newGQueryParser(
+	maxDepth uint,
+	spec string,
+) *parser {
 	if !strings.HasSuffix(spec, qcmd.Sep.String()) {
 		spec += qcmd.At.String()
 	}
@@ -422,13 +426,14 @@ func newGQueryParser(spec string) *parser {
 	zeroState := state{}
 
 	p := parser{
-		spec:    spec,
-		state:   zeroState,
-		global:  qflag.QFlag(0),
-		path:    make([]Query, 0, 32),
-		segment: 0,
-		i:       0,
-		c:       0,
+		maxDepth: maxDepth,
+		spec:     spec,
+		state:    zeroState,
+		global:   qflag.QFlag(0),
+		path:     make([]GiraffeQuery, 0, 32),
+		segment:  0,
+		i:        0,
+		c:        0,
 	}
 	p.reset()
 
@@ -436,13 +441,15 @@ func newGQueryParser(spec string) *parser {
 }
 
 func parse(
+	maxDepth uint,
 	spec string,
-) (Query, error) {
-	return newGQueryParser(spec).parse()
+) (GiraffeQuery, error) {
+	return newGQueryParser(maxDepth, spec).parse()
 }
 
 func Parse(
+	maxDepth uint,
 	spec string,
 ) (queryimpl.QueryImpl, error) {
-	return parse(spec)
+	return parse(maxDepth, spec)
 }

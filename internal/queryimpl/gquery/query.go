@@ -11,11 +11,11 @@ import (
 )
 
 func newQuery(
-	path *[]Query,
+	path *[]GiraffeQuery,
 	ref string,
 	flags qflag.QFlag,
-) Query {
-	return Query{
+) GiraffeQuery {
+	return GiraffeQuery{
 		// Debug: newDebug(),
 
 		path:  path,
@@ -24,17 +24,17 @@ func newQuery(
 	}
 }
 
-type Query struct {
-	path  *[]Query
+type GiraffeQuery struct {
+	path  *[]GiraffeQuery
 	ref   string
 	flags qflag.QFlag
 }
 
-func (q Query) Flags() qflag.QFlag {
+func (q GiraffeQuery) Flags() qflag.QFlag {
 	return q.flags
 }
 
-func (q Query) Attr() string {
+func (q GiraffeQuery) Attr() string {
 	if !q.flags.IsObj() {
 		return ""
 	}
@@ -42,7 +42,7 @@ func (q Query) Attr() string {
 	return q.ref
 }
 
-func (q Query) Index() int {
+func (q GiraffeQuery) Index() int {
 	if !q.flags.IsArr() || q.flags.IsAppend() {
 		return -1
 	}
@@ -50,15 +50,15 @@ func (q Query) Index() int {
 	return q.flags.Val()
 }
 
-func (q Query) Root() queryimpl.QueryImpl {
+func (q GiraffeQuery) Root() queryimpl.QueryImpl {
 	return (*q.path)[0]
 }
 
-func (q Query) Leaf() queryimpl.QueryImpl {
+func (q GiraffeQuery) Leaf() queryimpl.QueryImpl {
 	return (*q.path)[len(*q.path)-1]
 }
 
-func (q Query) Prev() queryimpl.QueryImpl {
+func (q GiraffeQuery) Prev() queryimpl.QueryImpl {
 	if seq := q.flags.Seq() - 1; seq >= 0 {
 		prev := (*q.path)[seq]
 
@@ -68,7 +68,7 @@ func (q Query) Prev() queryimpl.QueryImpl {
 	panic("unreachable: no prev")
 }
 
-func (q Query) Next() queryimpl.QueryImpl {
+func (q GiraffeQuery) Next() queryimpl.QueryImpl {
 	if seq := q.flags.Seq() + 1; seq < len(*q.path) {
 		return (*q.path)[seq]
 	}
@@ -77,15 +77,15 @@ func (q Query) Next() queryimpl.QueryImpl {
 }
 
 // Plus panics if the resulting query is too deep, set by iface.MaxDepth.
-func (q Query) Plus(other string) (queryimpl.QueryImpl, error) {
+func (q GiraffeQuery) Plus(other string) (queryimpl.QueryImpl, error) {
 	return q.PlusS(other), nil
 }
 
-func (q Query) String() string {
+func (q GiraffeQuery) String() string {
 	return q.string0()
 }
 
-func (q Query) string0() string {
+func (q GiraffeQuery) string0() string {
 	sb := strings.Builder{}
 
 	for j, p := range *q.path {
@@ -104,7 +104,7 @@ func (q Query) string0() string {
 	return sb.String()
 }
 
-func (q Query) bef(
+func (q GiraffeQuery) bef(
 	sb *strings.Builder,
 ) {
 	if q.Flags().IsRoot() {
@@ -120,7 +120,7 @@ func (q Query) bef(
 	}
 }
 
-func (q Query) aft(
+func (q GiraffeQuery) aft(
 	sb *strings.Builder,
 ) {
 	if q.Flags().IsLeaf() {
@@ -137,33 +137,36 @@ func (q Query) aft(
 	}
 }
 
-func (q Query) Reconstructed() string {
+func (q GiraffeQuery) Reconstructed() string {
 	sb := strings.Builder{}
 	q.reconstructInAs(&sb, q.flags)
 	return sb.String()
 }
 
-func (q Query) reconstructedIn(
+func (q GiraffeQuery) reconstructedIn(
 	sb *strings.Builder,
 ) {
 	q.reconstructInAs(sb, q.flags)
 }
 
-func (q Query) reconstructedAs(
+func (q GiraffeQuery) reconstructedAs(
 	flags qflag.QFlag,
-) Query {
+) GiraffeQuery {
 	sb := strings.Builder{}
 
 	q.bef(&sb)
 	q.reconstructInAs(&sb, flags)
 	q.aft(&sb)
 
-	flagged := M(parse(sb.String()))
+	flagged := M(parse(
+		queryimpl.MaxDepth,
+		sb.String(),
+	))
 
 	return flagged.at(q.flags.Seq())
 }
 
-func (q Query) reconstructInAs(
+func (q GiraffeQuery) reconstructInAs(
 	sb *strings.Builder,
 	flags qflag.QFlag,
 ) {
@@ -171,16 +174,16 @@ func (q Query) reconstructInAs(
 	sb.WriteString(q.ref)
 }
 
-func (q Query) at(
+func (q GiraffeQuery) at(
 	seq int,
-) Query {
+) GiraffeQuery {
 	return (*q.path)[seq]
 }
 
 // =====================================.
 
 // UpTo TODO go through mem cache.
-func (q Query) UpTo(withSelf bool) Query {
+func (q GiraffeQuery) UpTo(withSelf bool) GiraffeQuery {
 	if q.flags.IsSingle() {
 		return q
 	}
@@ -193,11 +196,14 @@ func (q Query) UpTo(withSelf bool) Query {
 		q.reconstructedIn(&sb)
 	}
 
-	return M(parse(sb.String()))
+	return M(parse(
+		queryimpl.MaxDepth,
+		sb.String(),
+	))
 }
 
 // Originating TODO go through mem cache.
-func (q Query) Originating(withSelf bool) Query {
+func (q GiraffeQuery) Originating(withSelf bool) GiraffeQuery {
 	if q.flags.IsSingle() {
 		return q
 	}
@@ -209,29 +215,32 @@ func (q Query) Originating(withSelf bool) Query {
 	}
 	q.aft(&sb)
 
-	return M(parse(sb.String()))
+	return M(parse(
+		queryimpl.MaxDepth,
+		sb.String(),
+	))
 }
 
 // =====================================.
 
-func (q Query) WithWrite() Query {
+func (q GiraffeQuery) WithWrite() queryimpl.QueryImpl {
 	return q.reconstructedAs(q.flags | qflag.QModWrite)
 }
 
-func (q Query) WithMake() Query {
+func (q GiraffeQuery) WithMake() queryimpl.QueryImpl {
 	return q.reconstructedAs(q.flags | qflag.QModeMake)
 }
 
-func (q Query) WithOverwrite() Query {
+func (q GiraffeQuery) WithOverwrite() queryimpl.QueryImpl {
 	return q.reconstructedAs(q.flags | qflag.QModOverwrit)
 }
 
-func (q Query) WithoutOverwrite() Query {
+func (q GiraffeQuery) WithoutOverwrite() queryimpl.QueryImpl {
 	return q.reconstructedAs(q.flags & ^qflag.QModOverwrit)
 }
 
 // PlusS panics if the resulting query is too deep, set by iface.MaxDepth.
-func (q Query) PlusS(other string) Query {
+func (q GiraffeQuery) PlusS(other string) queryimpl.QueryImpl {
 	sb := strings.Builder{}
 
 	q.bef(&sb)
@@ -241,10 +250,13 @@ func (q Query) PlusS(other string) Query {
 	sb.WriteByte(qcmd.Sep.Byte())
 	sb.WriteString(other)
 
-	return M(parse(sb.String())).at(q.flags.Seq())
+	return M(parse(
+		queryimpl.MaxDepth,
+		sb.String(),
+	)).at(q.flags.Seq())
 }
 
-func (q Query) MustReadonly() error {
+func (q GiraffeQuery) MustReadonly() error {
 	if !q.flags.IsReadonly() {
 		return nil
 	}
