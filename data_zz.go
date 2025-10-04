@@ -3,6 +3,7 @@ package giraffe
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
@@ -206,7 +207,7 @@ func (d Datum) merge(
 
 		for k, v := range right.obj() {
 			if existing, ok := obj[k]; ok {
-				nPath := Appended(path, k)
+				nPath := append(slices.Clone(path), k)
 				var err error
 				if obj[k], err = existing.merge(v, nPath); err != nil {
 					return OfErr(), err

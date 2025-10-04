@@ -8,7 +8,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/typing"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 func baseAttrs(
@@ -48,19 +48,19 @@ func fullName(
 ) string {
 	fn := domain + "/" + service + "/" + name
 
-	if !typing.IsMachineReadableName(domain, 1, 32) {
+	if !t11y.IsMachineReadableName(domain, 1, 32) {
 		panic(EF("%s", "invalid domain name, "+
 			"domain="+domain+", service="+service+
 			" metric="+name+", fullName="+fn))
 	}
 
-	if !typing.IsMachineReadableName(service, 1, 32) {
+	if !t11y.IsMachineReadableName(service, 1, 32) {
 		panic(EF("%s", "invalid service name, "+
 			"domain="+domain+", service="+service+
 			" metric="+name+", fullName="+fn))
 	}
 
-	if !typing.IsMachineReadableName(name, 1, 32) {
+	if !t11y.IsMachineReadableName(name, 1, 32) {
 		panic(EF("%s", "invalid metric name, "+
 			"domain="+domain+", service="+service+
 			" metric="+name+", fullName="+fn))

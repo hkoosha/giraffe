@@ -3,6 +3,7 @@ package giraffe
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/hkoosha/giraffe/internal"
@@ -196,7 +197,7 @@ func tree(
 
 	default:
 		for k, v := range d.obj() {
-			if tree(tr, &v, Appended(path, internal.Escaped(k))) {
+			if tree(tr, &v, append(slices.Clone(path), internal.Escaped(k))) {
 				return false
 			}
 		}

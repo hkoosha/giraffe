@@ -1,4 +1,4 @@
-package dot0
+package dot
 
 import (
 	"errors"

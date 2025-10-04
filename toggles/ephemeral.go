@@ -42,7 +42,8 @@ func (i *InMemory) get(
 		return nil
 	}
 
-	return Ref(c.test(values))
+	v := c.test(values)
+	return &v
 }
 
 func (i *InMemory) set(

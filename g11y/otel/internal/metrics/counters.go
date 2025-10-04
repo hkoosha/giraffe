@@ -9,7 +9,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/typing"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 func init() {
@@ -152,7 +152,7 @@ func NewOkCounter(
 		label = "giraffe_" + label
 	}
 
-	if !typing.IsMachineReadableName(label, 1, 32) {
+	if !t11y.IsMachineReadableName(label, 1, 32) {
 		panic(EF("%s", "invalid label, "+
 			"label="+label+", domain="+domain+", service="+service))
 	}
@@ -213,7 +213,7 @@ func NewHitOrMissCounter(
 		label = "giraffe_" + label
 	}
 
-	if !typing.IsMachineReadableName(label, 1, 32) {
+	if !t11y.IsMachineReadableName(label, 1, 32) {
 		panic(EF("%s", "invalid label, "+
 			"label="+label+", domain="+domain+", service="+service))
 	}

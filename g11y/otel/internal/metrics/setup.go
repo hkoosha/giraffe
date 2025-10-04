@@ -10,13 +10,13 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/typing"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 var shutdown func(context.Context)
 
 func Setup(namespace string) {
-	if !typing.IsSimpleMachineReadableName(namespace, 1, 32) {
+	if !t11y.IsSimpleMachineReadableName(namespace, 1, 32) {
 		panic(EF("invalid namespace: %s", namespace))
 	}
 

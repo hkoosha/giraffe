@@ -10,7 +10,6 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hkoosha/giraffe/g11y/glog"
-	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/t11y"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 	"github.com/hkoosha/giraffe/zebra/zcache"
@@ -57,7 +56,7 @@ func NewForJson[V any](
 ) zcache.Adapter[string, V] {
 	// TODO remove hard dependency.
 	if reflect.TypeFor[V]().Implements(reflect.TypeFor[proto.Message]()) {
-		panic(EF(
+		panic(t11y.TracedFmt(
 			"cannot use json serde for proto values, use proto serde instead",
 		))
 	}

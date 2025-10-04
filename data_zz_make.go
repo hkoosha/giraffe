@@ -297,7 +297,8 @@ func _ofMap(
 		if key.Kind() == reflect.String {
 			o := dat.obj()
 			o[key.String()] = d
-			d.val = Ref(any(o))
+			v := any(o)
+			d.val = &v
 		} else if key.CanInterface() && key.CanConvert(tQuery) {
 			var q queryT
 			if qCast, ok := key.Interface().(Query); ok {

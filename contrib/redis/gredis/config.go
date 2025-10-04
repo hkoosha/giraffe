@@ -6,8 +6,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/typing"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 const (
@@ -48,16 +47,16 @@ type Config struct {
 func (c *Config) Ensure() *Config {
 	switch {
 	case c.ttl < ttlMin:
-		panic(EF("ttl too low: %v", c.ttl))
+		panic(t11y.TracedFmt("ttl too low: %v", c.ttl))
 
 	case c.timeout < 1*time.Millisecond:
-		panic(EF("timeout: %v", c.timeout))
+		panic(t11y.TracedFmt("timeout: %v", c.timeout))
 
-	case !typing.IsMachineReadableName(c.namespace, minNameLen, maxNameLen):
-		panic(EF("invalid namespace: %s", c.namespace))
+	case !t11y.IsMachineReadableName(c.namespace, minNameLen, maxNameLen):
+		panic(t11y.TracedFmt("invalid namespace: %s", c.namespace))
 
 	case len(c.nsParts) > maxNamespaceNesting:
-		panic(EF("namespace too deep: %s", c.namespace))
+		panic(t11y.TracedFmt("namespace too deep: %s", c.namespace))
 	}
 
 	return c

@@ -11,15 +11,15 @@ import (
 	"github.com/hkoosha/giraffe/g11y/otel/internal/metrics"
 	"github.com/hkoosha/giraffe/g11y/setup"
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/typing"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 func NewMetricBuilder(
 	domain string,
 	service string,
 ) *MetricBuilder {
-	domainValid := typing.IsMachineReadableName(domain, 1, 32)
-	svcValid := typing.IsMachineReadableName(service, 1, 32)
+	domainValid := t11y.IsMachineReadableName(domain, 1, 32)
+	svcValid := t11y.IsMachineReadableName(service, 1, 32)
 
 	if !domainValid || !svcValid {
 		panic(EF("%s", "invalid domain or service name for metrics, domain="+

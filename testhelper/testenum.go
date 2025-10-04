@@ -1,4 +1,4 @@
-package enumtelper
+package testhelper
 
 import (
 	"errors"
@@ -29,8 +29,8 @@ var (
 )
 
 var (
-	alnum = regexp.MustCompile("[^a-zA-Z0-9]")
-	num   = regexp.MustCompile(`^\d.+`)
+	alphanum = regexp.MustCompile("[^a-zA-Z0-9]")
+	num      = regexp.MustCompile(`^\d.+`)
 )
 
 // =============================================================================
@@ -144,7 +144,7 @@ func DashedTitleCasing(
 	sb := strings.Builder{}
 	sb.Grow(len(s) * 2)
 
-	for _, part := range alnum.Split(s, -1) {
+	for _, part := range alphanum.Split(s, -1) {
 		if len(part) > 1 {
 			part = strings.ToUpper(part[:1]) + strings.ToLower(part[1:])
 			if num.MatchString(s) {
