@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/g11y/gtx"
 	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
 	. "github.com/hkoosha/giraffe/internal/dot1"
 	"github.com/hkoosha/giraffe/internal/gstrings"
@@ -115,7 +116,7 @@ func (n *PipelineFn) Ekran(
 	ctx context.Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
-	htx := hContextOf(ctx)
+	htx := gtx.Of(ctx)
 
 	return n.ekran(htx, dat)
 }
