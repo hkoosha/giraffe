@@ -4,9 +4,8 @@ import (
 	"errors"
 
 	"github.com/hkoosha/giraffe"
-	"github.com/hkoosha/giraffe/g11y/named"
 	"github.com/hkoosha/giraffe/hippo"
-	"github.com/hkoosha/giraffe/g11y/t11y"
+	"github.com/hkoosha/giraffe/t11y"
 	"github.com/hkoosha/giraffe/zebra/zptr"
 )
 
@@ -52,8 +51,8 @@ func M[A any](
 func N(
 	name string,
 	v any,
-) named.Named {
-	return named.Of(name, v)
+) t11y.Named {
+	return t11y.Of(name, v)
 }
 
 func OK(

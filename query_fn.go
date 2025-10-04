@@ -19,7 +19,7 @@ func Q[T interface{ Query | string }](
 		return M(GQParse(q))
 
 	default:
-		panic("unknown query type: " + reflect.TypeOf(spec).String())
+		panic(EF("unknown query type: %s", reflect.TypeOf(spec).String()))
 	}
 }
 

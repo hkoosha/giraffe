@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/g11y/t11y"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 // Types.

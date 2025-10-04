@@ -1,4 +1,4 @@
-package named
+package t11y
 
 type Named struct {
 	Value any

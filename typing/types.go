@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/g11y/t11y"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 const (
@@ -141,7 +141,7 @@ func registerVirtual(
 	defer mu.Unlock()
 
 	if idCnt.Load() == math.MaxUint64 {
-		panic("type id pool exhausted")
+		panic(EF("type id pool exhausted"))
 	}
 
 	inf := newVirtualInfo(idCnt.Add(1), clonedFrom)

@@ -220,7 +220,7 @@ func (q *cond) test(rest []Value) bool {
 }
 
 func (q *cond) test0(Value) bool {
-	panic("unreachable: cond.test0()")
+	panic(EF("unreachable: cond.test0()"))
 }
 
 // ====================================.
@@ -232,7 +232,7 @@ type and struct {
 
 func (q *and) test(values []Value) bool {
 	if len(q.rest) == 0 {
-		panic("unreachable: empty conjunction")
+		panic(EF("unreachable: empty conjunction"))
 	}
 
 	for _, c := range q.rest {
@@ -252,7 +252,7 @@ type or struct {
 
 func (q *or) test(values []Value) bool {
 	if len(q.rest) == 0 {
-		panic("unreachable: empty disjunction")
+		panic(EF("unreachable: empty disjunction"))
 	}
 
 	for _, c := range q.rest {

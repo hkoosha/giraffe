@@ -3,6 +3,8 @@ package internal
 import (
 	"context"
 	"time"
+
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 type gtxKeyT int
@@ -46,7 +48,7 @@ func Extract(ctx context.Context) (*GContext, bool) {
 
 func Set(ctx context.Context) *GContext {
 	if _, ok := Extract(ctx); ok {
-		panic("gtx already set")
+		panic(EF("gtx already set"))
 	}
 
 	gtx := &GContext{ctx: nil}

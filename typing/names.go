@@ -4,6 +4,8 @@ import (
 	"math"
 	"regexp"
 	"strings"
+
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 // Contains only lowercase letters, numbers, and underscores; starts with
@@ -18,7 +20,7 @@ func IsMachineReadableName(
 	if maxLenInclusive > math.MaxInt ||
 		minLenInclusive > math.MaxInt ||
 		maxLenInclusive < minLenInclusive {
-		panic("invalid args for min/max length")
+		panic(EF("invalid args for min/max length"))
 	}
 
 	l := uint(len(name))

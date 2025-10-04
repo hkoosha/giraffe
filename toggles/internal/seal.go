@@ -1,5 +1,9 @@
 package internal
 
+import (
+	. "github.com/hkoosha/giraffe/internal/dot0"
+)
+
 type Seal struct{}
 
 type Sealed interface {
@@ -9,5 +13,5 @@ type Sealed interface {
 type Sealer struct{}
 
 func (q *Sealer) private() Seal {
-	panic("do not call")
+	panic(EF("do not call"))
 }

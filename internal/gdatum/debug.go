@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strconv"
 	"sync/atomic"
+
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 const debugNilId = "<nil>"
@@ -31,7 +33,7 @@ func (d *DatumDebug) String() string {
 
 	serialized, err := json.Marshal(d)
 	if err != nil {
-		panic(err)
+		panic(E(err))
 	}
 
 	return strconv.FormatUint(d.ID, 10) + "#" + string(serialized)

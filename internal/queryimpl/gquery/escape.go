@@ -1,7 +1,11 @@
 package gquery
 
+import (
+	. "github.com/hkoosha/giraffe/internal/dot0"
+)
+
 func Escaped(
 	spec string,
 ) string {
-	panic("todo escape: " + spec)
+	panic(EF("todo escape: %s", spec))
 }

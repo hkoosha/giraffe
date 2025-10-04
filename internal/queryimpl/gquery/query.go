@@ -79,7 +79,7 @@ func (q GiraffeQuery) Prev() queryimpl.QueryImpl {
 		return prev
 	}
 
-	panic("unreachable: no prev")
+	panic(EF("unreachable: no prev"))
 }
 
 func (q GiraffeQuery) Next() queryimpl.QueryImpl {
@@ -87,7 +87,7 @@ func (q GiraffeQuery) Next() queryimpl.QueryImpl {
 		return (*q.path)[seq]
 	}
 
-	panic("unreachable: no next")
+	panic(EF("unreachable: no next"))
 }
 
 func (q GiraffeQuery) String() string {

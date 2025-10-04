@@ -8,7 +8,7 @@ import (
 
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
-	"github.com/hkoosha/giraffe/g11y/t11y"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 var (

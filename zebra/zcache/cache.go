@@ -8,7 +8,7 @@ import (
 	"github.com/hkoosha/giraffe/g11y/glog"
 	"github.com/hkoosha/giraffe/g11y/otel"
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/g11y/t11y"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 const (
@@ -48,7 +48,7 @@ func (o Outcome) String() string {
 	case Bad:
 		return "unknown_error"
 	default:
-		panic("unreachable")
+		panic(EF("unreachable"))
 	}
 }
 
@@ -65,7 +65,7 @@ func (o Op) String() string {
 	case Unset:
 		return "unset"
 	default:
-		panic("unreachable")
+		panic(EF("unreachable"))
 	}
 }
 

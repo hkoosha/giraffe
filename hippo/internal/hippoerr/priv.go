@@ -2,6 +2,8 @@ package hippoerr
 
 import (
 	"reflect"
+
+	. "github.com/hkoosha/giraffe/internal/dot0"
 )
 
 type ErrorState interface {
@@ -24,7 +26,7 @@ func NewHippoError(
 		errState = state.(ErrorState)
 
 	default:
-		panic("unknown error type: " + reflect.TypeOf(state).String())
+		panic(EF("unknown error type: %s", reflect.TypeOf(state).String()))
 	}
 
 	return &HippoError{

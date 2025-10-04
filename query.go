@@ -9,8 +9,7 @@ import (
 type Query string
 
 func (q Query) Flags() qflag.QFlag {
-	// TODO implement me
-	panic("implement me")
+	return q.impl().Flags()
 }
 
 func (q Query) Attr() string {

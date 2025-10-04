@@ -5,7 +5,6 @@ import (
 	"maps"
 	"net/http"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -14,7 +13,8 @@ import (
 	"github.com/hkoosha/giraffe/conn/headers"
 	"github.com/hkoosha/giraffe/conn/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
-	"github.com/hkoosha/giraffe/g11y/t11y"
+	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/t11y"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
@@ -66,7 +66,7 @@ func cfgOf(
 
 	for header := range cfg.HeaderOverwriters() {
 		if header != headers.Authorization {
-			panic("invalid config, unsupported header overwriter: " + header)
+			panic(EF("invalid config, unsupported header overwriter: %s", header))
 		}
 	}
 	cast = cast.withHeaderOverwriters(cfg.HeaderOverwriters())
@@ -361,7 +361,7 @@ func (c *config) withBearerToken(
 	bt string,
 ) *config {
 	if strings.TrimSpace(bt) == "" {
-		panic("empty bearer token")
+		panic(EF("empty bearer token"))
 	}
 
 	bt = withBearerPrefix(bt)
@@ -431,7 +431,7 @@ func (c *config) withExpectingStatusCode(
 	code int,
 ) *config {
 	if code < 1 {
-		panic("invalid http status code: " + strconv.Itoa(code))
+		panic(EF("invalid http status code: %d", code))
 	}
 
 	if c.resp.expectStatusCode == code {
@@ -481,7 +481,7 @@ func (c *config) withEndpoint(
 	e string,
 ) *config {
 	if e == "" || strings.TrimSpace(e) == "" {
-		panic("empty endpoint")
+		panic(EF("empty endpoint"))
 	}
 
 	if c.http.endpoint == e {
@@ -528,7 +528,7 @@ func (c *config) withMethod(
 ) *config {
 	// TODO validate p.
 	if v == "" || strings.TrimSpace(v) == "" {
-		panic("empty method")
+		panic(EF("empty method"))
 	}
 
 	if c.http.defaultMethod == v {
@@ -558,7 +558,7 @@ func (c *config) withPathPrefix(
 ) *config {
 	// TODO validate p.
 	if p == "" || strings.TrimSpace(p) == "" {
-		panic("empty path prefix")
+		panic(EF("empty path prefix"))
 	}
 
 	if c.http.pathPrefix == p {
@@ -600,7 +600,7 @@ func (c *config) andPathPrefix(
 	p string,
 ) *config {
 	if p == "" || strings.TrimSpace(p) == "" {
-		panic("empty path prefix")
+		panic(EF("empty path prefix"))
 	}
 
 	cp := c.withPathPrefix(Join(c.http.pathPrefix, p))

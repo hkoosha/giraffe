@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hkoosha/giraffe/conn/headers"
+	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
@@ -83,7 +84,7 @@ var retryKey retryKeyT
 func getRetries(ctx context.Context) int {
 	retries, ok := ctx.Value(retryKey).(*int)
 	if !ok {
-		panic("retry key not set")
+		panic(EF("retry key not set"))
 	}
 
 	return *retries
@@ -93,7 +94,7 @@ func getRetries(ctx context.Context) int {
 func incRetries(ctx context.Context) {
 	retries, ok := ctx.Value(retryKey).(*int)
 	if !ok {
-		panic("retry key not set")
+		panic(EF("retry key not set"))
 	}
 
 	*retries++
@@ -172,7 +173,7 @@ func partsOf(u *url.URL) (string, string) {
 	const nn = len(":" + "//" + "//" + ":" + "@" + "/" + "./" + "?" + "#")
 
 	if u.Opaque != "" {
-		panic("opaque url not supported: " + u.Redacted())
+		panic(EF("opaque url not supported: %s", u.Redacted()))
 	}
 
 	var buf0 strings.Builder

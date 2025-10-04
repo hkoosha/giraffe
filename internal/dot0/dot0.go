@@ -2,12 +2,9 @@ package dot0
 
 import (
 	"errors"
-	"maps"
 	"slices"
 
-	"github.com/hkoosha/giraffe/g11y/named"
-	"github.com/hkoosha/giraffe/g11y/t11y"
-	"github.com/hkoosha/giraffe/zebra/z"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 func M[A any](a A, err error) A {
@@ -31,8 +28,8 @@ func EF(format string, v ...any) error {
 	return t11y.TracedFmt(format, v...)
 }
 
-func N(name string, v any) named.Named {
-	return named.Of(name, v)
+func N(name string, v any) t11y.Named {
+	return t11y.Of(name, v)
 }
 
 func Assert(condition bool) {
@@ -56,28 +53,6 @@ func Ref[T any](t T) *T {
 
 func Appended[S ~[]E, E any](s S, e ...E) S {
 	return append(slices.Clone(s), e...)
-}
-
-func TryAnd[M ~map[K]V, K comparable, V any](
-	m M,
-	k K,
-	v V,
-) (M, bool) {
-	if _, ok := m[k]; ok {
-		return nil, false
-	}
-
-	mCp := maps.Clone(m)
-	mCp[k] = v
-
-	return mCp, true
-}
-
-func Apply[U, V any](
-	it []U,
-	fn func(U) V,
-) []V {
-	return z.Applied(it, fn)
 }
 
 func OK(

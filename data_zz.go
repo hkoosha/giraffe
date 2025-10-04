@@ -219,7 +219,8 @@ func (d Datum) merge(
 		return fin, nil
 
 	case d.typ.IsArr():
-		panic("todo")
+		// TODO merge array
+		panic(EF("TODO - merge array"))
 
 	default:
 		if !d.eq(right) {
@@ -234,7 +235,8 @@ func (d Datum) nest(
 	q queryT,
 ) (Datum, error) {
 	if q.Flags().IsIndeterministic() {
-		panic("TODO: fix non deterministic flag for nest")
+		// TODO fix non deterministic flag for nest
+		panic(EF("TODO: fix non deterministic flag for nest"))
 	}
 
 	obj, err := d.tryObj()
@@ -264,7 +266,7 @@ func (d Datum) set(
 	value any,
 ) (Datum, error) {
 	if !d.typ.IsArr() && !d.typ.IsObj() {
-		panic("TODO unimplemented, set for non-container types: " + d.typ.String())
+		panic(EF("TODO unimplemented, set for non-container types: %s", d.typ.String()))
 	}
 
 	cp := M(of(d.deref()))
@@ -306,7 +308,7 @@ func (d Datum) deref() any {
 
 func cast[T any](d Datum) T {
 	if d.typ.IsNil() {
-		panic(newNilError())
+		panic(E(newNilError()))
 	}
 
 	t, ok := d.deref().(T)

@@ -17,7 +17,7 @@ func newNamedStep(
 		panic(EF("nil step fn"))
 	}
 	if !privnames.SimpleName.MatchString(name) {
-		panic(hippoerr.NewPlanInvalidFnName(name))
+		panic(E(hippoerr.NewPlanInvalidFnName(name)))
 	}
 
 	return namedStep{
