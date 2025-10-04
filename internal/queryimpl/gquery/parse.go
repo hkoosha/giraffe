@@ -9,7 +9,6 @@ import (
 	"github.com/hkoosha/giraffe/dialects"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
-	"github.com/hkoosha/giraffe/internal/queryimpl"
 	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/qflag"
 )
@@ -25,25 +24,20 @@ type state struct {
 }
 
 type parser struct {
-	maxDepth uint
 	spec     string
 	path     []GiraffeQuery
 	state    state
 	global   qflag.QFlag
 	segment  int
-
-	i int
-	c byte
+	i        int
+	maxDepth uint16
+	c        byte
 }
 
 func (p *parser) reset() {
 	//nolint:exhaustruct
 	p.state = state{}
 	p.state.ref.Grow(64)
-}
-
-func (p *parser) last() *GiraffeQuery {
-	return &p.path[len(p.path)-1]
 }
 
 func (p *parser) onEscape() error {
@@ -134,7 +128,6 @@ func (p *parser) onMake() error {
 
 	case p.state.flags.IsMake():
 		return queryerrors.DuplicatedCmdError(p.i, p.spec, p.c)
-
 	}
 
 	p.state.flags |= qflag.QModeMake
@@ -154,7 +147,6 @@ func (p *parser) onMaybe() error {
 
 	case p.state.flags.IsMaybe():
 		return queryerrors.DuplicatedCmdError(p.i, p.spec, p.c)
-
 	}
 
 	p.state.flags = qflag.QModeMaybe
@@ -190,7 +182,7 @@ func (p *parser) onSep() error {
 		return queryerrors.EmptyError(p.i, p.spec)
 	}
 
-	if p.global.Seq() >= queryimpl.MaxDepth {
+	if int64(p.global.Seq()) >= int64(p.maxDepth) {
 		return queryerrors.NestingTooDeepError(p.i, p.spec)
 	}
 
@@ -392,7 +384,7 @@ func (p *parser) parse() (GiraffeQuery, error) {
 }
 
 func newParser(
-	maxDepth uint,
+	maxDepth uint16,
 	spec string,
 ) *parser {
 	//nolint:exhaustruct
@@ -414,7 +406,7 @@ func newParser(
 }
 
 func Parse(
-	maxDepth uint,
+	maxDepth uint16,
 	spec string,
 ) (GiraffeQuery, error) {
 	if !strings.HasSuffix(spec, qcmd.Sep.String()) {

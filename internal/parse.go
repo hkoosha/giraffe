@@ -19,6 +19,9 @@ func parse(
 	case dialects.Giraffe1v1:
 		return gquery.Parse(queryimpl.MaxDepth, spec)
 
+	case dialects.Unknown:
+		return gquery.GiraffeQuery{}, dialects.ErrUnknown()
+
 	default:
 		return gquery.GiraffeQuery{}, dialects.ErrUnknown()
 	}

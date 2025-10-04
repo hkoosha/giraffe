@@ -9,13 +9,14 @@ import (
 
 const (
 	Giraffe1v1 Dialect = "giraffe1v1"
-	Http1v1    Dialect = "http1v1"
 
 	Unknown Dialect = ""
 )
 
-var errUnknown = errors.New("dialect unknown")
-var errMismatch = errors.New("dialect mismatch")
+var (
+	errUnknown  = errors.New("dialect unknown")
+	errMismatch = errors.New("dialect mismatch")
+)
 
 type Dialect string
 
@@ -23,6 +24,7 @@ func (d Dialect) String() string {
 	return string(d)
 }
 
+//nolint:nonamedreturns
 func (d Dialect) matches(
 	spec string,
 ) (
@@ -43,14 +45,12 @@ func (d Dialect) matches(
 	return explicit, matched
 }
 
+//nolint:nonamedreturns
 func dialectOf(
 	spec string,
 ) (_ Dialect, explicit bool, _ error) {
 	if ex, ok := Giraffe1v1.matches(spec); ok {
 		return Giraffe1v1, ex, nil
-	}
-	if ex, ok := Http1v1.matches(spec); ok {
-		return Http1v1, ex, nil
 	}
 
 	return Unknown, false, ErrUnknown()
@@ -63,9 +63,10 @@ func DialectOf(
 	return d, err
 }
 
+//nolint:nonamedreturns
 func Denormalized(
 	spec string,
-) (Dialect, string, error) {
+) (_ Dialect, denormalizedSpec string, _ error) {
 	dialect, explicit, err := dialectOf(spec)
 	if err != nil {
 		return Unknown, "", err
@@ -78,9 +79,10 @@ func Denormalized(
 	return dialect, spec, nil
 }
 
+//nolint:nonamedreturns
 func Normalized(
 	spec string,
-) (Dialect, string, error) {
+) (_ Dialect, normalizedSpec string, _ error) {
 	dialect, explicit, err := dialectOf(spec)
 	if err != nil {
 		return Unknown, "", err

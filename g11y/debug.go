@@ -167,9 +167,9 @@ func FmtStacktraces(
 		return "<missing trace>\n\n" + string(debug.Stack())
 	}
 
-	var traces [][]string
-	for _, st := range stacktraces {
-		traces = append(traces, FmtStacktrace(st))
+	traces := make([][]string, len(stacktraces))
+	for i, st := range stacktraces {
+		traces[i] = FmtStacktrace(st)
 	}
 
 	isProper := func(smaller, bigger []string) bool {
@@ -178,7 +178,7 @@ func FmtStacktraces(
 		}
 
 		sp := 0
-		for i := 0; i < len(bigger); i++ {
+		for i := range bigger {
 			if bigger[i] == smaller[sp] {
 				sp++
 			} else {

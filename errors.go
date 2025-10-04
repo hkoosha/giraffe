@@ -55,7 +55,6 @@ const (
 	ErrCodeQueryParseNotWritable     = queryerrors.ErrCodeNotWritable
 )
 
-//nolint:reassign
 func init() {
 }
 

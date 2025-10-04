@@ -46,10 +46,7 @@ func NewNotWritableError(
 ) error {
 	return newError(
 		ErrCodeNotWritable,
-		fmt.Sprintf(
-			"wrong modifier: need=read, have=write, query=%s",
-			q,
-		),
+		"wrong modifier: need=read, have=write, query="+q,
 	)
 }
 

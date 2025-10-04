@@ -6,13 +6,16 @@ import (
 	"sync"
 	"time"
 
+	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/vendored/tlru"
 )
 
 const ttl = 4 * 24 * time.Hour
 
-var cachesMu = &sync.Mutex{}
-var caches = make(map[reflect.Type]any, 1)
+var (
+	cachesMu = &sync.Mutex{}
+	caches   = make(map[reflect.Type]any, 1)
+)
 
 type Item[V any] struct {
 	Err error
@@ -39,7 +42,18 @@ func getCache[V any]() *tlru.Cache[string, Item[V]] {
 		caches[typ] = cache
 	}
 
-	return cache.(*tlru.Cache[string, Item[V]])
+	cast, ok := cache.(*tlru.Cache[string, Item[V]])
+
+	if !ok {
+		var expecting *tlru.Cache[string, Item[V]]
+		panic(EF(
+			"unreachable: wrong data type, expecting=*%s got=%s",
+			reflect.TypeOf(expecting).Elem().Name(),
+			reflect.TypeOf(cache).Name(),
+		))
+	}
+
+	return cast
 }
 
 func Get[V any](
@@ -51,6 +65,7 @@ func Get[V any](
 		return cached, true
 	}
 
+	//nolint:exhaustruct
 	return Item[V]{}, false
 }
 
