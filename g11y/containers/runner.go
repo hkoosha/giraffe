@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
-	"github.com/hkoosha/giraffe/g11y/gtx"
+	"github.com/hkoosha/giraffe/t11y/gtx"
 	"github.com/hkoosha/giraffe/t11y"
 	"github.com/hkoosha/giraffe/t11y/glog"
 )
