@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hkoosha/giraffe/internal/queryimpl/gquery"
-	"github.com/hkoosha/giraffe/t11y"
+	"github.com/hkoosha/giraffe/g11y/t11y"
 )
 
 func TestParse(t *testing.T) {

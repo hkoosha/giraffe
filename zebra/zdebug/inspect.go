@@ -6,7 +6,7 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/t11y"
+	"github.com/hkoosha/giraffe/g11y/t11y"
 )
 
 func Inspect(v any) string {

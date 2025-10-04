@@ -8,7 +8,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/t11y"
+	"github.com/hkoosha/giraffe/g11y/t11y"
 )
 
 func (c *config) ensure() *config {

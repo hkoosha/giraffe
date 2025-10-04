@@ -15,7 +15,7 @@ import (
 	"github.com/hkoosha/giraffe/hippo/remote"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	. "github.com/hkoosha/giraffe/internal/dot1"
-	"github.com/hkoosha/giraffe/t11y"
+	"github.com/hkoosha/giraffe/g11y/t11y"
 )
 
 func mkEkran(

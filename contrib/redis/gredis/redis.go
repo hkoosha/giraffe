@@ -11,7 +11,7 @@ import (
 
 	"github.com/hkoosha/giraffe/g11y/glog"
 	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/t11y"
+	"github.com/hkoosha/giraffe/g11y/t11y"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 	"github.com/hkoosha/giraffe/zebra/zcache"
 )

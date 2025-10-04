@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hkoosha/giraffe/t11y/internal"
+	"github.com/hkoosha/giraffe/g11y/t11y/internal"
 )
 
 func SetSkippedLines(
