@@ -9,7 +9,7 @@ import (
 	"github.com/hkoosha/giraffe/g11y/glog"
 	"github.com/hkoosha/giraffe/g11y/otel/internal/metrics"
 	"github.com/hkoosha/giraffe/g11y/setup"
-	. "github.com/hkoosha/giraffe/internal/dot0"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 var (

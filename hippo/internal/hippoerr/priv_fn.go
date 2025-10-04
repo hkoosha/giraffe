@@ -2,7 +2,7 @@ package hippoerr
 
 import (
 	"github.com/hkoosha/giraffe"
-	"github.com/hkoosha/giraffe/internal/g"
+	"github.com/hkoosha/giraffe/internal/gstrings"
 )
 
 type FnMissingKeysErrorState struct {
@@ -15,7 +15,7 @@ func (e *FnMissingKeysErrorState) String(_ *HippoError) string {
 		strs[i] = m.String()
 	}
 
-	return "missing keys: " + g.Joined(strs)
+	return "missing keys: " + gstrings.Joined(strs)
 }
 
 // NewFnMissingKeysError Private function, do not call outside hippo package.

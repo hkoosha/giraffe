@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"reflect"
 
-	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/g"
+	"github.com/hkoosha/giraffe/internal/gstrings"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
 	"github.com/hkoosha/giraffe/qflag"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 //goland:noinspection GoUnusedConst
@@ -121,7 +121,7 @@ func newDataMakeError(
 ) error {
 	const prefix = "failed to make datum"
 
-	return newGiraffeError(code, g.Joined([]string{prefix, msg}))
+	return newGiraffeError(code, gstrings.Joined([]string{prefix, msg}))
 }
 
 func newTypeCastError(
@@ -135,7 +135,7 @@ func newTypeCastError(
 			"cannot cast: from=%s, to=%s%s",
 			have,
 			need,
-			g.Joined(extra),
+			gstrings.Joined(extra),
 		),
 	)
 }
@@ -164,7 +164,7 @@ func newReflectiveTypeCastError(
 			"cannot cast: from=%s, to=%s%s",
 			have,
 			reflect.TypeOf(need),
-			g.Joined(extra),
+			gstrings.Joined(extra),
 		),
 	)
 }

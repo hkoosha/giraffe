@@ -5,8 +5,8 @@ import (
 	"maps"
 	"strings"
 
-	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/g"
+	"github.com/hkoosha/giraffe/internal/gstrings"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 var (
@@ -53,7 +53,7 @@ func (p *Selector) String() string {
 		value.WriteByte('/')
 	}
 
-	value.WriteString(g.JoinIt(maps.Keys(p.plans)))
+	value.WriteString(gstrings.JoinIt(maps.Keys(p.plans)))
 
 	return prefix + value.String() + suffix
 }

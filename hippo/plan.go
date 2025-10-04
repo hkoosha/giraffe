@@ -3,8 +3,8 @@ package hippo
 import (
 	"slices"
 
-	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/g"
+	"github.com/hkoosha/giraffe/internal/gstrings"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/typing"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
@@ -161,7 +161,7 @@ func (p *Plan) String() string {
 
 	value := "nil"
 	if p != nil {
-		value = g.Joined(p.Names())
+		value = gstrings.Joined(p.Names())
 	}
 
 	return prefix + value + suffix

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/hkoosha/giraffe/internal/g"
+	"github.com/hkoosha/giraffe/internal/gstrings"
 )
 
 var fnRegistryErr = FnRegistry{
@@ -28,6 +28,6 @@ func (r *regEntry) String() string {
 	return fmt.Sprintf(
 		"FnEntry[fn=%s, aliases=%s]",
 		r.fn.typ,
-		g.Joined(r.aliases),
+		gstrings.Joined(r.aliases),
 	)
 }

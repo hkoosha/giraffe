@@ -1,4 +1,4 @@
-package g
+package gstrings
 
 import (
 	"fmt"

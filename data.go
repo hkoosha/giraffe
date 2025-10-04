@@ -12,10 +12,10 @@ import (
 	"strconv"
 
 	"github.com/hkoosha/giraffe/internal"
-	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/gdatum"
 	"github.com/hkoosha/giraffe/qcmd"
 	"github.com/hkoosha/giraffe/t11y"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
@@ -75,15 +75,15 @@ func OfErr() Datum {
 
 type Num interface {
 	int |
-		uint |
-		int8 |
-		int16 |
-		int32 |
-		int64 |
-		uint8 |
-		uint16 |
-		uint32 |
-		uint64
+	uint |
+	int8 |
+	int16 |
+	int32 |
+	int64 |
+	uint8 |
+	uint16 |
+	uint32 |
+	uint64
 }
 
 type Ord interface {
@@ -96,46 +96,46 @@ type Basic interface {
 
 type Seq interface {
 	[]bool |
-		[]string |
-		[]int |
-		[]int64 |
-		[]uint64 |
-		[][]bool |
-		[][]string |
-		[][]int |
-		[][]int64 |
-		[][]uint64 |
-		map[string]bool |
-		map[string]string |
-		map[string]int |
-		map[string]int64 |
-		map[string][]bool |
-		map[string][]string |
-		map[string][]int |
-		map[string][]int64 |
-		map[string][]uint64
+	[]string |
+	[]int |
+	[]int64 |
+	[]uint64 |
+	[][]bool |
+	[][]string |
+	[][]int |
+	[][]int64 |
+	[][]uint64 |
+	map[string]bool |
+	map[string]string |
+	map[string]int |
+	map[string]int64 |
+	map[string][]bool |
+	map[string][]string |
+	map[string][]int |
+	map[string][]int64 |
+	map[string][]uint64
 }
 
 type Safe interface {
 	Basic | Seq |
-		*big.Int |
-		Datum |
-		[]Datum |
-		[][]Datum |
-		map[string]Datum |
-		map[Query]Datum |
-		map[Query]bool |
-		map[Query]string |
-		map[Query]int |
-		map[Query]int64 |
-		map[Query]uint64 |
-		map[string][]Datum |
-		map[Query][]Datum |
-		map[Query][]bool |
-		map[Query][]string |
-		map[Query][]int |
-		map[Query][]int64 |
-		map[Query][]uint64
+	*big.Int |
+	Datum |
+	[]Datum |
+	[][]Datum |
+	map[string]Datum |
+	map[Query]Datum |
+	map[Query]bool |
+	map[Query]string |
+	map[Query]int |
+	map[Query]int64 |
+	map[Query]uint64 |
+	map[string][]Datum |
+	map[Query][]Datum |
+	map[Query][]bool |
+	map[Query][]string |
+	map[Query][]int |
+	map[Query][]int64 |
+	map[Query][]uint64
 }
 
 type Implode = map[Query]Datum

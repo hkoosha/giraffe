@@ -5,10 +5,10 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
-	. "github.com/hkoosha/giraffe/internal/dot0"
 	. "github.com/hkoosha/giraffe/internal/dot1"
-	"github.com/hkoosha/giraffe/internal/g"
+	"github.com/hkoosha/giraffe/internal/gstrings"
 	"github.com/hkoosha/giraffe/t11y"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 var (
@@ -79,7 +79,7 @@ func (n *PipelineFn) String() string {
 
 	value := "nil"
 	if n != nil {
-		value = g.Joined(n.plan.Names())
+		value = gstrings.Joined(n.plan.Names())
 	}
 
 	return prefix + value + suffix

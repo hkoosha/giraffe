@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"sync/atomic"
 
-	. "github.com/hkoosha/giraffe/internal/dot0"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 const debugNilId = "<nil>"

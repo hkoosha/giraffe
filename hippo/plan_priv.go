@@ -3,7 +3,7 @@ package hippo
 import (
 	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
 	"github.com/hkoosha/giraffe/hippo/internal/privnames"
-	. "github.com/hkoosha/giraffe/internal/dot0"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 func newNamedStep(

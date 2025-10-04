@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/hkoosha/giraffe/internal"
-	. "github.com/hkoosha/giraffe/internal/dot0"
-	"github.com/hkoosha/giraffe/internal/g"
+	"github.com/hkoosha/giraffe/internal/gstrings"
 	"github.com/hkoosha/giraffe/qcmd"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 func (d Datum) hasShallow(
@@ -257,7 +257,7 @@ func newDataReadIntegerOverflowError(
 		fmt.Sprintf(
 			"integer does not fit: target=%s%s",
 			need.String(),
-			g.Joined(extra),
+			gstrings.Joined(extra),
 		),
 	)
 }

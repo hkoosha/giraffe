@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	. "github.com/hkoosha/giraffe/internal/dot0"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 type gtxKeyT int

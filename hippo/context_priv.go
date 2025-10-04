@@ -8,7 +8,7 @@ import (
 	rand2 "math/rand/v2"
 	"time"
 
-	. "github.com/hkoosha/giraffe/internal/dot0"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 var int63 = big.NewInt(int64(1) << 62)

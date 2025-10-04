@@ -4,7 +4,7 @@ import (
 	"slices"
 	"strings"
 
-	. "github.com/hkoosha/giraffe/internal/dot0"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 var danger = []string{

@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/vendored/tlru"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 const ttl = 4 * 24 * time.Hour

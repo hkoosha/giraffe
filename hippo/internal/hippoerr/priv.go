@@ -3,7 +3,7 @@ package hippoerr
 import (
 	"reflect"
 
-	. "github.com/hkoosha/giraffe/internal/dot0"
+	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 type ErrorState interface {
