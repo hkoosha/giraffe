@@ -5,10 +5,10 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 
-	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/glog"
 	"github.com/hkoosha/giraffe/g11y/otel"
 	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 const (
@@ -109,7 +109,7 @@ type Cache[K comparable, V any] struct {
 func (c *Cache[K, V]) WithLg(
 	lg glog.Lg,
 ) *Cache[K, V] {
-	g11y.NonNil(lg)
+	t11y.NonNil(lg)
 	cp := *&c
 	cp.lg = lg
 	return cp
@@ -125,7 +125,7 @@ func (c *Cache[K, V]) WithOtel(
 	cnt otel.Int64Counter,
 	attrs ...attribute.KeyValue,
 ) *Cache[K, V] {
-	g11y.NonNil(cnt)
+	t11y.NonNil(cnt)
 
 	cp := *&c
 

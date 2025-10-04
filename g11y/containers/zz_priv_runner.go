@@ -7,11 +7,11 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hkoosha/giraffe/contrib/zap/gzapadapter"
-	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
 	"github.com/hkoosha/giraffe/g11y/gtx"
 	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 const (
@@ -168,10 +168,10 @@ func (r *runner) Close(
 
 	var err error
 	for _, c := range r.containers {
-		err = g11y.Join(err, c.Close(ctx))
+		err = t11y.Join(err, c.Close(ctx))
 	}
 
-	g11y.DieIf(err)
+	t11y.DieIf(err)
 
 	r.gotoFrom(stateClosed, stateClosing)
 }

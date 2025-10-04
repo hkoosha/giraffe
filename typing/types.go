@@ -7,8 +7,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/hkoosha/giraffe/g11y"
 	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 const (
@@ -77,7 +77,7 @@ func newVirtualInfo(
 func getOrRegisterTy(
 	ty reflect.Type,
 ) *info {
-	g11y.NonNil(ty)
+	t11y.NonNil(ty)
 
 	inf := func(ty reflect.Type) *info {
 		mu.RLock()

@@ -10,9 +10,12 @@ type FnMissingKeysErrorState struct {
 }
 
 func (e *FnMissingKeysErrorState) String(_ *HippoError) string {
-	return "missing keys: " + g.JoinedFn(e.missing, func(it giraffe.Query) string {
-		return it.String()
-	})
+	strs := make([]string, len(e.missing))
+	for i, m := range e.missing {
+		strs[i] = m.String()
+	}
+
+	return "missing keys: " + g.Joined(strs)
 }
 
 // NewFnMissingKeysError Private function, do not call outside hippo package.

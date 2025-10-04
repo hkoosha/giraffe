@@ -121,7 +121,7 @@ func newDataMakeError(
 ) error {
 	const prefix = "failed to make datum"
 
-	return newGiraffeError(code, g.Join(prefix, msg))
+	return newGiraffeError(code, g.Joined([]string{prefix, msg}))
 }
 
 func newTypeCastError(

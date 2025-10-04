@@ -1,4 +1,4 @@
-package g11y
+package t11y
 
 import (
 	"errors"
@@ -6,8 +6,7 @@ import (
 	"runtime/debug"
 	"sync"
 
-	"github.com/hkoosha/giraffe/g11y/internal"
-	"github.com/hkoosha/giraffe/internal/g"
+	"github.com/hkoosha/giraffe/t11y/internal"
 )
 
 func EnableDefaultTracer() {
@@ -17,24 +16,22 @@ func EnableDefaultTracer() {
 }
 
 func Traced(err error) error {
-	switch {
-	case !internal.IsTracer.Load():
+	if !internal.IsTracer.Load() {
 		return err
-
-	case g.Is[*TracedError](err):
-		tE := g.As[*TracedError](err)
-		tE.Add(debug.Stack())
-
-		return err
-
-	default:
-		return errors.Join(
-			err, &TracedError{
-				Mu:          &sync.Mutex{},
-				Stacktraces: [][]byte{debug.Stack()},
-			},
-		)
 	}
+
+	var tE *tracedError
+	if errors.As(err, &tE) {
+		tE.Add(debug.Stack())
+		return err
+	}
+
+	return errors.Join(
+		err, &tracedError{
+			Mu:          &sync.Mutex{},
+			Stacktraces: [][]byte{debug.Stack()},
+		},
+	)
 }
 
 func TracedFmt(format string, v ...any) error {

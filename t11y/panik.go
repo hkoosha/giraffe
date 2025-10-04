@@ -1,4 +1,4 @@
-package g11y
+package t11y
 
 import (
 	"errors"

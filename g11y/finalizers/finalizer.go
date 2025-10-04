@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/setup"
 	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 type (
@@ -34,7 +34,7 @@ func Finalize(
 func NewFinalizer(
 	onceReg setup.Registry,
 ) *Finalizer {
-	g11y.NonNil(onceReg)
+	t11y.NonNil(onceReg)
 
 	return &Finalizer{
 		onceReg:    onceReg,
@@ -84,7 +84,7 @@ func (f *Finalizer) Add10(
 func (f *Finalizer) Add(
 	fn FinalizerFn1,
 ) {
-	g11y.NonNil(fn)
+	t11y.NonNil(fn)
 	f.add(fn)
 }
 

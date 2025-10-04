@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/hkoosha/giraffe"
-	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	. "github.com/hkoosha/giraffe/internal/dot1"
 	"github.com/hkoosha/giraffe/internal/g"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 var (
@@ -54,7 +54,7 @@ func (s *StepContext) clone() *StepContext {
 func Pipeline(
 	plan *Plan,
 ) (*PipelineFn, error) {
-	g11y.NonNil(plan)
+	t11y.NonNil(plan)
 
 	if len(plan.steps) == 0 {
 		panic(EF("empty plan"))
@@ -79,7 +79,7 @@ func (n *PipelineFn) String() string {
 
 	value := "nil"
 	if n != nil {
-		value = g.Join(n.plan.Names()...)
+		value = g.Joined(n.plan.Names())
 	}
 
 	return prefix + value + suffix

@@ -13,8 +13,8 @@ import (
 
 	"github.com/hkoosha/giraffe/conn/headers"
 	"github.com/hkoosha/giraffe/conn/internal"
-	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/t11y"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
@@ -158,7 +158,7 @@ func (c *config) WithLg(lg glog.Lg) Config {
 }
 
 func (c *config) withLg(lg glog.Lg) *config {
-	g11y.NonNil(lg)
+	t11y.NonNil(lg)
 
 	cp := c.open()
 	cp.lg = lg
@@ -251,7 +251,7 @@ func (c *config) WithLgFilteredHeaders(
 func (c *config) withLgFilteredHeaders(
 	f HeaderFilter,
 ) *config {
-	g11y.NonNil(f)
+	t11y.NonNil(f)
 
 	cp := c.open()
 	cp.log = cp.log.shallow()
@@ -274,7 +274,7 @@ func (c *config) WithLgMaskedHeaders(
 func (c *config) withLgMaskedHeaders(
 	f HeaderFilter,
 ) *config {
-	g11y.NonNil(f)
+	t11y.NonNil(f)
 
 	cp := c.open()
 	cp.log = cp.log.shallow()
@@ -318,7 +318,7 @@ func (c *config) withHeaderOverwrites(
 	withDefaults bool,
 	h map[string]string,
 ) *config {
-	g11y.NonNil(h)
+	t11y.NonNil(h)
 
 	if withDefaults {
 		h = z.UnionLeft(h, defaultHeaders)
@@ -341,7 +341,7 @@ func (c *config) withHeaderOverwrites(
 func (c *config) withHeaderOverwriters(
 	h map[string]HeaderProvider,
 ) *config {
-	g11y.NonNil(h)
+	t11y.NonNil(h)
 
 	cp := c.open()
 	cp.header = cp.header.shallow()
@@ -387,7 +387,7 @@ func (c *config) WithBearerProvider(
 func (c *config) withBearerProvider(
 	fn HeaderProvider,
 ) *config {
-	g11y.NonNil(fn)
+	t11y.NonNil(fn)
 
 	fn = func(ctx context.Context, config Config) string {
 		return withBearerPrefix(fn(ctx, config))
@@ -643,7 +643,7 @@ func (c *config) WithTransport(
 func (c *config) withTransport(
 	t http.RoundTripper,
 ) *config {
-	g11y.NonNil(t)
+	t11y.NonNil(t)
 
 	cp := c.open()
 	cp.base = t
@@ -787,7 +787,7 @@ func (c *config) WithRetryStatusCodes(sc ...int) Config {
 }
 
 func (c *config) withRetriedStatusCodes(sc ...int) *config {
-	g11y.NonNil(sc)
+	t11y.NonNil(sc)
 
 	if slices.Equal(c.retry.retryIfStatuses, sc) {
 		return c
@@ -806,7 +806,7 @@ func (c *config) WithRetryIf(fn RetryIfFn) Config {
 }
 
 func (c *config) withRetryIf(fn RetryIfFn) *config {
-	g11y.NonNil(fn)
+	t11y.NonNil(fn)
 
 	cp := c.open()
 	cp.retry = cp.retry.shallow()

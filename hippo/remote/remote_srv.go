@@ -9,10 +9,10 @@ import (
 	"regexp"
 
 	"github.com/hkoosha/giraffe"
-	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/internal/privnames"
 	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 type Server func(context.Context, io.Reader, io.Writer) error
@@ -23,8 +23,8 @@ func (s Server) ServeHTTP(
 ) {
 	if err := s(r.Context(), r.Body, w); err != nil {
 		msg := err.Error()
-		if g11y.IsUnsafeError() {
-			msg += "\n\n" + g11y.FmtStacktraceOf(err)
+		if t11y.IsUnsafeError() {
+			msg += "\n\n" + t11y.FmtStacktraceOf(err)
 		}
 		http.Error(w, msg, http.StatusBadRequest)
 

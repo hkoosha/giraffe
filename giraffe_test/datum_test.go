@@ -7,16 +7,16 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hkoosha/giraffe"
-	"github.com/hkoosha/giraffe/g11y"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 func TestMerge(t *testing.T) {
 	t.Run("merge same values", func(t *testing.T) {
-		g11y.TPreamble(t)
+		t11y.TPreamble(t)
 
 		defer func() {
 			if r := recover(); r != nil {
-				require.Nil(t, r, g11y.FmtStacktraceOf(r))
+				require.Nil(t, r, t11y.FmtStacktraceOf(r))
 			}
 		}()
 
@@ -26,7 +26,7 @@ func TestMerge(t *testing.T) {
 		d1 := giraffe.Of1(q, 123)
 		dm, err := d0.Merge(d1)
 
-		g11y.TNoError(t, err)
+		t11y.TNoError(t, err)
 		assert.Equal(t, d0.Pretty(), dm.Pretty())
 	})
 }

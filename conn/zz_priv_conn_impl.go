@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/hkoosha/giraffe/conn/internal"
-	"github.com/hkoosha/giraffe/g11y"
 	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/t11y"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
 
@@ -26,7 +26,7 @@ func newConn[R any](
 	cfg *config,
 	serde serdes.Serde[R],
 ) *connImpl[R] {
-	g11y.NonNil(cfg, serde)
+	t11y.NonNil(cfg, serde)
 	cfg.Ensure()
 
 	var r R

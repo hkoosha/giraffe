@@ -47,9 +47,9 @@ func (r FnRegistry) String() string {
 	value.WriteString("]")
 
 	value.WriteString(", types=[")
-	value.WriteString(g.Join(z.ItApplied(maps.Keys(r.byType), func(it typing.Type) string {
+	value.WriteString(g.Joined(z.ItApplied(maps.Keys(r.byType), func(it typing.Type) string {
 		return it.String()
-	})...))
+	})))
 	value.WriteString("]")
 
 	return prefix + value.String() + suffix

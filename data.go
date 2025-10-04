@@ -11,11 +11,11 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/internal"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	"github.com/hkoosha/giraffe/internal/gdatum"
 	"github.com/hkoosha/giraffe/qcmd"
+	"github.com/hkoosha/giraffe/t11y"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
@@ -149,7 +149,7 @@ type Datum struct {
 }
 
 func (d Datum) String() string {
-	if g11y.IsDebugToString() {
+	if t11y.IsDebugToString() {
 		return fmt.Sprintf("Dat[%s]", d.typ.String())
 	}
 

@@ -5,30 +5,30 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/named"
+	"github.com/hkoosha/giraffe/t11y"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
 func M[A any](a A, err error) A {
-	return g11y.Must(a, err)
+	return t11y.Must(a, err)
 }
 
 func E(err ...error) error {
 	switch {
 	case len(err) == 0:
-		return g11y.Traced(nil)
+		return t11y.Traced(nil)
 
 	case len(err) == 1:
-		return g11y.Traced(err[0])
+		return t11y.Traced(err[0])
 
 	default:
-		return g11y.Traced(errors.Join(err...))
+		return t11y.Traced(errors.Join(err...))
 	}
 }
 
 func EF(format string, v ...any) error {
-	return g11y.TracedFmt(format, v...)
+	return t11y.TracedFmt(format, v...)
 }
 
 func N(name string, v any) named.Named {
@@ -83,5 +83,5 @@ func Apply[U, V any](
 func OK(
 	err error,
 ) {
-	g11y.Ensure(err)
+	t11y.Ensure(err)
 }

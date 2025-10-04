@@ -9,9 +9,9 @@ import (
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/glog"
 	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/t11y"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 	"github.com/hkoosha/giraffe/zebra/zcache"
 )
@@ -21,7 +21,7 @@ func New[K comparable, V any](
 	keySerde serdes.Conv[K, string],
 	valSerde serdes.Conv[V, string],
 ) zcache.Adapter[K, V] {
-	g11y.NonNil(cfg, keySerde, valSerde)
+	t11y.NonNil(cfg, keySerde, valSerde)
 	cfg.Ensure()
 
 	return &adapter[K, V]{

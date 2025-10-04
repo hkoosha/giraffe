@@ -28,6 +28,6 @@ func (r *regEntry) String() string {
 	return fmt.Sprintf(
 		"FnEntry[fn=%s, aliases=%s]",
 		r.fn.typ,
-		g.Join(r.aliases...),
+		g.Joined(r.aliases),
 	)
 }

@@ -1,4 +1,4 @@
-package g11y
+package t11y
 
 import (
 	"slices"
@@ -7,23 +7,23 @@ import (
 
 const tracedMsg = "giraffe traced error"
 
-type TracedError struct {
+type tracedError struct {
 	Mu          *sync.Mutex
 	Stacktraces [][]byte
 }
 
-func (e *TracedError) Error() string {
+func (e *tracedError) Error() string {
 	return tracedMsg
 }
 
-func (e *TracedError) Get() [][]byte {
+func (e *tracedError) Get() [][]byte {
 	e.Mu.Lock()
 	defer e.Mu.Unlock()
 
 	return slices.Clone(e.Stacktraces)
 }
 
-func (e *TracedError) Add(stacktrace []byte) {
+func (e *tracedError) Add(stacktrace []byte) {
 	e.Mu.Lock()
 	defer e.Mu.Unlock()
 	e.Stacktraces = append(e.Stacktraces, stacktrace)

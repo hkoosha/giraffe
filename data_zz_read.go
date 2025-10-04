@@ -256,7 +256,7 @@ func newDataReadIntegerOverflowError(
 		fmt.Sprintf(
 			"integer does not fit: target=%s%s",
 			need.String(),
-			g.Join(extra...),
+			g.Joined(extra),
 		),
 	)
 }

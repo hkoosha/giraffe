@@ -6,9 +6,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/containers/internal"
 	"github.com/hkoosha/giraffe/g11y/glog"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 var (
@@ -53,7 +53,7 @@ func (r *config) doWait(
 ) error {
 	const timeout = 4 * time.Second
 
-	defer func() { g11y.Mix(err, recover()) }()
+	defer func() { t11y.Mix(err, recover()) }()
 
 	open := func() Runner {
 		rn := GiraffeRunner(ctx, r)
@@ -76,34 +76,34 @@ func (r *config) doWait(
 		done := make(chan error, 1)
 
 		go func() {
-			defer func() { g11y.DieIf(recover()) }()
+			defer func() { t11y.DieIf(recover()) }()
 			done <- rn.Stop(ctx)
 		}()
 
 		select {
 		case dErr := <-done:
-			g11y.Mix(err, dErr)
+			t11y.Mix(err, dErr)
 		case <-timer.C:
-			g11y.Mix(err, errStopTimeout)
+			t11y.Mix(err, errStopTimeout)
 		}
 
 		go func() {
-			defer func() { g11y.DieIf(recover()) }()
+			defer func() { t11y.DieIf(recover()) }()
 			rn.Close(ctx)
 			done <- nil
 		}()
 
 		select {
 		case dErr := <-done:
-			g11y.Mix(err, dErr)
+			t11y.Mix(err, dErr)
 		case <-timer.C:
-			g11y.Mix(err, errCloseTimeout)
+			t11y.Mix(err, errCloseTimeout)
 		}
 	}
 
 	rn := open()
 	defer fin(ctx, rn)
-	return g11y.MixAndGet(err, rn.Wait(ctx))
+	return t11y.MixAndGet(err, rn.Wait(ctx))
 }
 
 func (r *config) WaitOrDie(
@@ -111,7 +111,7 @@ func (r *config) WaitOrDie(
 	containers ...Container,
 ) {
 	err := r.Wait(ctx, containers...)
-	g11y.DieIf(err)
+	t11y.DieIf(err)
 }
 
 // ============================================================================.

@@ -1,7 +1,7 @@
-package g11y
+package t11y
 
 import (
-	"github.com/hkoosha/giraffe/g11y/internal"
+	"github.com/hkoosha/giraffe/t11y/internal"
 )
 
 func IsDebug() bool {

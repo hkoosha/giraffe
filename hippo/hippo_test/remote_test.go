@@ -11,11 +11,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hkoosha/giraffe"
-	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/remote"
 	. "github.com/hkoosha/giraffe/internal/dot0"
 	. "github.com/hkoosha/giraffe/internal/dot1"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 func mkEkran(
@@ -23,8 +23,8 @@ func mkEkran(
 ) remote.Server {
 	t.Helper()
 
-	g11y.EnableTracer()
-	g11y.EnableUnsafeError()
+	t11y.EnableTracer()
+	t11y.EnableUnsafeError()
 
 	mkStep := func(
 		step int,
@@ -71,8 +71,8 @@ func mkEkran(
 }
 
 func TestServer_Ekran(t *testing.T) {
-	g11y.EnableTracer()
-	g11y.EnableUnsafeError()
+	t11y.EnableTracer()
+	t11y.EnableUnsafeError()
 
 	t.Run("ekran", func(t *testing.T) {
 		ekran := mkEkran(t)
@@ -85,7 +85,7 @@ func TestServer_Ekran(t *testing.T) {
 		}
 
 		err := ekran(t.Context(), bytes.NewReader(M(json.Marshal(req))), &out)
-		require.NoError(t, err, "ekran failed: %s", g11y.FmtStacktraceOf(err))
+		require.NoError(t, err, "ekran failed: %s", t11y.FmtStacktraceOf(err))
 
 		var fin any
 		OK(json.Unmarshal(out.Bytes(), &fin))
@@ -95,8 +95,8 @@ func TestServer_Ekran(t *testing.T) {
 }
 
 func TestServer_Http(t *testing.T) {
-	g11y.EnableTracer()
-	g11y.EnableUnsafeError()
+	t11y.EnableTracer()
+	t11y.EnableUnsafeError()
 
 	remoteFn := hippo.MustFnOf(func(
 		_ hippo.Context,

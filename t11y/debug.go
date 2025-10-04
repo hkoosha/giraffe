@@ -1,4 +1,4 @@
-package g11y
+package t11y
 
 import (
 	"bufio"
@@ -12,8 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hkoosha/giraffe/g11y/internal"
-	"github.com/hkoosha/giraffe/internal/g"
+	"github.com/hkoosha/giraffe/t11y/internal"
 )
 
 func SetSkippedLines(
@@ -235,7 +234,8 @@ func FmtStacktraceOf(
 	err any,
 ) string {
 	if e, ok := err.(error); ok {
-		if tE := g.As[*TracedError](e); tE != nil {
+		var tE *tracedError
+		if errors.As(e, &tE) {
 			st := tE.Get()
 			str := make([]string, len(st))
 
@@ -260,7 +260,7 @@ func FmtMsg(
 	msg := fmt.Sprint(err)
 
 	if e, ok := err.(error); ok {
-		var err *TracedError
+		var err *tracedError
 		if errors.As(e, &err) {
 			msg = strings.Replace(msg, tracedMsg+"\n", "", 1)
 		}

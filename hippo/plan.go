@@ -161,7 +161,7 @@ func (p *Plan) String() string {
 
 	value := "nil"
 	if p != nil {
-		value = g.Join(p.Names()...)
+		value = g.Joined(p.Names())
 	}
 
 	return prefix + value + suffix

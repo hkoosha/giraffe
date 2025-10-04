@@ -3,16 +3,16 @@ package toggles
 import (
 	"sync"
 
-	"github.com/hkoosha/giraffe/g11y"
 	"github.com/hkoosha/giraffe/g11y/glog"
 	"github.com/hkoosha/giraffe/g11y/gtx"
 	. "github.com/hkoosha/giraffe/internal/dot0"
+	"github.com/hkoosha/giraffe/t11y"
 )
 
 var _ Storage = (*InMemory)(nil)
 
 func newInMemory(lg glog.Lg) *InMemory {
-	g11y.NonNil(lg)
+	t11y.NonNil(lg)
 	_ = lg
 
 	return &InMemory{
