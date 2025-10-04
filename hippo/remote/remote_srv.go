@@ -1,7 +1,6 @@
 package remote
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"maps"
@@ -15,13 +14,15 @@ import (
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
-type Server func(context.Context, io.Reader, io.Writer) error
+type Server func(hippo.Context, io.Reader, io.Writer) error
 
 func (s Server) ServeHTTP(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
-	if err := s(r.Context(), r.Body, w); err != nil {
+	ctx := hippo.ContextOf(r.Context())
+
+	if err := s(ctx, r.Body, w); err != nil {
 		msg := err.Error()
 		if t11y.IsUnsafeError() {
 			msg += "\n\n" + t11y.FmtStacktraceOf(err)
@@ -38,7 +39,7 @@ type server struct {
 }
 
 func (s *server) ekran(
-	ctx context.Context,
+	ctx hippo.Context,
 	r io.Reader,
 	w io.Writer,
 ) error {

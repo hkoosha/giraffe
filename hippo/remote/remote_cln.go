@@ -2,7 +2,6 @@ package remote
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -88,7 +87,7 @@ func mkPayload(
 }
 
 func mkRequest(
-	ctx context.Context,
+	ctx hippo.Context,
 	url string,
 	payload io.Reader,
 ) (*http.Request, error) {
@@ -173,7 +172,7 @@ func decode(
 }
 
 func (m *remoteFn) Ekran(
-	ctx context.Context,
+	ctx hippo.Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	payload, err := mkPayload(m.plan, dat)

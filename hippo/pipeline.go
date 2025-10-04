@@ -1,8 +1,6 @@
 package hippo
 
 import (
-	"context"
-
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
 	. "github.com/hkoosha/giraffe/internal/dot1"
@@ -23,12 +21,12 @@ var (
 )
 
 type ProbeBefore = func(
-	context.Context,
+	Context,
 	*StepContext,
 )
 
 type ProbeAfter = func(
-	context.Context,
+	Context,
 	*StepContext,
 	giraffe.Datum,
 	error,
@@ -113,7 +111,7 @@ func (n *PipelineFn) WithAfter(
 
 //nolint:contextcheck
 func (n *PipelineFn) Ekran(
-	ctx context.Context,
+	ctx Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	htx := gtx.Of(ctx)

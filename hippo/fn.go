@@ -1,7 +1,6 @@
 package hippo
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"maps"
@@ -18,7 +17,7 @@ import (
 var errInvalidFn = errors.New("invalid fn")
 
 type ExeCtx = func(
-	context.Context,
+	Context,
 	giraffe.Datum,
 ) (giraffe.Datum, error)
 
