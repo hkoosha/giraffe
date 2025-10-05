@@ -52,7 +52,7 @@ func ekran(
 		MustWithNamed("fn1", mkStep(1)).
 		MustWithNamed("fn2", mkStep(2))
 
-	return gtestinghippo.EkranRemote(t, reg, dat, "f0", "f1", "f2")
+	return gtestinghippo.EkranRemote(t, reg, dat, "fn0", "fn1", "fn2")
 }
 
 func TestServer_Ekran(t *testing.T) {

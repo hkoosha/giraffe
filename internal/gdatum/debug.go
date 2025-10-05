@@ -1,11 +1,10 @@
 package gdatum
 
 import (
-	"encoding/json"
 	"strconv"
 	"sync/atomic"
 
-	. "github.com/hkoosha/giraffe/t11y/dot"
+	"github.com/hkoosha/giraffe/gson"
 )
 
 const debugNilId = "<nil>"
@@ -31,9 +30,9 @@ func (d *DatumDebug) String() string {
 		return debugNilId
 	}
 
-	serialized, err := json.Marshal(d)
+	serialized, err := gson.Marshal(d)
 	if err != nil {
-		panic(E(err))
+		panic(err)
 	}
 
 	return strconv.FormatUint(d.ID, 10) + "#" + string(serialized)

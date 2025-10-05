@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+
+	"github.com/hkoosha/giraffe/gson"
 )
 
 var errTruncatedStream = errors.New("truncated stream")
@@ -69,13 +71,11 @@ func (s bytesSerde) StreamFrom(r io.Reader) ([]byte, error) {
 type jsonSerde[T any] struct{}
 
 func (s jsonSerde[T]) Write(v T) ([]byte, error) {
-	return json.Marshal(v)
+	return gson.Marshal(v)
 }
 
 func (s jsonSerde[T]) Read(v []byte) (T, error) {
-	var vv T
-	err := json.Unmarshal(v, vv)
-	return vv, err
+	return gson.Unmarshal[T](v)
 }
 
 func (s jsonSerde[T]) StreamTo(w io.Writer, v T) error {

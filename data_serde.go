@@ -2,9 +2,9 @@ package giraffe
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 
+	"github.com/hkoosha/giraffe/gson"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
@@ -16,17 +16,15 @@ func (s datumSerde) Write(v Datum) ([]byte, error) {
 }
 
 func (s datumSerde) Read(b []byte) (Datum, error) {
-	var v any
-	if err := json.Unmarshal(b, v); err != nil {
-		return OfErr(), E(err)
+	v, err := gson.Unmarshal[any](b)
+	if err != nil {
+		return OfErr(), err
 	}
-
 	return ofJsonable(v)
 }
 
 func (s datumSerde) StreamTo(w io.Writer, v Datum) error {
-	enc := json.NewEncoder(w)
-	return E(enc.Encode(v))
+	return gson.EncodeTo(w, v)
 }
 
 func (s datumSerde) StreamFrom(r io.Reader) (Datum, error) {

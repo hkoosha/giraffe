@@ -2,12 +2,12 @@ package gtestinghippo
 
 import (
 	"bytes"
-	"encoding/json"
 	"testing"
 
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/contrib/gtesting"
 	. "github.com/hkoosha/giraffe/dot"
+	"github.com/hkoosha/giraffe/gson"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/remote"
 )
@@ -66,13 +66,12 @@ func EkranRemote(
 
 	err = ekran(
 		hippo.ContextOf(t.Context()),
-		bytes.NewReader(M(json.Marshal(req))),
+		bytes.NewReader(gson.MustMarshal(req)),
 		&out,
 	)
 	gtesting.NoError(t, err)
 
-	var deser any
-	err = json.Unmarshal(out.Bytes(), &deser)
+	deser, err := gson.Unmarshal[any](out.Bytes())
 	gtesting.NoError(t, err)
 
 	fin, err := giraffe.From(deser)

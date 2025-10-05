@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/hkoosha/giraffe/cmd"
+	"github.com/hkoosha/giraffe/gson"
 	"github.com/hkoosha/giraffe/internal"
 	"github.com/hkoosha/giraffe/internal/gdatum"
 	"github.com/hkoosha/giraffe/internal/reflected"
@@ -185,7 +186,7 @@ func (d Datum) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	return json.Marshal(n)
+	return gson.Marshal(n)
 }
 
 func (d Datum) MarshalJSONTo(w io.Writer) error {
@@ -382,6 +383,8 @@ func (d Datum) Int() (*big.Int, error) {
 		return nil, newNilError()
 
 	case !d.typ.IsInt():
+		xx := M(d.Flt()).String()
+		fmt.Println(xx)
 		return nil, newTypeCastError(d.typ, Int)
 
 	default:

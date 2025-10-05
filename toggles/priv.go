@@ -3,12 +3,12 @@ package toggles
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"slices"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/gson"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/t11y/gtx"
 	"github.com/hkoosha/giraffe/toggles/internal"
@@ -83,7 +83,7 @@ func condOf(
 }
 
 func uidOf(v any) string {
-	sum := sha256.Sum256(M(json.Marshal(v)))
+	sum := sha256.Sum256(gson.MustMarshal(v))
 	uid := hex.EncodeToString(sum[:])
 	return uid
 }

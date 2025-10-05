@@ -1,7 +1,7 @@
 package converters
 
 import (
-	"encoding/json"
+	"github.com/hkoosha/giraffe/gson"
 )
 
 type bytesConv struct{}
@@ -19,7 +19,7 @@ func (s bytesConv) Read(b []byte) ([]byte, error) {
 type jsonConv[T any] struct{}
 
 func (s jsonConv[T]) Write(t T) ([]byte, error) {
-	data, err := json.Marshal(t)
+	data, err := gson.Marshal(t)
 	if err != nil {
 		return nil, err
 	}
@@ -27,9 +27,7 @@ func (s jsonConv[T]) Write(t T) ([]byte, error) {
 }
 
 func (s jsonConv[T]) Read(b []byte) (T, error) {
-	var t T
-	err := json.Unmarshal(b, &t)
-	return t, err
+	return gson.Unmarshal[T](b)
 }
 
 // =============================================================================
@@ -37,7 +35,7 @@ func (s jsonConv[T]) Read(b []byte) (T, error) {
 type jsonStr[T any] struct{}
 
 func (s jsonStr[T]) Write(t T) (string, error) {
-	data, err := json.Marshal(t)
+	data, err := gson.Marshal(t)
 	if err != nil {
 		return "", err
 	}
@@ -45,9 +43,7 @@ func (s jsonStr[T]) Write(t T) (string, error) {
 }
 
 func (s jsonStr[T]) Read(b string) (T, error) {
-	var t T
-	err := json.Unmarshal([]byte(b), &t)
-	return t, err
+	return gson.Unmarshal[T]([]byte(b))
 }
 
 // =============================================================================

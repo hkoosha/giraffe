@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"reflect"
 
+	"github.com/hkoosha/giraffe/gson"
 	"github.com/hkoosha/giraffe/internal/gdatum"
 	"github.com/hkoosha/giraffe/internal/reflected"
 	. "github.com/hkoosha/giraffe/t11y/dot"
@@ -53,15 +54,14 @@ func ofJsonable(
 		return OfErr(), newNotJsonableError()
 
 	default:
-		toJ, err := json.Marshal(v)
+		toJ, err := gson.Marshal(v)
 		if err != nil {
-			return OfErr(), E(err)
+			return OfErr(), err
 		}
 
-		var fromJ any
-		err = json.Unmarshal(toJ, fromJ)
+		fromJ, err := gson.Unmarshal[any](toJ)
 		if err != nil {
-			return OfErr(), E(err)
+			return OfErr(), err
 		}
 
 		val, typ, err := _ofAny(fromJ, r)
@@ -264,14 +264,14 @@ func _ofStruct(
 		return nil, Err, newDataMakeProhibitedTypeError(r.Type())
 	}
 
-	b, err := json.Marshal(v)
+	b, err := gson.Marshal(v)
 	if err != nil {
 		return nil, Err, newDataMakeMarshalError(err)
 	}
 
-	var conv any
-	if err1 := json.Unmarshal(b, &conv); err1 != nil {
-		return nil, Err, newDataMakeUnmarshalError(err1)
+	conv, err := gson.Unmarshal[any](b)
+	if err != nil {
+		return nil, Err, newDataMakeUnmarshalError(err)
 	}
 
 	asMap, ok := conv.(map[string]any)

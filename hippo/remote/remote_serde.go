@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/gson"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
@@ -28,7 +29,7 @@ type Request struct {
 type requestRead struct {
 	Compensations *[]requestCompensations `json:"compensations,omitempty"`
 	Plan          string                  `json:"plan"`
-	Init          []byte                  `json:"init"`
+	Init          json.RawMessage         `json:"init"`
 }
 
 var _ serdes.Serde[Request] = (*requestSerde)(nil)
@@ -39,9 +40,9 @@ type requestSerde struct {
 
 func (s requestSerde) Write(v Request) ([]byte, error) {
 	//nolint:musttag
-	raw, err := json.Marshal(v)
+	raw, err := gson.Marshal(v)
 	if err != nil {
-		return nil, E(err)
+		return nil, err
 	}
 
 	rawDat, err := s.datumSerde.Write(v.Init)
@@ -58,9 +59,9 @@ func (s requestSerde) Write(v Request) ([]byte, error) {
 }
 
 func (s requestSerde) Read(b []byte) (Request, error) {
-	var read requestRead
-	if err := json.Unmarshal(b, &read); err != nil {
-		return Request{}, E(err)
+	read, err := gson.Unmarshal[requestRead](b)
+	if err != nil {
+		return Request{}, err
 	}
 
 	dat, err := s.datumSerde.Read(read.Init)

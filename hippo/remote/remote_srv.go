@@ -1,7 +1,6 @@
 package remote
 
 import (
-	"encoding/json"
 	"io"
 	"maps"
 	"net/http"
@@ -14,7 +13,11 @@ import (
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
-type Server func(hippo.Context, io.Reader, io.Writer) error
+type Server func(
+	hippo.Context,
+	io.Reader,
+	io.Writer,
+) error
 
 func (s Server) ServeHTTP(
 	w http.ResponseWriter,
@@ -23,32 +26,29 @@ func (s Server) ServeHTTP(
 	ctx := hippo.ContextOf(r.Context())
 
 	if err := s(ctx, r.Body, w); err != nil {
+		// TODO make error message more deterministic and safer
+
 		msg := err.Error()
 		if t11y.IsUnsafeError() {
 			msg += "\n\n" + t11y.FmtStacktraceOf(err)
 		}
 		http.Error(w, msg, http.StatusBadRequest)
-
-		return
 	}
 }
 
 type server struct {
 	reg       hippo.FnRegistry
 	templates map[string]*hippo.Plan
+	serde     requestSerde
 }
 
-func (s *server) ekran(
+func (s server) ekran(
 	ctx hippo.Context,
 	r io.Reader,
 	w io.Writer,
 ) error {
-	var req Request
-	dec := json.NewDecoder(r)
-	dec.UseNumber()
-	dec.DisallowUnknownFields()
-	//nolint:musttag
-	if err := dec.Decode(&req); err != nil {
+	req, err := s.serde.StreamFrom(r)
+	if err != nil {
 		return newErrorParsingPayload(err)
 	}
 
@@ -132,8 +132,6 @@ func NewServer(
 	reg hippo.FnRegistry,
 	templates map[string]*hippo.Plan,
 ) (Server, error) {
-	templates = maps.Clone(templates)
-
 	for name, plan := range templates {
 		if !internal.SimpleName.MatchString(name) {
 			return nil, EF("invalid plan name: %s", name)
@@ -144,10 +142,11 @@ func NewServer(
 		}
 	}
 
-	s := server{
+	return server{
 		reg:       reg,
-		templates: templates,
-	}
-
-	return s.ekran, nil
+		templates: maps.Clone(templates),
+		serde: requestSerde{
+			datumSerde: giraffe.DatumSerde(),
+		},
+	}.ekran, nil
 }

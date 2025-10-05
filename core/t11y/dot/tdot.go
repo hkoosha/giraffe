@@ -16,6 +16,14 @@ func OK(err error) {
 
 // =============================================================================
 
+func T[A any](a A, err error) (A, error) {
+	if err == nil {
+		return a, nil
+	}
+
+	return a, E(err)
+}
+
 func E(err ...error) error {
 	switch {
 	case len(err) == 0:
