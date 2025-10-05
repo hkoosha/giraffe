@@ -12,10 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/conn"
 	"github.com/hkoosha/giraffe/contrib/gtesting"
-
-	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/contrib/gtestinghippo"
 	"github.com/hkoosha/giraffe/hippo"
 	. "github.com/hkoosha/giraffe/internal/dot1"

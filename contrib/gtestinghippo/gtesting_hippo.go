@@ -41,18 +41,17 @@ func EkranRemote(
 	t *testing.T,
 	reg hippo.FnRegistry,
 	dat giraffe.Datum,
-	planFns ...string,
+	fns ...string,
 ) giraffe.Datum {
 	t.Helper()
 
-	plan := hippo.MkPlan().MustAndRegistry(reg)
-
-	for _, fn := range planFns {
-		plan = plan.MustWithNextNamed(fn)
-	}
-
-	templates := map[string]*hippo.Plan{
-		"plan0": plan,
+	templates := map[string]*hippo.Plan{}
+	{
+		plan := hippo.MkPlan().MustAndRegistry(reg)
+		for _, fn := range fns {
+			plan = plan.MustWithNextNamed(fn)
+		}
+		templates["plan0"] = plan
 	}
 
 	ekran, err := remote.NewServer(reg, templates)

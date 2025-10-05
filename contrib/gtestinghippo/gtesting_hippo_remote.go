@@ -59,10 +59,10 @@ func Call(
 			return giraffe.Of1(Q("fn0"), 111), nil
 		})).
 		MustWithNext("remote", remote.Remote(
-			srv.URL,
 			"thingy",
 			conn.MakeCfg(gtesting.Zap(t)).
 				WithTransport(srv.Client().Transport).
+				AndEndpoint("thingy", srv.URL).
 				Raw(),
 		))
 

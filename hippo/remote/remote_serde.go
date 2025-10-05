@@ -10,7 +10,7 @@ import (
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
 
-type RequestCompensations struct {
+type requestCompensations struct {
 	With     any     `json:"with"                 yaml:"with"`
 	OnErrRe  *string `json:"on_err_re,omitempty"  yaml:"on_err_re,omitempty"`
 	OnNameRe *string `json:"on_name_re,omitempty" yaml:"on_name_re,omitempty"`
@@ -19,14 +19,14 @@ type RequestCompensations struct {
 }
 
 type Request struct {
-	Compensations *[]RequestCompensations `json:"compensations,omitempty"`
+	Compensations *[]requestCompensations `json:"compensations,omitempty"`
 	Plan          string                  `json:"plan"`
 
 	Init giraffe.Datum
 }
 
 type requestRead struct {
-	Compensations *[]RequestCompensations `json:"compensations,omitempty"`
+	Compensations *[]requestCompensations `json:"compensations,omitempty"`
 	Plan          string                  `json:"plan"`
 	Init          []byte                  `json:"init"`
 }
@@ -38,6 +38,7 @@ type requestSerde struct {
 }
 
 func (s requestSerde) Write(v Request) ([]byte, error) {
+	//nolint:musttag
 	raw, err := json.Marshal(v)
 	if err != nil {
 		return nil, E(err)
@@ -76,6 +77,7 @@ func (s requestSerde) Read(b []byte) (Request, error) {
 
 func (s requestSerde) StreamTo(w io.Writer, v Request) error {
 	enc := json.NewEncoder(w)
+	//nolint:musttag
 	return E(enc.Encode(v))
 }
 

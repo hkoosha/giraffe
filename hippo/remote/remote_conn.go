@@ -9,13 +9,11 @@ import (
 const EkranPath = "/ekran"
 
 func Remote(
-	url string,
 	plan string,
 	cnx conn.Raw,
 ) *hippo.Fn {
 	cfg := cnx.
 		Cfg().
-		WithEndpoint(url).
 		WithPathPrefix(EkranPath).
 		WithSerdes(RequestSerde(), giraffe.DatumSerde())
 

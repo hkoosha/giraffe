@@ -12,8 +12,10 @@ import (
 	"github.com/hkoosha/giraffe/t11y/glog"
 )
 
-const UserAgent = "Giraffe/1.0"
-const DefaultTimeout = 5 * time.Second
+const (
+	UserAgent      = "Giraffe/1.0"
+	DefaultTimeout = 5 * time.Second
+)
 
 // ============================================================================.
 
@@ -160,6 +162,8 @@ type ConfigWrite interface {
 	WithoutPathPrefix() Config
 	AndPathPrefix(string) Config
 
+	WithEndpointNamed(string) (Config, error)
+
 	WithTimeout(time.Duration) Config
 
 	WithTransport(http.RoundTripper) Config
@@ -257,8 +261,10 @@ type Conn[TX, RX any] interface {
 	) (RX, error)
 }
 
-type Raw = Conn[[]byte, []byte]
-type Datum = Conn[giraffe.Datum, giraffe.Datum]
+type (
+	Raw   = Conn[[]byte, []byte]
+	Datum = Conn[giraffe.Datum, giraffe.Datum]
+)
 
 // ============================================================================.
 

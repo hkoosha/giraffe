@@ -166,7 +166,7 @@ func (c *config) WithTxSerde(v any) Config {
 
 func (c *config) withTxSerde(v any) *config {
 	if !serdes.IsSerde(v) {
-		panic(EF("not a serde: %v"))
+		panic(EF("not a serde: %v", v))
 	}
 
 	cp := c.open()
@@ -182,7 +182,7 @@ func (c *config) WithRxSerde(v any) Config {
 
 func (c *config) withRxSerde(v any) *config {
 	if !serdes.IsSerde(v) {
-		panic(EF("not a serde: %v"))
+		panic(EF("not a serde: %v", v))
 	}
 
 	cp := c.open()
@@ -685,6 +685,27 @@ func (c *config) withoutEndpoints() *config {
 
 func (c *config) Endpoint() string {
 	return c.ensure().http.endpoint
+}
+
+func (c *config) WithEndpointNamed(
+	name string,
+) (Config, error) {
+	return c.withEndpointNamed(name)
+}
+
+func (c *config) withEndpointNamed(
+	name string,
+) (*config, error) {
+	if name == "" || strings.TrimSpace(name) == "" {
+		panic(EF("empty endpoint name"))
+	}
+
+	ep, ok := c.http.endpointsByName[name]
+	if !ok {
+		return nil, &MissingEndpointError{Endpoint: name}
+	}
+
+	return c.withEndpoint(ep), nil
 }
 
 func (c *config) WithEndpoint(

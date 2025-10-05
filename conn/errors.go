@@ -20,3 +20,11 @@ type FailedResponseError struct {
 func (e *FailedResponseError) Error() string {
 	return "http request failed: " + strconv.FormatUint(uint64(e.Reason), 10)
 }
+
+type MissingEndpointError struct {
+	Endpoint string
+}
+
+func (m *MissingEndpointError) Error() string {
+	return "missing endpoint, name=" + m.Endpoint
+}

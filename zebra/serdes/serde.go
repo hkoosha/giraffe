@@ -17,7 +17,9 @@ type Serde[T any] interface {
 // =============================================================================.
 
 func String() Serde[string] {
-	return stringSerde{}
+	return stringSerde{
+		b: bytesSerde{},
+	}
 }
 
 func Bytes() Serde[[]byte] {

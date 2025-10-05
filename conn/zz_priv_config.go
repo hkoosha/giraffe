@@ -1,6 +1,7 @@
 package conn
 
 import (
+	"maps"
 	"net/http"
 	"slices"
 	"time"
@@ -140,19 +141,20 @@ func mkOtelConfig() *otelConfig {
 }
 
 type httpConfig struct {
+	endpointsByName map[string]string
 	defaultMethod   string
 	pathPrefix      string
 	endpoint        string
 	timeout         time.Duration
-	endpointsByName map[string]string
 }
 
 func (c *httpConfig) shallow() *httpConfig {
 	return &httpConfig{
-		defaultMethod: c.defaultMethod,
-		pathPrefix:    c.pathPrefix,
-		endpoint:      c.endpoint,
-		timeout:       c.timeout,
+		defaultMethod:   c.defaultMethod,
+		pathPrefix:      c.pathPrefix,
+		endpoint:        c.endpoint,
+		timeout:         c.timeout,
+		endpointsByName: maps.Clone(c.endpointsByName),
 	}
 }
 

@@ -9,8 +9,7 @@ import (
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
 
-type datumSerde struct {
-}
+type datumSerde struct{}
 
 func (s datumSerde) Write(v Datum) ([]byte, error) {
 	return v.MarshalJSON()

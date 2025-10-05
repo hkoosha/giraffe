@@ -47,6 +47,7 @@ func (s *server) ekran(
 	dec := json.NewDecoder(r)
 	dec.UseNumber()
 	dec.DisallowUnknownFields()
+	//nolint:musttag
 	if err := dec.Decode(&req); err != nil {
 		return newErrorParsingPayload(err)
 	}
@@ -58,7 +59,7 @@ func (s *server) ekran(
 
 	var compensator hippo.Compensator
 	if req.Compensations == nil {
-		req.Compensations = &[]RequestCompensations{}
+		req.Compensations = &[]requestCompensations{}
 	}
 	for _, comp := range *req.Compensations {
 		var msgRe *regexp.Regexp

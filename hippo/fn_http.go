@@ -71,9 +71,8 @@ func (e *HttpFn) shallow() *HttpFn {
 
 func (e *HttpFn) getEndpoint(
 	dat giraffe.Datum,
-) (conn.Datum, error) {
-	qvEndpointName := M(dat.QStr(HttpInputEndpoint))
-	panic(qvEndpointName)
+) (string, error) {
+	return dat.QStr(HttpInputEndpoint)
 }
 
 func (e *HttpFn) getPath(
@@ -170,8 +169,8 @@ func (e *HttpFn) exe(
 		return OfErr(), err
 	}
 
-	if uQuery, err := e.getUrlQuery(dat); err != nil {
-		return OfErr(), err
+	if uQuery, uqErr := e.getUrlQuery(dat); uqErr != nil {
+		return OfErr(), uqErr
 	} else if len(uQuery) > 0 {
 		path = append(path, "?")
 		path = append(path, uQuery...)
@@ -197,14 +196,21 @@ func (e *HttpFn) exe(
 		return OfErr(), err
 	}
 
+	endpoint, err := e.getEndpoint(dat)
+	if err != nil {
+		return OfErr(), err
+	}
+
 	// TODO ok codes
 
-	cnx := e.cnx.
+	cfg, err := e.cnx.
 		WithHeaderOverwrites(true, headers).
 		WithMethod(method).
-		Datum()
-
-	resp, headers, err := cnx.Headered(ctx, body, path...)
+		WithEndpointNamed(endpoint)
+	if err != nil {
+		return OfErr(), err
+	}
+	resp, headers, err := cfg.Datum().Headered(ctx, body, path...)
 	if err != nil {
 		return OfErr(), err
 	}

@@ -19,5 +19,5 @@ var (
 
 	TStr = reflect.TypeOf((*string)(nil)).Elem()
 
-	TErr = reflect.TypeOf((error)(nil)).Elem()
+	TErr = reflect.TypeOf(error(nil)).Elem()
 )

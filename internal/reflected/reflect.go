@@ -23,7 +23,7 @@ func extractMethods(
 	}
 
 	methods := make(map[string]methodSig)
-	for i := 0; i < t.NumMethod(); i++ {
+	for i := range t.NumMethod() {
 		method := t.Method(i)
 		out := method.Type.NumOut()
 		methods[method.Name] = methodSig{
@@ -78,7 +78,6 @@ func ImplementsGenericErased(
 			return implementsGenericErased(t, iface)
 		},
 	)
-
 	if err != nil {
 		return false, err
 	}
