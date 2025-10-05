@@ -1,7 +1,6 @@
 package t11y
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"os"
@@ -10,14 +9,18 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"testing"
 
 	"github.com/hkoosha/giraffe/t11y/internal"
 )
 
+func GetSkippedLines() []*regexp.Regexp {
+	r := internal.GetSkippedLine()
+	return internal.DeepCopyL1(r)
+}
+
 func SetSkippedLines(
 	withDefaults bool,
-	lines []*regexp.Regexp,
+	lines ...*regexp.Regexp,
 ) {
 	s := internal.DeepCopyL1(lines)
 	if withDefaults {
@@ -27,9 +30,14 @@ func SetSkippedLines(
 	internal.SetSkippedLine(s)
 }
 
+func GetCollapsedLines() []*regexp.Regexp {
+	r := internal.GetCollapsedLines()
+	return internal.DeepCopyL1(r)
+}
+
 func SetCollapsedLines(
 	withDefaults bool,
-	lines []*regexp.Regexp,
+	lines ...*regexp.Regexp,
 ) {
 	s := internal.DeepCopyL1(lines)
 	if withDefaults {
@@ -41,7 +49,7 @@ func SetCollapsedLines(
 
 // ==============================================================================.
 
-func FmtStacktrace(
+func fmtStacktrace(
 	stacktrace string,
 ) []string {
 	defer func() {
@@ -159,7 +167,7 @@ func FmtStacktrace(
 	})
 }
 
-func FmtStacktraces(
+func fmtStacktraces(
 	stacktraces []string,
 ) string {
 	if len(stacktraces) == 0 {
@@ -168,7 +176,7 @@ func FmtStacktraces(
 
 	traces := make([][]string, len(stacktraces))
 	for i, st := range stacktraces {
-		traces[i] = FmtStacktrace(st)
+		traces[i] = fmtStacktrace(st)
 	}
 
 	isProper := func(smaller, bigger []string) bool {
@@ -243,18 +251,18 @@ func FmtStacktraceOf(
 				str[i] = string(s)
 			}
 
-			return FmtStacktraces(str)
+			return fmtStacktraces(str)
 		}
 	}
 
 	return fmt.Sprintf(
 		"<missing trace>\n%s\n\n\n\n%s",
-		strings.Join(FmtStacktrace(string(debug.Stack())), "\n"),
+		strings.Join(fmtStacktrace(string(debug.Stack())), "\n"),
 		string(debug.Stack()),
 	)
 }
 
-func FmtMsg(
+func formatMsg(
 	err any,
 ) string {
 	msg := fmt.Sprint(err)
@@ -267,54 +275,4 @@ func FmtMsg(
 	}
 
 	return msg
-}
-
-func TNoError(
-	t *testing.T,
-	err error,
-) {
-	t.Helper()
-
-	if err == nil {
-		return
-	}
-
-	content := []struct{ label, content string }{
-		{"G11y Trace", FmtStacktraceOf(err)},
-		{"Error", fmt.Sprintf("Received unexpected error:\n%+v", err)},
-		{"Test", t.Name()},
-	}
-
-	longest := len("Error Trace")
-
-	var sb0 strings.Builder
-	for _, v := range content {
-		sb1 := strings.Builder{}
-		for i, scanner := 0, bufio.NewScanner(strings.NewReader(v.content)); scanner.Scan(); i++ {
-			if i != 0 {
-				sb1.WriteString("\n\t" + strings.Repeat(" ", longest+1) + "\t")
-			}
-			sb1.WriteString(scanner.Text())
-		}
-
-		sb0.WriteByte('\t')
-		sb0.WriteString(v.label)
-		sb0.WriteByte(':')
-		sb0.WriteString(strings.Repeat(" ", longest-len(v.label)))
-		sb0.WriteByte('\t')
-		sb0.WriteString(sb1.String())
-		sb0.WriteByte('\n')
-	}
-
-	t.Errorf("\n%s", ""+sb0.String())
-	t.FailNow()
-}
-
-func TPreamble(
-	t *testing.T,
-) {
-	t.Helper()
-
-	// TODO undo on cleanup?
-	EnableDefaultTracer()
 }

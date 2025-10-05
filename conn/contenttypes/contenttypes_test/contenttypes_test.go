@@ -7,7 +7,7 @@ import (
 	"golang.org/x/tools/go/packages"
 
 	_ "github.com/hkoosha/giraffe/conn/contenttypes"
-	"github.com/hkoosha/giraffe/contrib/gtesting/gtesting"
+	"github.com/hkoosha/giraffe/contrib/gtesting"
 )
 
 //goland:noinspection SpellCheckingInspection

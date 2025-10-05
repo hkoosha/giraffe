@@ -25,7 +25,7 @@ func DieIf(
 		os.Stderr,
 		"%s\n\n[panic]\n%v\n\n%s\n\n",
 		strings.Repeat("=", 80),
-		FmtMsg(err),
+		formatMsg(err),
 		FmtStacktraceOf(err),
 	)
 	if err != nil {

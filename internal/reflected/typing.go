@@ -1,4 +1,4 @@
-package internal
+package reflected
 
 import (
 	"reflect"
@@ -18,4 +18,6 @@ var (
 	TU64   = reflect.TypeOf((*uint64)(nil)).Elem()
 
 	TStr = reflect.TypeOf((*string)(nil)).Elem()
+
+	TErr = reflect.TypeOf((error)(nil)).Elem()
 )

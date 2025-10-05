@@ -6,18 +6,18 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hkoosha/giraffe/contrib/gtesting"
 	"github.com/hkoosha/giraffe/internal/queryimpl/gquery"
-	"github.com/hkoosha/giraffe/t11y"
 )
 
 func TestParse(t *testing.T) {
 	t.Run("simple_1", func(t *testing.T) {
-		t11y.TPreamble(t)
+		gtesting.Preamble(t)
 
 		spec := "k0"
 
 		first, err := gquery.Parse(100, spec)
-		t11y.TNoError(t, err)
+		gtesting.NoError(t, err)
 
 		path := first.VisibleForTestingPath()
 		require.Len(t, path, 1)
@@ -38,12 +38,12 @@ func TestParse(t *testing.T) {
 	})
 
 	t.Run("simple_2", func(t *testing.T) {
-		t11y.TPreamble(t)
+		gtesting.Preamble(t)
 
 		spec := "k0.k1"
 
 		first, err := gquery.Parse(100, spec)
-		t11y.TNoError(t, err)
+		gtesting.NoError(t, err)
 
 		path := first.VisibleForTestingPath()
 		require.Len(t, path, 2)
@@ -81,12 +81,12 @@ func TestParse(t *testing.T) {
 
 func TestNext(t *testing.T) {
 	t.Run("test next", func(t *testing.T) {
-		t11y.TPreamble(t)
+		gtesting.Preamble(t)
 
 		spec := "dynamic.static.thingy.foo"
 
 		q, err := gquery.Parse(100, spec)
-		t11y.TNoError(t, err)
+		gtesting.NoError(t, err)
 
 		assert.Equal(t, "dynamic", q.Attr())
 		assert.Equal(t, "static", q.Next().Attr())
@@ -99,10 +99,11 @@ func TestNext(t *testing.T) {
 
 func TestQuery_ToString(t *testing.T) {
 	t.Run("to string", func(t *testing.T) {
-		t11y.TPreamble(t)
+		gtesting.Preamble(t)
 
 		q, err := gquery.Parse(100, "k0.k1.k2")
-		t11y.TNoError(t, err)
+		gtesting.NoError(t, err)
+
 		str := q.Next().String()
 		require.Equal(t, "k0.@k1.k2", str)
 	})

@@ -1,69 +1,31 @@
 package hippo_test
 
 import (
+	_ "embed"
 	"errors"
 	"math/big"
-	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hkoosha/giraffe/contrib/gtesting"
+
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/conn"
+	"github.com/hkoosha/giraffe/contrib/gtestinghippo"
 	"github.com/hkoosha/giraffe/hippo"
 	. "github.com/hkoosha/giraffe/internal/dot1"
 )
 
-func fn0(
-	hippo.Context,
-	giraffe.Datum,
-) (giraffe.Datum, error) {
-	return giraffe.Of1(Q("ns0.my_out_fn0"), []uint64{
-		11,
-		22,
-		33,
-		44,
-		55,
-	}), nil
-}
+//go:embed test_runner.simple.json
+var testRunnerSimple string
 
-func fn1(
-	hippo.Context,
-	giraffe.Datum,
-) (giraffe.Datum, error) {
-	return giraffe.Of1(Q("ns1.my_out_fn1"), []int{2, 4}), nil
-}
-
-func fn2(
-	_ hippo.Context,
-	dat giraffe.Datum,
-) (giraffe.Datum, error) {
-	fn0Out, err := dat.QU64s("ns0.my_out_fn0")
-	if err != nil {
-		return giraffe.OfErr(), err
-	}
-
-	fn1Out, err := dat.QISzs("ns1.my_out_fn1")
-	if err != nil {
-		return giraffe.OfErr(), err
-	}
-
-	sum := uint64(0)
-	for _, i := range fn1Out {
-		sum += fn0Out[i]
-	}
-
-	return giraffe.Of1(
-		Q("sum"),
-		sum,
-	), nil
-}
-
-func mul(
-	step int,
-) *hippo.Fn {
+func mul(step int) *hippo.Fn {
 	return hippo.MustFnOf(func(
 		_ hippo.Context,
 		dat giraffe.Datum,
@@ -88,9 +50,7 @@ func mul(
 	})
 }
 
-func fail(
-	msg string,
-) *hippo.Fn {
+func alwaysFail(msg string) *hippo.Fn {
 	return hippo.MustFnOf(func(
 		hippo.Context,
 		giraffe.Datum,
@@ -99,66 +59,82 @@ func fail(
 	})
 }
 
-func write(
-	t *testing.T,
-	path string,
-	content string,
-) {
-	t.Helper()
-
-	file, err := os.OpenFile(
-		path,
-		os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
-		0o644,
-	)
-	require.NoError(t, err)
-
-	defer file.Close()
-	_, err = file.WriteString(content)
-	require.NoError(t, err)
-}
+// =============================================================================
 
 func TestRunner(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
+		gtesting.Preamble(t)
+
 		plan := hippo.
 			MkPlan().
-			MustWithNext("my_fn0", hippo.MustFnOf(fn0)).
-			MustWithNext("my_fn1", hippo.MustFnOf(fn1)).
-			MustWithNext("my_fn2", hippo.MustFnOf(fn2))
+			MustWithNext("my_fn0", hippo.MustFnOf(func(
+				hippo.Context,
+				giraffe.Datum,
+			) (giraffe.Datum, error) {
+				return giraffe.Of1(
+					Q("ns0.my_out_fn0"),
+					[]uint64{11, 22, 33, 44, 55},
+				), nil
+			})).
+			MustWithNext("my_fn1", hippo.MustFnOf(func(
+				hippo.Context,
+				giraffe.Datum,
+			) (giraffe.Datum, error) {
+				return giraffe.Of1(Q("ns1.my_out_fn1"), []int{2, 4}), nil
+			})).
+			MustWithNext("my_fn2", hippo.MustFnOf(func(
+				_ hippo.Context,
+				dat giraffe.Datum,
+			) (giraffe.Datum, error) {
+				fn0Out, err := dat.QU64s("ns0.my_out_fn0")
+				if err != nil {
+					return giraffe.OfErr(), err
+				}
+
+				fn1Out, err := dat.QISzs("ns1.my_out_fn1")
+				if err != nil {
+					return giraffe.OfErr(), err
+				}
+
+				sum := uint64(0)
+				for _, i := range fn1Out {
+					sum += fn0Out[i]
+				}
+
+				return giraffe.Of1(
+					Q("sum"),
+					sum,
+				), nil
+			}))
 
 		pipeline, err := hippo.Pipeline(plan)
 		require.NoError(t, err)
 
-		state := M(pipeline.Ekran(hippo.ContextOf(t.Context()), giraffe.OfEmpty()))
+		state, err := pipeline.Ekran(hippo.ContextOf(t.Context()), giraffe.OfEmpty())
+		require.NoError(t, err)
+		gtesting.Write(t, "state.json", state.Pretty())
 
 		fin, err := state.Get("fin.sum")
 		require.NoError(t, err)
+		gtesting.Write(t, "fin.json", fin.Pretty())
 
 		finCast, err := fin.U64()
 		require.NoError(t, err)
 		assert.Equal(t, uint64(88), finCast)
 
-		t.Logf("final state:\n%s\n", state.Pretty())
-
-		write(
+		assert.Equal(
 			t,
-			"/tmp/giraffe_state.inspection.json",
-			state.Pretty()+"\n",
-		)
-
-		write(
-			t,
-			"/tmp/giraffe_fin.inspection.json",
-			fin.Pretty()+"\n",
+			strings.TrimSpace(testRunnerSimple),
+			strings.TrimSpace(state.Pretty()),
 		)
 	})
-}
 
-func TestRunner_Compensation(t *testing.T) {
 	t.Run("compensation by error message", func(t *testing.T) {
+		gtesting.Preamble(t)
+
 		plan := hippo.
 			MkPlan().
-			MustWithNext("f_0", fail("thingy")).
+			MustWithNext("f_0", alwaysFail("thingy")).
 			MustWithNext("m_1", mul(1)).
 			AndCompensator(
 				hippo.Compensator{}.
@@ -168,34 +144,30 @@ func TestRunner_Compensation(t *testing.T) {
 					),
 			)
 
-		pipeline := M(hippo.Pipeline(plan))
-		state := M(pipeline.Ekran(hippo.ContextOf(t.Context()), giraffe.Of1("m", 33)))
-		fin := M(state.QU64("fin.m1"))
+		pipeline, err := hippo.Pipeline(plan)
+		require.NoError(t, err)
+
+		state, err := pipeline.Ekran(hippo.ContextOf(t.Context()), giraffe.Of1("m", 33))
+		require.NoError(t, err)
+
+		fin, err := state.QU64("fin.m1")
+		require.NoError(t, err)
 
 		assert.Equal(t, uint64(303), fin)
 
-		t.Logf("final state:\n%s\n", state.Pretty())
-
-		write(
-			t,
-			"/tmp/giraffe_state.inspection.json",
-			state.Pretty()+"\n",
-		)
-
-		write(
-			t,
-			"/tmp/giraffe_fin.inspection.json",
-			state.Pretty()+"\n",
-		)
+		gtesting.Write(t, "state.json", state.Pretty())
+		gtesting.Write(t, "fin.json", state.Pretty())
 	})
 
 	t.Run("compensation by step", func(t *testing.T) {
+		gtesting.Preamble(t)
+
 		plan := hippo.
 			MkPlan().
 			MustWithNext("m_0", mul(0)).
 			MustWithNext("m_1", mul(1)).
 			MustWithNext("m_2", mul(2)).
-			MustWithNext("f_0", fail("thingy")).
+			MustWithNext("f_0", alwaysFail("thingy")).
 			MustWithNext("m_4", mul(4)).
 			AndCompensator(
 				hippo.Compensator{}.
@@ -205,24 +177,56 @@ func TestRunner_Compensation(t *testing.T) {
 					),
 			)
 
-		pipeline := M(hippo.Pipeline(plan))
-		state := M(pipeline.Ekran(hippo.ContextOf(t.Context()), giraffe.Of1("m", 33)))
-		fin := M(state.QU64("fin.m4"))
+		pipeline, err := hippo.Pipeline(plan)
+		require.NoError(t, err)
+
+		state, err := pipeline.Ekran(hippo.ContextOf(t.Context()), giraffe.Of1("m", 33))
+		require.NoError(t, err)
+
+		fin, err := state.QU64("fin.m4")
+		require.NoError(t, err)
 
 		assert.Equal(t, uint64(303), fin)
 
-		t.Logf("final state:\n%s\n", state.Pretty())
+		gtesting.Write(t, "state.json", state.Pretty())
+		gtesting.Write(t, "fin.json", state.Pretty())
+	})
+}
 
-		write(
-			t,
-			"/tmp/giraffe_state.inspection.json",
-			state.Pretty()+"\n",
+func TestRunner_Http(t *testing.T) {
+	t.Run("move data", func(t *testing.T) {
+		gtesting.Preamble(t)
+
+		fn := hippo.MkHttpFn(
+			conn.MkJsonRaw(gtesting.Zap(t), 5*time.Second),
+			map[string]string{
+				"local": "http://localhost:8000",
+			},
 		)
 
-		write(
-			t,
-			"/tmp/giraffe_fin.inspection.json",
-			state.Pretty()+"\n",
-		)
+		plan := hippo.
+			MkPlan().
+			MustWithNext("http_args", M(hippo.StaticOf(
+				P("endpoint", "local"),
+				P("path", "/"),
+				P("headers", map[string]string{
+					"dummy": "value",
+				}),
+				P("query", map[string]string{
+					"q0": "qv0",
+					"q1": "qv1",
+				}),
+			))).
+			MustWithNext("http_fn_0", fn.Fn())
+
+		state := gtestinghippo.Ekran0(t, plan)
+
+		fin, err := state.QU64("fin.m4")
+		require.NoError(t, err)
+
+		assert.Equal(t, uint64(303), fin)
+
+		gtesting.Write(t, "state.json", state.Pretty())
+		gtesting.Write(t, "fin.json", state.Pretty())
 	})
 }

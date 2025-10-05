@@ -19,6 +19,8 @@ import (
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 
+// TODO call ensure on With...()
+
 func cfgOf(
 	cfg Config,
 ) *config {
@@ -28,7 +30,9 @@ func cfgOf(
 		return cast
 	}
 
-	cast := newConfig(cfg.Lg(), cfg.Timeout(), cfg.Serde()).
+	cast := newConfig(cfg.Lg(), cfg.Timeout()).
+		withTxSerde(cfg.TxSerde()).
+		withRxSerde(cfg.RxSerde()).
 		setPlainLog(cfg.IsPlainLog()).
 		setLogged(cfg.IsLogged()).
 		setLogReties(cfg.IsRetryLog()).
@@ -77,21 +81,21 @@ func cfgOf(
 func newConfig(
 	lg glog.Lg,
 	timeout time.Duration,
-	serde serdes.Serde[any],
 ) *config {
 	cfg := &config{
-		Sealer: internal.Sealer{},
-		sealed: false,
-		base:   defaultTransport,
-		lg:     lg,
-		rt:     nil,
-		resp:   mkResponseConfig(),
-		http:   mkHttpConfig(timeout),
-		header: mkHeaderConfig(),
-		log:    mkLogConfig(),
-		retry:  mkRetryConfig(),
-		otel:   mkOtelConfig(),
-		serde_: serde,
+		Sealer:   internal.Sealer{},
+		sealed:   false,
+		base:     defaultTransport,
+		lg:       lg,
+		rt:       nil,
+		resp:     mkResponseConfig(),
+		http:     mkHttpConfig(timeout),
+		header:   mkHeaderConfig(),
+		log:      mkLogConfig(),
+		retry:    mkRetryConfig(),
+		otel:     mkOtelConfig(),
+		txSerde_: serdes.Bytes(),
+		rxSerde_: serdes.Bytes(),
 	}
 
 	cfg.seal()
@@ -101,29 +105,145 @@ func newConfig(
 
 type config struct {
 	internal.Sealer
+
+	txSerde_ any
+	rxSerde_ any
+
 	lg     glog.Lg
 	base   http.RoundTripper
 	rt     http.RoundTripper
-	serde_ serdes.Serde[any]
 	resp   *respConfig
 	http   *httpConfig
 	header *headerConfig
 	log    *logConfig
 	retry  *retryConfig
 	otel   *otelConfig
+
 	sealed bool
 }
 
 // =============================================================================.
 
-func (c *config) Serde() serdes.Serde[any] {
-	return c.serde()
+func (c *config) RxSerde() any {
+	return c.rxSerde()
 }
 
-func (c *config) serde() serdes.Serde[any] {
+func (c *config) rxSerde() any {
 	c.ensure()
 
-	return c.serde_
+	return c.rxSerde_
+}
+
+func (c *config) TxSerde() any {
+	return c.txSerde()
+}
+
+func (c *config) txSerde() any {
+	c.ensure()
+
+	return c.txSerde_
+}
+
+func (c *config) WithSerdes(
+	rx any,
+	tx any,
+) Config {
+	return c.withSerdes(rx, tx)
+}
+
+func (c *config) withSerdes(
+	rx any,
+	tx any,
+) *config {
+	return c.withRxSerde(rx).withTxSerde(tx)
+}
+
+func (c *config) WithTxSerde(v any) Config {
+	return c.withTxSerde(v)
+}
+
+func (c *config) withTxSerde(v any) *config {
+	if !serdes.IsSerde(v) {
+		panic(EF("not a serde: %v"))
+	}
+
+	cp := c.open()
+	cp.txSerde_ = v
+	cp.seal()
+
+	return cp
+}
+
+func (c *config) WithRxSerde(v any) Config {
+	return c.withRxSerde(v)
+}
+
+func (c *config) withRxSerde(v any) *config {
+	if !serdes.IsSerde(v) {
+		panic(EF("not a serde: %v"))
+	}
+
+	cp := c.open()
+	cp.rxSerde_ = v
+	cp.seal()
+
+	return cp
+}
+
+func (c *config) WithJsonTxSerde() Config {
+	return c.withJsonTxSerde()
+}
+
+func (c *config) withJsonTxSerde() *config {
+	return c.withTxSerde(serdes.Json[any]())
+}
+
+func (c *config) WithJsonRxSerde() Config {
+	return c.withJsonTxSerde()
+}
+
+func (c *config) withJsonRxSerde() *config {
+	return c.withRxSerde(serdes.Json[any]())
+}
+
+func (c *config) WithJsonSerde() Config {
+	return c.withJsonSerde()
+}
+
+func (c *config) withJsonSerde() *config {
+	return c.withJsonRxSerde().withJsonTxSerde()
+}
+
+func (c *config) WithStringRxSerde() Config {
+	return c.withStringRxSerde()
+}
+
+func (c *config) withStringRxSerde() Config {
+	return c.withRxSerde(serdes.String())
+}
+
+func (c *config) WithBytesRxSerde() Config {
+	return c.withBytesRxSerde()
+}
+
+func (c *config) withBytesRxSerde() *config {
+	return c.withRxSerde(serdes.Bytes())
+}
+
+func (c *config) WithBytesTxSerde() Config {
+	return c.withBytesTxSerde()
+}
+
+func (c *config) withBytesTxSerde() *config {
+	return c.withTxSerde(serdes.Bytes())
+}
+
+func (c *config) WithBytesSerde() Config {
+	return c.withBytesSerde()
+}
+
+func (c *config) withBytesSerde() *config {
+	return c.withBytesRxSerde().withBytesTxSerde()
 }
 
 func (c *config) Conn() Raw {
@@ -133,7 +253,7 @@ func (c *config) Conn() Raw {
 func (c *config) connection() Raw {
 	c.ensure()
 
-	return newConn(c, serdes.Bytes())
+	return newConn[[]byte, []byte](c.withBytesSerde())
 }
 
 func (c *config) Ensure() {
@@ -176,8 +296,7 @@ func (c *config) WithLogged() Config {
 }
 
 func (c *config) WithoutLogged() Config {
-	var cc Config = c.withoutLogged()
-	return cc
+	return c.withoutLogged()
 }
 
 func (c *config) withoutLogged() *config {

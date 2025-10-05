@@ -17,8 +17,8 @@ type Conv[T any, U any] interface {
 type Serde[T any] interface {
 	Conv[T, []byte]
 
-	WriteTo(T, io.Writer) error
-	ReadFrom(io.Reader) (T, error)
+	StreamTo(io.Writer, T) error
+	StreamFrom(io.Reader) (T, error)
 }
 
 func New[T proto.Message]() Serde[T] {
@@ -49,7 +49,7 @@ func (s serde[T]) Write(t T) ([]byte, error) {
 	return s.marshal.Marshal(t)
 }
 
-func (s serde[T]) WriteTo(t T, w io.Writer) error {
+func (s serde[T]) StreamTo(w io.Writer, t T) error {
 	b, err := s.Write(t)
 	if err != nil {
 		return err
@@ -73,8 +73,7 @@ func (s serde[T]) Read(b []byte) (T, error) {
 	return t, err
 }
 
-//goland:noinspection GoStandardMethods
-func (s serde[T]) ReadFrom(r io.Reader) (T, error) {
+func (s serde[T]) StreamFrom(r io.Reader) (T, error) {
 	var t T
 
 	b, err := io.ReadAll(r)

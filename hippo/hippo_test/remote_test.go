@@ -1,8 +1,6 @@
 package hippo_test
 
 import (
-	"bytes"
-	"encoding/json"
 	"math/big"
 	"net/http/httptest"
 	"strconv"
@@ -11,19 +9,18 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/contrib/gtesting"
+	"github.com/hkoosha/giraffe/contrib/gtestinghippo"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/remote"
 	. "github.com/hkoosha/giraffe/internal/dot1"
-	"github.com/hkoosha/giraffe/t11y"
 )
 
-func mkEkran(
+func ekran(
 	t *testing.T,
-) remote.Server {
+	dat any,
+) giraffe.Datum {
 	t.Helper()
-
-	t11y.EnableTracer()
-	t11y.EnableUnsafeError()
 
 	mkStep := func(
 		step int,
@@ -51,54 +48,28 @@ func mkEkran(
 		return fn
 	}
 
-	reg := hippo.FnRegistry{}.
+	reg := hippo.MkFnRegistry().
 		MustWithNamed("fn0", mkStep(0)).
 		MustWithNamed("fn1", mkStep(1)).
 		MustWithNamed("fn2", mkStep(2))
 
-	ekran, err := remote.NewServer(reg, map[string]*hippo.Plan{
-		"plan0": hippo.
-			MkPlan().
-			MustAndRegistry(reg).
-			MustWithNextNamed("fn0").
-			MustWithNextNamed("fn1").
-			MustWithNextNamed("fn2"),
-	})
-
-	require.NoError(t, err)
-
-	return ekran
+	return gtestinghippo.EkranRemote(t, reg, dat, "f0", "f1", "f2")
 }
 
 func TestServer_Ekran(t *testing.T) {
-	t11y.EnableTracer()
-	t11y.EnableUnsafeError()
-
 	t.Run("ekran", func(t *testing.T) {
-		ekran := mkEkran(t)
+		gtesting.Preamble(t)
 
-		out := bytes.Buffer{}
-		req := remote.Request{
-			Compensations: nil,
-			Init:          map[string]any{"m-1": 123},
-			Plan:          "plan0",
-		}
+		fin := ekran(t, map[string]any{
+			"m-1": 123,
+		})
 
-		err := ekran(hippo.ContextOf(t.Context()), bytes.NewReader(M(json.Marshal(req))), &out)
-		require.NoError(t, err, "ekran failed: %s", t11y.FmtStacktraceOf(err))
-
-		var fin any
-		OK(json.Unmarshal(out.Bytes(), &fin))
-
-		t.Log(M(giraffe.From(fin)).Pretty())
+		t.Log(fin.Pretty())
 	})
 }
 
 func TestServer_Http(t *testing.T) {
-	t11y.EnableTracer()
-	t11y.EnableUnsafeError()
-
-	remoteFn := hippo.MustFnOf(func(
+	fnOnRemote := hippo.MustFnOf(func(
 		_ hippo.Context,
 		dat giraffe.Datum,
 	) (giraffe.Datum, error) {
@@ -110,7 +81,7 @@ func TestServer_Http(t *testing.T) {
 		return giraffe.Of1(Q("meow2"), u64*2), nil
 	})
 
-	local := hippo.MustFnOf(func(
+	fnOnLocal := hippo.MustFnOf(func(
 		hippo.Context,
 		giraffe.Datum,
 	) (giraffe.Datum, error) {
@@ -118,7 +89,9 @@ func TestServer_Http(t *testing.T) {
 	})
 
 	mkSrv := func() *httptest.Server {
-		reg := hippo.FnRegistry{}.MustWithNamed("thingy", remoteFn)
+		reg := hippo.
+			MkFnRegistry().
+			MustWithNamed("thingy", fnOnRemote)
 
 		pSrv, err := remote.NewServer(reg, map[string]*hippo.Plan{
 			"thingy": hippo.
@@ -126,38 +99,33 @@ func TestServer_Http(t *testing.T) {
 				MustAndRegistry(reg).
 				MustWithNextNamed("thingy"),
 		})
-
 		require.NoError(t, err)
 
-		srv := httptest.NewServer(pSrv)
-
-		return srv
+		return httptest.NewServer(pSrv)
 	}
 
-	mkCln := func(
+	mkClient := func(
 		srv *httptest.Server,
-	) *hippo.PipelineFn {
+	) (*hippo.PipelineFn, error) {
 		plan := hippo.
 			MkPlan().
-			MustWithNext("fn0", local).
-			MustWithNext("rm", remote.Remote(
-				srv.URL,
-				"thingy",
-				srv.Client(),
-			))
+			MustWithNext("fn0", fnOnLocal).
+			MustWithNext("rm", remote.Remote(srv.URL, "thingy", srv.Client()))
 
-		return M(hippo.Pipeline(plan))
+		return hippo.Pipeline(plan)
 	}
 
 	t.Run("server", func(t *testing.T) {
+		gtesting.Preamble(t)
+
 		srv := mkSrv()
 		defer srv.Close()
 
-		cln := mkCln(srv)
+		cln, err := mkClient(srv)
+		require.NoError(t, err)
 
 		fin, err := cln.Ekran(hippo.ContextOf(t.Context()), giraffe.Of1("meow", 333))
 		require.NoError(t, err)
-
-		t.Log(fin.Pretty())
+		gtesting.Write(t, "fin.json", fin.Pretty())
 	})
 }

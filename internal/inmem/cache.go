@@ -10,11 +10,16 @@ import (
 	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
-const ttl = 4 * 24 * time.Hour
+const (
+	ttl = 4 * 24 * time.Hour
+
+	BucketParseQuery        = "parse_query"
+	BucketReflectImplements = "reflect_implements"
+)
 
 var (
 	cachesMu = &sync.Mutex{}
-	caches   = make(map[reflect.Type]any, 1)
+	caches   = make(map[string]any, 1)
 )
 
 type Item[V any] struct {
@@ -26,20 +31,19 @@ func (i Item[V]) Unpack() (V, error) {
 	return i.V, i.Err
 }
 
-func getCache[V any]() *tlru.Cache[string, Item[V]] {
-	var v V
-	typ := reflect.TypeOf(v)
-
+func getCache[V any](
+	bucket string,
+) *tlru.Cache[string, Item[V]] {
 	cachesMu.Lock()
 	defer cachesMu.Unlock()
 
-	cache, ok := caches[typ]
+	cache, ok := caches[bucket]
 	if !ok {
 		cache = tlru.New[string, Item[V]](
 			tlru.ConstantCost,
 			math.MaxInt,
 		)
-		caches[typ] = cache
+		caches[bucket] = cache
 	}
 
 	cast, ok := cache.(*tlru.Cache[string, Item[V]])
@@ -57,9 +61,10 @@ func getCache[V any]() *tlru.Cache[string, Item[V]] {
 }
 
 func Get[V any](
+	bucket string,
 	key string,
 ) (Item[V], bool) {
-	cache := getCache[V]()
+	cache := getCache[V](bucket)
 
 	if cached, _, ok := cache.Get(key); ok {
 		return cached, true
@@ -70,6 +75,7 @@ func Get[V any](
 }
 
 func Set[V any](
+	bucket string,
 	key string,
 	v V,
 	err error,
@@ -79,6 +85,30 @@ func Set[V any](
 		Err: err,
 	}
 
-	cache := getCache[V]()
+	cache := getCache[V](bucket)
 	cache.Set(key, item, ttl)
+}
+
+func GetOr[V any](
+	bucket string,
+	key string,
+	fn func() (V, error),
+) (Item[V], error) {
+	cached, ok := Get[V](bucket, key)
+
+	var err error
+	if !ok {
+		v, fnErr := fn()
+		err = fnErr
+		Set(bucket, key, v, err)
+		cached, ok = Get[V](bucket, key)
+	}
+
+	Assert(ok)
+
+	if err != nil {
+		return Item[V]{}, err
+	}
+
+	return cached, nil
 }

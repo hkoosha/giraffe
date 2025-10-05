@@ -14,6 +14,7 @@ import (
 	"github.com/hkoosha/giraffe/cmd"
 	"github.com/hkoosha/giraffe/internal"
 	"github.com/hkoosha/giraffe/internal/gdatum"
+	"github.com/hkoosha/giraffe/internal/reflected"
 	"github.com/hkoosha/giraffe/t11y"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/zebra/z"
@@ -460,7 +461,7 @@ func (d Datum) I08() (int8, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < math.MinInt8 || math.MaxInt8 < vI {
-		return 0, newDataReadIntegerOverflowError(internal.TI8)
+		return 0, newDataReadIntegerOverflowError(reflected.TI8)
 	}
 
 	//nolint:gosec
@@ -476,7 +477,7 @@ func (d Datum) I16() (int16, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < math.MinInt16 || math.MaxInt16 < vI {
-		return 0, newDataReadIntegerOverflowError(internal.TI16)
+		return 0, newDataReadIntegerOverflowError(reflected.TI16)
 	}
 
 	//nolint:gosec
@@ -492,7 +493,7 @@ func (d Datum) I32() (int32, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < math.MinInt32 || math.MaxInt32 < vI {
-		return 0, newDataReadIntegerOverflowError(internal.TI32)
+		return 0, newDataReadIntegerOverflowError(reflected.TI32)
 	}
 
 	//nolint:gosec
@@ -508,7 +509,7 @@ func (d Datum) I64() (int64, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < math.MinInt64 || math.MaxInt64 < vI {
-		return 0, newDataReadIntegerOverflowError(internal.TI64)
+		return 0, newDataReadIntegerOverflowError(reflected.TI64)
 	}
 
 	return vI, nil
@@ -523,7 +524,7 @@ func (d Datum) U08() (uint8, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < 0 || vI > math.MaxUint8 {
-		return 0, newDataReadIntegerOverflowError(internal.TU8)
+		return 0, newDataReadIntegerOverflowError(reflected.TU8)
 	}
 
 	return uint8(vI), nil
@@ -538,7 +539,7 @@ func (d Datum) U16() (uint16, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < 0 || vI > math.MaxUint16 {
-		return 0, newDataReadIntegerOverflowError(internal.TU16)
+		return 0, newDataReadIntegerOverflowError(reflected.TU16)
 	}
 
 	return uint16(vI), nil
@@ -553,7 +554,7 @@ func (d Datum) U32() (uint32, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < 0 || vI > math.MaxUint32 {
-		return 0, newDataReadIntegerOverflowError(internal.TU32)
+		return 0, newDataReadIntegerOverflowError(reflected.TU32)
 	}
 
 	return uint32(vI), nil
@@ -568,7 +569,7 @@ func (d Datum) U64() (uint64, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < 0 {
-		return 0, newDataReadIntegerOverflowError(internal.TU64)
+		return 0, newDataReadIntegerOverflowError(reflected.TU64)
 	}
 
 	return uint64(vI), nil
@@ -583,7 +584,7 @@ func (d Datum) ISz() (int, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI > math.MaxInt {
-		return 0, newDataReadIntegerOverflowError(internal.TISize)
+		return 0, newDataReadIntegerOverflowError(reflected.TISize)
 	}
 
 	return int(vI), nil
@@ -598,7 +599,7 @@ func (d Datum) USz() (uint, error) {
 	vI := v.Int64()
 
 	if !v.IsInt64() || vI < 0 {
-		return 0, newDataReadIntegerOverflowError(internal.TUSize)
+		return 0, newDataReadIntegerOverflowError(reflected.TUSize)
 	}
 
 	return uint(vI), nil

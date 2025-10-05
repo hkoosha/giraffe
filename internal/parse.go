@@ -30,11 +30,11 @@ func parse(
 func Parse(
 	spec string,
 ) (gquery.GiraffeQuery, error) {
-	cached, ok := inmem.Get[gquery.GiraffeQuery](spec)
+	cached, ok := inmem.Get[gquery.GiraffeQuery](inmem.BucketParseQuery, spec)
 
 	if !ok {
 		query, err := parse(spec)
-		inmem.Set(spec, query, err)
+		inmem.Set(inmem.BucketParseQuery, spec, query, err)
 		return query, err
 	}
 

@@ -37,10 +37,10 @@ func (e *FailedResponseError) Error() string {
 // ============================================================================.
 
 type HeaderFilter = func(
-	context.Context,
-	Config,
-	string,
-	string,
+	_ context.Context,
+	_ Config,
+	name string,
+	value string,
 ) bool
 
 type HeaderProvider = func(
@@ -49,11 +49,11 @@ type HeaderProvider = func(
 ) string
 
 type RetryIfFn = func(
-	ctx context.Context,
-	resp *http.Response,
-	err error,
+	_ context.Context,
+	_ *http.Response,
+	_ error,
 	attempt uint,
-	cfg Config,
+	_ Config,
 ) (bool, error)
 
 type ConfigLgRead interface {
@@ -107,11 +107,41 @@ type ConfigRetryWrite interface {
 	WithRetryBackoffDuration(time.Duration) Config
 }
 
+type ConfigSerdeRead interface {
+	internal.Sealed
+
+	RxSerde() any
+	TxSerde() any
+}
+
+type ConfigSerdeWrite interface {
+	internal.Sealed
+
+	WithSerdes(
+		rx any,
+		tx any,
+	) Config
+
+	WithRxSerde(any) Config
+	WithTxSerde(any) Config
+
+	WithJsonRxSerde() Config
+	WithJsonTxSerde() Config
+	WithJsonSerde() Config
+
+	WithStringRxSerde() Config
+
+	WithBytesRxSerde() Config
+	WithBytesTxSerde() Config
+	WithBytesSerde() Config
+}
+
 type ConfigRead interface {
 	internal.Sealed
 
 	ConfigLgRead
 	ConfigRetryRead
+	ConfigSerdeRead
 
 	Ensure()
 	Std() *http.Client
@@ -132,6 +162,7 @@ type ConfigWrite interface {
 
 	ConfigLgWrite
 	ConfigRetryWrite
+	ConfigSerdeWrite
 
 	WithBearerToken(string) Config
 	WithBearerProvider(HeaderProvider) Config
@@ -179,13 +210,12 @@ type Config interface {
 	internal.Sealed
 
 	Conn() Raw
-	Serde() serdes.Serde[any]
 
 	ConfigRead
 	ConfigWrite
 }
 
-type Conn[R any] interface {
+type Conn[RX, TX any] interface {
 	internal.Sealed
 
 	Std() *http.Client
@@ -193,96 +223,73 @@ type Conn[R any] interface {
 	Raw() Raw
 
 	Call(
-		ctx context.Context,
-		body any,
+		_ context.Context,
+		_ TX,
 		path ...string,
-	) (R, error)
+	) (RX, error)
 
 	CallWithHeaders(
-		ctx context.Context,
-		body any,
+		_ context.Context,
+		_ TX,
 		path ...string,
-	) (R, map[string]string, error)
-
-	CallAs(
-		ctx context.Context,
-		method string,
-		body any,
-		path ...string,
-	) (R, error)
+	) (RX, map[string]string, error)
 
 	Patch(
-		ctx context.Context,
-		body any,
+		_ context.Context,
+		_ TX,
 		path ...string,
-	) (R, error)
+	) (RX, error)
 
 	Put(
-		ctx context.Context,
-		body any,
+		_ context.Context,
+		_ TX,
 		path ...string,
-	) (R, error)
+	) (RX, error)
 
 	Post(
-		ctx context.Context,
-		body any,
+		_ context.Context,
+		_ TX,
 		path ...string,
-	) (R, error)
+	) (RX, error)
 
 	PostForHeaders(
-		ctx context.Context,
-		body any,
+		_ context.Context,
+		_ TX,
 		path ...string,
 	) (http.Header, error)
 
 	Get(
-		ctx context.Context,
+		_ context.Context,
 		path ...string,
-	) (R, error)
+	) (RX, error)
 
 	GetForHeaders(
-		ctx context.Context,
+		_ context.Context,
 		path ...string,
 	) (http.Header, error)
 
 	Delete(
-		ctx context.Context,
+		_ context.Context,
 		path ...string,
-	) (R, error)
+	) (RX, error)
 }
 
-type Raw = Conn[[]byte]
+type Raw = Conn[[]byte, []byte]
 
 // ============================================================================.
 
-func MakeAny[R any](
+func Make[RX, TX any](
 	cfg Config,
-	serde serdes.Serde[R],
-) Conn[R] {
-	cloned := cfgOf(cfg)
-
-	return newConn[R](cloned, serde)
+) Conn[RX, TX] {
+	return newConn[RX, TX](cfgOf(cfg))
 }
 
-func MakeJson[R any](
+func Json[RX, TX any](
 	cfg Config,
-) Conn[R] {
-	return MakeAny[R](cfg, serdes.Json[R]())
-}
-
-// ====================================.
-
-func OfAny(
-	lg glog.Lg,
-	timeout time.Duration,
-	serde serdes.Serde[any],
-) Config {
-	return newConfig(lg, timeout, serde)
-}
-
-func OfJson(
-	lg glog.Lg,
-	timeout time.Duration,
-) Config {
-	return OfAny(lg, timeout, serdes.Json[any]())
+) Conn[RX, TX] {
+	return Make[RX, TX](
+		cfg.
+			WithRxSerde(serdes.Json[any]()).
+			WithTxSerde(serdes.Json[any]()),
+	)
 }

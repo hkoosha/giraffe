@@ -15,17 +15,17 @@ import (
 )
 
 const (
-	httpInputEndpoint = "endpoint"
-	httpInputPath     = "path"
+	HttpInputEndpoint = "endpoint"
+	HttpInputPath     = "path"
 
-	httpInputHeader   = "header"
-	httpInputBody     = "body"
-	httpInputUrlQuery = "query"
-	httpInputMethod   = "method"
-	httpInputOkCodes  = "ok_codes"
+	HttpInputHeader   = "headers"
+	HttpInputBody     = "body"
+	HttpInputUrlQuery = "query"
+	HttpInputMethod   = "method"
+	HttpInputOkCodes  = "ok_codes"
 
-	httpOutputBody    = "body"
-	httpOutputHeaders = "headers"
+	HttpOutputBody    = "body"
+	HttpOutputHeaders = "headers"
 )
 
 var (
@@ -37,28 +37,18 @@ var (
 	})
 )
 
+func MkHttpFn(
+	cnx conn.Conn[any],
+	endpoints map[string]string,
+) *HttpFn {
+	return (&HttpFn{cnx: nil, endpoints: nil}).
+		WithConn(cnx).
+		WithEndpoints(endpoints)
+}
+
 type HttpFn struct {
 	cnx       conn.Conn[any]
 	endpoints map[string]string
-}
-
-func (e *HttpFn) Fn() *Fn {
-	return MustFnOf(e.exe).
-		WithInput(
-			Q(httpInputEndpoint),
-			Q(httpInputPath),
-		).
-		WithOptional(
-			Q(httpInputHeader),
-			Q(httpInputBody),
-			Q(httpInputUrlQuery),
-			Q(httpInputMethod),
-			Q(httpInputOkCodes),
-		).
-		WithOutput(
-			Q(httpOutputBody),
-			Q(httpOutputHeaders),
-		)
 }
 
 func (e *HttpFn) WithConn(
@@ -104,6 +94,27 @@ func (e *HttpFn) WithEndpoints(
 	return cp
 }
 
+func (e *HttpFn) Fn() *Fn {
+	return MustFnOf(e.exe).
+		WithInput(
+			Q(HttpInputEndpoint),
+			Q(HttpInputPath),
+		).
+		WithOptional(
+			Q(HttpInputHeader),
+			Q(HttpInputBody),
+			Q(HttpInputUrlQuery),
+			Q(HttpInputMethod),
+			Q(HttpInputOkCodes),
+		).
+		WithOutput(
+			Q(HttpOutputBody),
+			Q(HttpOutputHeaders),
+		)
+}
+
+// =============================================================================
+
 func (e *HttpFn) shallow() *HttpFn {
 	cp := *e
 	cp.endpoints = maps.Clone(e.endpoints)
@@ -113,7 +124,7 @@ func (e *HttpFn) shallow() *HttpFn {
 func (e *HttpFn) getEndpoint(
 	dat giraffe.Datum,
 ) (string, error) {
-	qvEndpointName := M(dat.QStr(httpInputEndpoint))
+	qvEndpointName := M(dat.QStr(HttpInputEndpoint))
 
 	endpoint, ok := e.endpoints[qvEndpointName]
 	if !ok {
@@ -129,7 +140,7 @@ func (e *HttpFn) getPath(
 ) (string, error) {
 	pathParts := []string{endpoint}
 
-	for _, part := range strings.Split(M(dat.QStr(httpInputPath)), "/") {
+	for _, part := range strings.Split(M(dat.QStr(HttpInputPath)), "/") {
 		switch {
 		case strings.HasPrefix(part, ":"):
 			pValue, err := dat.Query(part[1:])
@@ -155,11 +166,11 @@ func (e *HttpFn) getPath(
 func (e *HttpFn) getUrlQuery(
 	dat giraffe.Datum,
 ) (string, error) {
-	if !dat.Has(Q(httpInputUrlQuery)) {
+	if !dat.Has(Q(HttpInputUrlQuery)) {
 		return "", nil
 	}
 
-	kv, err := dat.QKv(httpInputUrlQuery)
+	kv, err := dat.QKv(HttpInputUrlQuery)
 	if err != nil {
 		return "", err
 	}
@@ -175,21 +186,21 @@ func (e *HttpFn) getUrlQuery(
 func (e *HttpFn) getHeaders(
 	dat giraffe.Datum,
 ) (map[string]string, error) {
-	if dat.Has(Q(httpInputHeader)) {
+	if dat.Has(Q(HttpInputHeader)) {
 		return map[string]string{}, nil
 	}
 
-	return dat.QKv(httpInputHeader)
+	return dat.QKv(HttpInputHeader)
 }
 
 func (e *HttpFn) getBody(
 	dat giraffe.Datum,
 ) ([]byte, error) {
-	if !dat.Has(Q(httpInputBody)) {
+	if !dat.Has(Q(HttpInputBody)) {
 		return nil, nil
 	}
 
-	b, err := dat.Query(httpInputBody)
+	b, err := dat.Query(HttpInputBody)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +212,7 @@ func (e *HttpFn) getMethod(
 	dat giraffe.Datum,
 	hasBody bool,
 ) (string, error) {
-	if !dat.Has(Q(httpInputMethod)) {
+	if !dat.Has(Q(HttpInputMethod)) {
 		if hasBody {
 			return http.MethodPost, nil
 		} else {
@@ -211,7 +222,7 @@ func (e *HttpFn) getMethod(
 
 	// TODO prevent get with body?
 
-	return dat.QStr(httpInputMethod)
+	return dat.QStr(HttpInputMethod)
 }
 
 func (e *HttpFn) exe(
@@ -270,8 +281,8 @@ func (e *HttpFn) exe(
 	}
 
 	ret := map[string]any{
-		httpOutputHeaders: headers,
-		httpOutputBody:    deser,
+		HttpOutputHeaders: headers,
+		HttpOutputBody:    deser,
 	}
 
 	return giraffe.FromJsonable(ret)

@@ -9,16 +9,16 @@ import (
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hkoosha/giraffe/t11y/glog"
 	"github.com/hkoosha/giraffe/t11y"
-	"github.com/hkoosha/giraffe/zebra/serdes"
+	"github.com/hkoosha/giraffe/t11y/glog"
+	"github.com/hkoosha/giraffe/zebra/conv"
 	"github.com/hkoosha/giraffe/zebra/zcache"
 )
 
 func New[K comparable, V any](
 	cfg *Config,
-	keySerde serdes.Conv[K, string],
-	valSerde serdes.Conv[V, string],
+	keySerde convertors.Conv[K, string],
+	valSerde convertors.Conv[V, string],
 ) zcache.Adapter[K, V] {
 	t11y.NonNil(cfg, keySerde, valSerde)
 	cfg.Ensure()
@@ -32,11 +32,11 @@ func New[K comparable, V any](
 
 func NewForStringK[V any](
 	cfg *Config,
-	valSerde serdes.Conv[V, string],
+	valSerde convertors.Conv[V, string],
 ) zcache.Adapter[string, V] {
 	return New(
 		cfg,
-		serdes.StringConv(),
+		convertors.String(),
 		valSerde,
 	)
 }
@@ -46,8 +46,8 @@ func NewForString(
 ) zcache.Adapter[string, string] {
 	return New(
 		cfg,
-		serdes.StringConv(),
-		serdes.StringConv(),
+		convertors.String(),
+		convertors.String(),
 	)
 }
 
@@ -63,8 +63,8 @@ func NewForJson[V any](
 
 	return New(
 		cfg,
-		serdes.StringConv(),
-		serdes.JsonConv[V, string](),
+		convertors.String(),
+		convertors.JsonStr[V](),
 	)
 }
 
@@ -75,8 +75,8 @@ var _ zcache.Adapter[string, any] = (*adapter[string, any])(nil)
 type adapter[K comparable, V any] struct {
 	lg       glog.Lg
 	cfg      *Config
-	keySerde serdes.Conv[K, string]
-	valSerde serdes.Conv[V, string]
+	keySerde convertors.Conv[K, string]
+	valSerde convertors.Conv[V, string]
 	rds      *redis.Client
 }
 

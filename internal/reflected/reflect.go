@@ -1,0 +1,86 @@
+package reflected
+
+import (
+	"reflect"
+
+	"github.com/hkoosha/giraffe/internal/inmem"
+	. "github.com/hkoosha/giraffe/t11y/dot"
+)
+
+// TODO while exact generic type is erased, same generic among methods of same
+// implementor can still be checked.
+type methodSig struct {
+	In         int
+	Out        int
+	ReturnsErr bool
+}
+
+func extractMethods(
+	t reflect.Type,
+) (map[string]methodSig, error) {
+	if t.Kind() != reflect.Interface {
+		return nil, E(errNotAnInterface)
+	}
+
+	methods := make(map[string]methodSig)
+	for i := 0; i < t.NumMethod(); i++ {
+		method := t.Method(i)
+		out := method.Type.NumOut()
+		methods[method.Name] = methodSig{
+			In:         method.Type.NumIn(),
+			Out:        out,
+			ReturnsErr: out > 0 && method.Type.Out(out-1).Implements(TErr),
+		}
+	}
+
+	return methods, nil
+}
+
+func implementsMethods(
+	t map[string]methodSig,
+	iface map[string]methodSig,
+) (bool, error) {
+	for name, iSig := range iface {
+		tSig, ok := t[name]
+		if !ok || iSig != tSig {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+func implementsGenericErased(
+	t reflect.Type,
+	iface reflect.Type,
+) (bool, error) {
+	tMethods, err := extractMethods(t)
+	if err != nil {
+		return false, err
+	}
+
+	iMethods, err := extractMethods(iface)
+	if err != nil {
+		return false, err
+	}
+
+	return implementsMethods(tMethods, iMethods)
+}
+
+func ImplementsGenericErased(
+	t reflect.Type,
+	iface reflect.Type,
+) (bool, error) {
+	cached, err := inmem.GetOr[bool](
+		inmem.BucketReflectImplements,
+		t.String()+"|"+iface.String(),
+		func() (bool, error) {
+			return implementsGenericErased(t, iface)
+		},
+	)
+
+	if err != nil {
+		return false, err
+	}
+	return cached.V, nil
+}
