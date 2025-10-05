@@ -2,6 +2,21 @@ package conn
 
 import (
 	"io"
+	"regexp"
+	"slices"
+)
+
+var (
+	endpointNameRe = regexp.MustCompile(
+		"^[a-zA-Z0-9-_]+$")
+
+	endpointAddrRe = regexp.MustCompile(
+		`^(http|https)://(?P<addr>[a-zA-Z0-9-_.]{1,255})(:(?P<port>\d{1,5}))?$`)
+
+	endpointAddrReNames = slices.DeleteFunc(
+		endpointAddrRe.SubexpNames()[1:],
+		func(it string) bool { return it == "" },
+	)
 )
 
 type noBodyT struct{}

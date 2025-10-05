@@ -12,16 +12,16 @@ import (
 	"github.com/hkoosha/giraffe/zebra/serdes"
 )
 
-func newConn[RX, TX any](
+func newConn[TX, RX any](
 	cfg *config,
-) *connImpl[RX, TX] {
+) *connImpl[TX, RX] {
 	t11y.NonNil(cfg)
 
 	cfg.Ensure()
 
 	var rx RX
 	var tx TX
-	return &connImpl[RX, TX]{
+	return &connImpl[TX, RX]{
 		Sealer:  internal.Sealer{},
 		cfg:     cfg,
 		std:     cfg.Std(),
@@ -32,7 +32,7 @@ func newConn[RX, TX any](
 	}
 }
 
-type connImpl[RX, TX any] struct {
+type connImpl[TX, RX any] struct {
 	internal.Sealer
 
 	cfg *config
@@ -44,11 +44,11 @@ type connImpl[RX, TX any] struct {
 	txErr   TX
 }
 
-func (c *connImpl[RX, TX]) Std() *http.Client {
+func (c *connImpl[TX, RX]) Std() *http.Client {
 	return c.cfg.Std()
 }
 
-func (c *connImpl[RX, TX]) Raw() Conn[[]byte, []byte] {
+func (c *connImpl[TX, RX]) Raw() Conn[[]byte, []byte] {
 	return newConn[[]byte, []byte](
 		c.cfg.
 			withRxSerde(serdes.Bytes()).
@@ -56,11 +56,11 @@ func (c *connImpl[RX, TX]) Raw() Conn[[]byte, []byte] {
 	)
 }
 
-func (c *connImpl[RX, TX]) Cfg() Config {
+func (c *connImpl[TX, RX]) Cfg() Config {
 	return c.cfg
 }
 
-func (c *connImpl[RX, TX]) Patch(
+func (c *connImpl[TX, RX]) Patch(
 	ctx context.Context,
 	body TX,
 	path ...string,
@@ -71,7 +71,7 @@ func (c *connImpl[RX, TX]) Patch(
 	return r, err
 }
 
-func (c *connImpl[RX, TX]) Put(
+func (c *connImpl[TX, RX]) Put(
 	ctx context.Context,
 	body TX,
 	path ...string,
@@ -82,7 +82,7 @@ func (c *connImpl[RX, TX]) Put(
 	return r, err
 }
 
-func (c *connImpl[RX, TX]) Post(
+func (c *connImpl[TX, RX]) Post(
 	ctx context.Context,
 	body TX,
 	path ...string,
@@ -93,7 +93,7 @@ func (c *connImpl[RX, TX]) Post(
 	return r, err
 }
 
-func (c *connImpl[RX, TX]) PostForHeaders(
+func (c *connImpl[TX, RX]) PostForHeaders(
 	ctx context.Context,
 	body TX,
 	path ...string,
@@ -107,7 +107,7 @@ func (c *connImpl[RX, TX]) PostForHeaders(
 	return resp.Header, nil
 }
 
-func (c *connImpl[RX, TX]) Get(
+func (c *connImpl[TX, RX]) Get(
 	ctx context.Context,
 	path ...string,
 ) (RX, error) {
@@ -117,7 +117,7 @@ func (c *connImpl[RX, TX]) Get(
 	return r, err
 }
 
-func (c *connImpl[RX, TX]) GetForHeaders(
+func (c *connImpl[TX, RX]) GetForHeaders(
 	ctx context.Context,
 	path ...string,
 ) (http.Header, error) {
@@ -130,7 +130,7 @@ func (c *connImpl[RX, TX]) GetForHeaders(
 	return resp.Header, nil
 }
 
-func (c *connImpl[RX, TX]) Delete(
+func (c *connImpl[TX, RX]) Delete(
 	ctx context.Context,
 	path ...string,
 ) (RX, error) {
@@ -140,7 +140,7 @@ func (c *connImpl[RX, TX]) Delete(
 	return r, err
 }
 
-func (c *connImpl[RX, TX]) Call(
+func (c *connImpl[TX, RX]) Call(
 	ctx context.Context,
 	body TX,
 	path ...string,
@@ -149,7 +149,7 @@ func (c *connImpl[RX, TX]) Call(
 	return call, err
 }
 
-func (c *connImpl[RX, TX]) CallWithHeaders(
+func (c *connImpl[TX, RX]) Headered(
 	ctx context.Context,
 	body TX,
 	path ...string,
@@ -175,7 +175,7 @@ func (c *connImpl[RX, TX]) CallWithHeaders(
 	return call, headers, err
 }
 
-func (c *connImpl[RX, TX]) call(
+func (c *connImpl[TX, RX]) call(
 	ctx context.Context,
 	method string,
 	reqBody *TX,
@@ -203,7 +203,7 @@ func (c *connImpl[RX, TX]) call(
 	return resp, u, nil
 }
 
-func (c *connImpl[RX, TX]) callRaw(
+func (c *connImpl[TX, RX]) callRaw(
 	ctx context.Context,
 	method string,
 	body io.Reader,

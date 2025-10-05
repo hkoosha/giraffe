@@ -140,10 +140,11 @@ func mkOtelConfig() *otelConfig {
 }
 
 type httpConfig struct {
-	defaultMethod string
-	pathPrefix    string
-	endpoint      string
-	timeout       time.Duration
+	defaultMethod   string
+	pathPrefix      string
+	endpoint        string
+	timeout         time.Duration
+	endpointsByName map[string]string
 }
 
 func (c *httpConfig) shallow() *httpConfig {
@@ -163,10 +164,11 @@ func mkHttpConfig(
 	}
 
 	return &httpConfig{
-		defaultMethod: http.MethodGet,
-		pathPrefix:    "",
-		endpoint:      "",
-		timeout:       timeout,
+		defaultMethod:   http.MethodGet,
+		pathPrefix:      "",
+		endpoint:        "",
+		timeout:         timeout,
+		endpointsByName: make(map[string]string),
 	}
 }
 

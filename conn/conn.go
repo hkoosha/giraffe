@@ -8,9 +8,9 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
+	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/conn/internal"
 	"github.com/hkoosha/giraffe/t11y/glog"
-	"github.com/hkoosha/giraffe/zebra/serdes"
 )
 
 const UserAgent = "Giraffe/1.0"
@@ -150,6 +150,7 @@ type ConfigRead interface {
 	HeaderOverwriters() map[string]HeaderProvider
 	ExpectingStatusCode() int
 	Endpoint() string
+	Endpoints() map[string]string
 	PathPrefix() string
 	Method() string
 	Timeout() time.Duration
@@ -171,6 +172,8 @@ type ConfigWrite interface {
 	WithExpectingStatusCode(int) Config
 	WithoutExpectingStatusCode() Config
 
+	WithEndpoints(map[string]string) Config
+	WithoutEndpoints() Config
 	WithEndpoint(string) Config
 	WithoutEndpoint() Config
 	WithPathPrefix(string) Config
@@ -209,13 +212,14 @@ type ConfigWrite interface {
 type Config interface {
 	internal.Sealed
 
-	Conn() Raw
+	Raw() Raw
+	Datum() Datum
 
 	ConfigRead
 	ConfigWrite
 }
 
-type Conn[RX, TX any] interface {
+type Conn[TX, RX any] interface {
 	internal.Sealed
 
 	Std() *http.Client
@@ -228,7 +232,7 @@ type Conn[RX, TX any] interface {
 		path ...string,
 	) (RX, error)
 
-	CallWithHeaders(
+	Headered(
 		_ context.Context,
 		_ TX,
 		path ...string,
@@ -275,21 +279,12 @@ type Conn[RX, TX any] interface {
 }
 
 type Raw = Conn[[]byte, []byte]
+type Datum = Conn[giraffe.Datum, giraffe.Datum]
 
 // ============================================================================.
 
-func Make[RX, TX any](
+func Make[TX, RX any](
 	cfg Config,
-) Conn[RX, TX] {
-	return newConn[RX, TX](cfgOf(cfg))
-}
-
-func Json[RX, TX any](
-	cfg Config,
-) Conn[RX, TX] {
-	return Make[RX, TX](
-		cfg.
-			WithRxSerde(serdes.Json[any]()).
-			WithTxSerde(serdes.Json[any]()),
-	)
+) Conn[TX, RX] {
+	return newConn[TX, RX](cfgOf(cfg))
 }

@@ -5,11 +5,13 @@ import (
 	"maps"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
+	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/conn/headers"
 	"github.com/hkoosha/giraffe/conn/internal"
 	"github.com/hkoosha/giraffe/t11y"
@@ -246,14 +248,24 @@ func (c *config) withBytesSerde() *config {
 	return c.withBytesRxSerde().withBytesTxSerde()
 }
 
-func (c *config) Conn() Raw {
+func (c *config) Raw() Raw {
 	return c.connection()
+}
+
+func (c *config) Datum() Datum {
+	return c.datum()
 }
 
 func (c *config) connection() Raw {
 	c.ensure()
 
 	return newConn[[]byte, []byte](c.withBytesSerde())
+}
+
+func (c *config) datum() Datum {
+	c.ensure()
+
+	return newConn[giraffe.Datum, giraffe.Datum](c.withJsonSerde())
 }
 
 func (c *config) Ensure() {
@@ -584,6 +596,75 @@ func (c *config) withoutExpectingStatusCode() *config {
 
 func (c *config) ExpectingStatusCode() int {
 	return c.resp.expectStatusCode
+}
+
+func (c *config) Endpoints() map[string]string {
+	return maps.Clone(c.ensure().http.endpointsByName)
+}
+
+func (c *config) WithEndpoints(
+	e map[string]string,
+) Config {
+	return c.withEndpoints(e)
+}
+
+func (c *config) withEndpoints(
+	e map[string]string,
+) *config {
+	if maps.Equal(c.http.endpointsByName, e) {
+		return c
+	}
+
+	for name, addr := range e {
+		if !endpointNameRe.MatchString(name) {
+			panic(EF("invalid endpoint name: %s", name))
+		}
+		if !endpointAddrRe.MatchString(addr) {
+			panic(EF("invalid endpoint address: %s", addr))
+		}
+		matches := endpointAddrRe.FindStringSubmatch(addr)
+		groups := make(map[string]string)
+		for i, n := range endpointAddrReNames {
+			if i != 0 && n != "" {
+				groups[name] = matches[i]
+			}
+		}
+
+		if strings.Contains(groups["address"], "..") {
+			panic(EF("invalid endpoint address: %s", addr))
+		}
+
+		if groups["port"] != "" {
+			port := M(strconv.Atoi(groups["port"]))
+			if port < 1 || 65534 < port {
+				panic(EF("invalid endpoint port: %s", addr))
+			}
+		}
+	}
+
+	cp := c.open()
+	cp.http = cp.http.shallow()
+	cp.http.endpointsByName = maps.Clone(e)
+	cp.seal()
+
+	return cp
+}
+
+func (c *config) WithoutEndpoints() Config {
+	return c.withoutEndpoints()
+}
+
+func (c *config) withoutEndpoints() *config {
+	if c.http.endpoint == "" {
+		return c
+	}
+
+	cp := c.open()
+	cp.http = cp.http.shallow()
+	cp.http.endpoint = ""
+	cp.seal()
+
+	return cp
 }
 
 func (c *config) Endpoint() string {

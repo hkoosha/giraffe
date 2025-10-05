@@ -198,7 +198,7 @@ func TestRunner_Http(t *testing.T) {
 		gtesting.Preamble(t)
 
 		fn := hippo.MkHttpFn(
-			conn.MkJsonRaw(gtesting.Zap(t), 5*time.Second),
+			conn.Make(gtesting.Zap(t), 5*time.Second),
 			map[string]string{
 				"local": "http://localhost:8000",
 			},
