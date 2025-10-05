@@ -147,15 +147,15 @@ func (c *config) txSerde() any {
 }
 
 func (c *config) WithSerdes(
-	rx any,
 	tx any,
+	rx any,
 ) Config {
-	return c.withSerdes(rx, tx)
+	return c.withSerdes(tx, rx)
 }
 
 func (c *config) withSerdes(
-	rx any,
 	tx any,
+	rx any,
 ) *config {
 	return c.withRxSerde(rx).withTxSerde(tx)
 }
@@ -685,6 +685,12 @@ func (c *config) withoutEndpoints() *config {
 
 func (c *config) Endpoint() string {
 	return c.ensure().http.endpoint
+}
+
+func (c *config) WithMustEndpointNamed(
+	name string,
+) Config {
+	return M(c.WithEndpointNamed(name))
 }
 
 func (c *config) WithEndpointNamed(

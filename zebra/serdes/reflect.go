@@ -31,7 +31,11 @@ func MustCast[T any](v any) Serde[T] {
 	cast, ok := v.(Serde[T])
 	if !ok {
 		var t T
-		panic(EF("not a serde, T=%v v=%v", t, v))
+		panic(EF(
+			"not a serde or incompatible type, T=%s v=%s",
+			reflect.TypeOf(t).String(),
+			reflect.TypeOf(v).String(),
+		))
 	}
 	return cast
 }

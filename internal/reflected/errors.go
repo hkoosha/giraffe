@@ -4,4 +4,4 @@ import (
 	"errors"
 )
 
-var errNotAnInterface = errors.New("not an interface")
+var errContainsNoMethods = errors.New("type does not have methods")

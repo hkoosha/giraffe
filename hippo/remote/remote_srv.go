@@ -11,6 +11,7 @@ import (
 	"github.com/hkoosha/giraffe/hippo/internal"
 	"github.com/hkoosha/giraffe/t11y"
 	. "github.com/hkoosha/giraffe/t11y/dot"
+	"github.com/hkoosha/giraffe/zebra/serdes"
 )
 
 type Server func(
@@ -39,7 +40,7 @@ func (s Server) ServeHTTP(
 type server struct {
 	reg       hippo.FnRegistry
 	templates map[string]*hippo.Plan
-	serde     requestSerde
+	serde     serdes.Serde[Request]
 }
 
 func (s server) ekran(
@@ -145,8 +146,6 @@ func NewServer(
 	return server{
 		reg:       reg,
 		templates: maps.Clone(templates),
-		serde: requestSerde{
-			datumSerde: giraffe.DatumSerde(),
-		},
+		serde:     RequestSerde(),
 	}.ekran, nil
 }

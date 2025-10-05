@@ -278,12 +278,10 @@ func (u giraffeRT) RoundTrip(
 
 	r := req
 
-	//nolint:contextcheck
 	err := u.modify(req.Context(), req, func() *http.Request {
 		if !cloned {
 			r = req.Clone(req.Context())
 		}
-
 		return r
 	})
 	if err != nil {

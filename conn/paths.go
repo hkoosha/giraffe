@@ -21,9 +21,13 @@ func Join(
 func join(
 	parts []string,
 ) string {
+	if parts == nil {
+		return ""
+	}
+
 	orig := slices.Clone(parts)
 
-	preprocess(parts)
+	preprocess(&parts)
 
 	parts, queries := splitQuery(parts)
 
@@ -135,10 +139,14 @@ func ensure(
 	}
 }
 
-func preprocess(parts []string) {
-	for i := range parts {
-		parts[i] = strings.TrimSpace(parts[i])
+func preprocess(parts *[]string) {
+	p := *parts
+	for i := range p {
+		p[i] = strings.TrimSpace(p[i])
 	}
+	*parts = slices.DeleteFunc(p, func(it string) bool {
+		return it == ""
+	})
 }
 
 //nolint:nonamedreturns

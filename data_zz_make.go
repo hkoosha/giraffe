@@ -36,6 +36,26 @@ var (
 	tQuery = reflect.TypeOf((*Query)(nil)).Elem()
 )
 
+func ofJson(
+	v []byte,
+) (Datum, error) {
+	fromJ, err := gson.Unmarshal[any](v)
+	if err != nil {
+		return OfErr(), err
+	}
+
+	val, typ, err := _ofAny(fromJ, reflect.ValueOf(fromJ))
+	if err != nil {
+		return OfErr(), err
+	}
+
+	if typ == Err {
+		panic(EF("unreachable, invalid giraffe type: %s", typ.String()))
+	}
+
+	return _newDatum(typ, val), nil
+}
+
 func ofJsonable(
 	v any,
 ) (Datum, error) {

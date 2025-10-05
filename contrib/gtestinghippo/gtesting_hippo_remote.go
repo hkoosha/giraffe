@@ -63,6 +63,7 @@ func Call(
 			conn.MakeCfg(gtesting.Zap(t)).
 				WithTransport(srv.Client().Transport).
 				AndEndpoint("thingy", srv.URL).
+				WithMustEndpointNamed("thingy").
 				Raw(),
 		))
 

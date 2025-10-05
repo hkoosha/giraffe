@@ -176,9 +176,7 @@ func (c *connImpl[TX, RX]) call(
 		return nil, c.rxErr, E(err)
 	}
 
-	b := bytes.NewReader(serialized)
-
-	resp, err := c.callRaw(ctx, method, b, path)
+	resp, err := c.callRaw(ctx, method, bytes.NewReader(serialized), path)
 	if err != nil {
 		return nil, c.rxErr, err
 	}

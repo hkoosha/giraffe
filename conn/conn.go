@@ -98,8 +98,8 @@ type ConfigSerdeWrite interface {
 	internal.Sealed
 
 	WithSerdes(
-		rx any,
 		tx any,
+		rx any,
 	) Config
 
 	WithRxSerde(any) Config
@@ -163,6 +163,7 @@ type ConfigWrite interface {
 	AndPathPrefix(string) Config
 
 	WithEndpointNamed(string) (Config, error)
+	WithMustEndpointNamed(string) Config
 
 	WithTimeout(time.Duration) Config
 

@@ -1,7 +1,9 @@
 package reflected
 
 import (
+	"maps"
 	"reflect"
+	"slices"
 
 	"github.com/hkoosha/giraffe/internal/inmem"
 	. "github.com/hkoosha/giraffe/t11y/dot"
@@ -18,8 +20,8 @@ type methodSig struct {
 func extractMethods(
 	t reflect.Type,
 ) (map[string]methodSig, error) {
-	if t.Kind() != reflect.Interface {
-		return nil, E(errNotAnInterface)
+	if t.Kind() != reflect.Interface && t.Kind() != reflect.Struct {
+		return nil, E(errContainsNoMethods)
 	}
 
 	methods := make(map[string]methodSig)
@@ -40,6 +42,13 @@ func implementsMethods(
 	t map[string]methodSig,
 	iface map[string]methodSig,
 ) (bool, error) {
+	t = maps.Clone(t)
+	for _, k := range slices.Collect(maps.Keys(t)) {
+		if _, ok := iface[k]; !ok {
+			delete(t, k)
+		}
+	}
+
 	for name, iSig := range iface {
 		tSig, ok := t[name]
 		if !ok || iSig != tSig {

@@ -198,8 +198,11 @@ func (d Datum) MarshalJSONTo(w io.Writer) error {
 	return json.NewEncoder(w).Encode(n)
 }
 
-func (d Datum) UnmarshalJSON([]byte) error {
-	panic(EF("unimplemented: unmarshal json"))
+func (d *Datum) UnmarshalJSON(b []byte) error {
+	var err error
+
+	*d, err = ofJson(b)
+	return err
 }
 
 func (d Datum) Type() Type {
