@@ -57,63 +57,98 @@ func (c *connImpl[TX, RX]) Cfg() Config {
 	return c.cfg
 }
 
+//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) Patch(
 	ctx context.Context,
 	body TX,
 	path ...string,
-) (map[string]string, RX, error) {
+) (
+	headers map[string]string,
+	_ RX,
+	_ error,
+) {
 	const m = http.MethodPatch
 	return c.call(ctx, m, &body, path)
 }
 
+//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) Put(
 	ctx context.Context,
 	body TX,
 	path ...string,
-) (map[string]string, RX, error) {
+) (
+	headers map[string]string,
+	_ RX,
+	_ error,
+) {
 	const m = http.MethodPut
 	return c.call(ctx, m, &body, path)
 }
 
+//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) Post(
 	ctx context.Context,
 	body TX,
 	path ...string,
-) (map[string]string, RX, error) {
+) (
+	headers map[string]string,
+	_ RX,
+	_ error,
+) {
 	const m = http.MethodPost
 	return c.call(ctx, m, &body, path)
 }
 
+//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) Get(
 	ctx context.Context,
 	path ...string,
-) (map[string]string, RX, error) {
+) (
+	headers map[string]string,
+	_ RX,
+	_ error,
+) {
 	const m = http.MethodGet
 	return c.call(ctx, m, nil, path)
 }
 
+//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) Delete(
 	ctx context.Context,
 	path ...string,
-) (map[string]string, RX, error) {
+) (
+	headers map[string]string,
+	_ RX,
+	_ error,
+) {
 	const m = http.MethodDelete
 	return c.call(ctx, m, nil, path)
 }
 
+//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) Call(
 	ctx context.Context,
 	body *TX,
 	path ...string,
-) (map[string]string, RX, error) {
+) (
+	headers map[string]string,
+	_ RX,
+	_ error,
+) {
 	return c.call(ctx, c.cfg.http.defaultMethod, body, path)
 }
 
+//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) call(
 	ctx context.Context,
 	method string,
 	reqBody *TX,
 	path []string,
-) (map[string]string, RX, error) {
+) (
+	headers map[string]string,
+	_ RX,
+	_ error,
+) {
 	var serialized []byte
 	var err error
 
@@ -141,7 +176,7 @@ func (c *connImpl[TX, RX]) call(
 		return nil, c.rxErr, err
 	}
 
-	headers := make(map[string]string, len(resp.Header))
+	headers = make(map[string]string, len(resp.Header))
 	for k, v := range resp.Header {
 		if len(v) > 0 {
 			panic(EF("todo multivalued headers"))

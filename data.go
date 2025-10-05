@@ -144,6 +144,7 @@ type Implode = map[Query]Datum
 
 // ============================================================================.
 
+//nolint:recvcheck
 type Datum struct {
 	val   *any
 	Debug gdatum.DatumDebug
