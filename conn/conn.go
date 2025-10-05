@@ -212,54 +212,37 @@ type Conn[TX, RX any] interface {
 
 	Call(
 		_ context.Context,
-		_ TX,
+		_ *TX,
 		path ...string,
-	) (RX, error)
-
-	Headered(
-		_ context.Context,
-		_ TX,
-		path ...string,
-	) (RX, map[string]string, error)
+	) (map[string]string, RX, error)
 
 	Patch(
 		_ context.Context,
 		_ TX,
 		path ...string,
-	) (RX, error)
+	) (map[string]string, RX, error)
 
 	Put(
 		_ context.Context,
 		_ TX,
 		path ...string,
-	) (RX, error)
+	) (map[string]string, RX, error)
 
 	Post(
 		_ context.Context,
 		_ TX,
 		path ...string,
-	) (RX, error)
-
-	PostForHeaders(
-		_ context.Context,
-		_ TX,
-		path ...string,
-	) (http.Header, error)
+	) (map[string]string, RX, error)
 
 	Get(
 		_ context.Context,
 		path ...string,
-	) (RX, error)
-
-	GetForHeaders(
-		_ context.Context,
-		path ...string,
-	) (http.Header, error)
+	) (map[string]string, RX, error)
 
 	Delete(
 		_ context.Context,
 		path ...string,
-	) (RX, error)
+	) (map[string]string, RX, error)
 }
 
 type (

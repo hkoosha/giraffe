@@ -19,11 +19,13 @@ var (
 		regexp.MustCompile(regexp.QuoteMeta("^panic(")),
 		regexp.MustCompile(regexp.QuoteMeta("golang.org/toolchain")),
 		regexp.MustCompile(regexp.QuoteMeta("/giraffe/internal/queryerrors")),
+		regexp.MustCompile(regexp.QuoteMeta("giraffe/errors.go")),
 
 		// Giraffe packages.
 		regexp.MustCompile(regexp.QuoteMeta("/giraffe/g11y")),
 		regexp.MustCompile(regexp.QuoteMeta("/giraffe/dot")),
 		regexp.MustCompile(regexp.QuoteMeta("/giraffe/internal/dot")),
+		regexp.MustCompile("/giraffe/.*/t11y.*"),
 
 		// Third-party.
 		regexp.MustCompile(regexp.QuoteMeta("go.uber.org/zap")),

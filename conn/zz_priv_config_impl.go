@@ -265,7 +265,8 @@ func (c *config) connection() Raw {
 func (c *config) datum() Datum {
 	c.ensure()
 
-	return newConn[giraffe.Datum, giraffe.Datum](c.withJsonSerde())
+	j := c.withSerdes(giraffe.DatumSerde(), giraffe.DatumSerde())
+	return newConn[giraffe.Datum, giraffe.Datum](j)
 }
 
 func (c *config) Ensure() {

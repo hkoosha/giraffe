@@ -375,7 +375,15 @@ func (d Datum) Kv() (map[string]string, error) {
 }
 
 func (d Datum) Len() (int, error) {
-	return d.tryLen()
+	if d.typ.IsObj() {
+		k, err := d.Keys()
+		if err != nil {
+			return 0, err
+		}
+		return len(k), nil
+	} else {
+		return d.tryLen()
+	}
 }
 
 // =====================================.

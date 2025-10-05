@@ -61,108 +61,51 @@ func (c *connImpl[TX, RX]) Patch(
 	ctx context.Context,
 	body TX,
 	path ...string,
-) (RX, error) {
+) (map[string]string, RX, error) {
 	const m = http.MethodPatch
-	_, r, err := c.call(ctx, m, &body, path)
-	return r, err
+	return c.call(ctx, m, &body, path)
 }
 
 func (c *connImpl[TX, RX]) Put(
 	ctx context.Context,
 	body TX,
 	path ...string,
-) (RX, error) {
+) (map[string]string, RX, error) {
 	const m = http.MethodPut
-	_, r, err := c.call(ctx, m, &body, path)
-	return r, err
+	return c.call(ctx, m, &body, path)
 }
 
 func (c *connImpl[TX, RX]) Post(
 	ctx context.Context,
 	body TX,
 	path ...string,
-) (RX, error) {
+) (map[string]string, RX, error) {
 	const m = http.MethodPost
-	_, r, err := c.call(ctx, m, &body, path)
-	return r, err
-}
-
-func (c *connImpl[TX, RX]) PostForHeaders(
-	ctx context.Context,
-	body TX,
-	path ...string,
-) (http.Header, error) {
-	const m = http.MethodPost
-	headers, _, err := c.call(ctx, m, &body, path)
-	if err != nil {
-		return nil, err
-	}
-	return headers, nil
+	return c.call(ctx, m, &body, path)
 }
 
 func (c *connImpl[TX, RX]) Get(
 	ctx context.Context,
 	path ...string,
-) (RX, error) {
+) (map[string]string, RX, error) {
 	const m = http.MethodGet
-	_, r, err := c.call(ctx, m, nil, path)
-	return r, err
-}
-
-func (c *connImpl[TX, RX]) GetForHeaders(
-	ctx context.Context,
-	path ...string,
-) (http.Header, error) {
-	const m = http.MethodGet
-	headers, _, err := c.call(ctx, m, nil, path)
-	if err != nil {
-		return nil, err
-	}
-	return headers, nil
+	return c.call(ctx, m, nil, path)
 }
 
 func (c *connImpl[TX, RX]) Delete(
 	ctx context.Context,
 	path ...string,
-) (RX, error) {
+) (map[string]string, RX, error) {
 	const m = http.MethodDelete
-	_, r, err := c.call(ctx, m, nil, path)
-	return r, err
+	return c.call(ctx, m, nil, path)
 }
 
 func (c *connImpl[TX, RX]) Call(
 	ctx context.Context,
-	body TX,
+	body *TX,
 	path ...string,
-) (RX, error) {
-	_, call, err := c.call(ctx, c.cfg.http.defaultMethod, &body, path)
-	return call, err
-}
-
-//nolint:nonamedreturns
-func (c *connImpl[TX, RX]) Headered(
-	ctx context.Context,
-	body TX,
-	path ...string,
-) (_ RX, headers map[string]string, _ error) {
-	respHeaders, call, err := c.call(ctx, c.cfg.http.defaultMethod, &body, path)
-	if err != nil {
-		return call, nil, err
-	}
-
-	headers0 := make(map[string]string, len(respHeaders))
-	for k, v := range respHeaders {
-		if len(v) > 0 {
-			panic("todo multivalued headers")
-		}
-		if len(v) == 0 {
-			panic("todo: empty headers")
-		}
-
-		headers0[k] = v[0]
-	}
-
-	return call, headers0, err
+) (map[string]string, RX, error) {
+	return c.call(ctx, c.cfg.http.defaultMethod, body, path)
 }
 
 func (c *connImpl[TX, RX]) call(
@@ -170,8 +113,18 @@ func (c *connImpl[TX, RX]) call(
 	method string,
 	reqBody *TX,
 	path []string,
-) (http.Header, RX, error) {
-	serialized, err := c.txSerde.Write(*reqBody)
+) (map[string]string, RX, error) {
+	var serialized []byte
+	var err error
+
+	switch {
+	case reqBody != nil:
+		serialized, err = c.txSerde.Write(*reqBody)
+
+	default:
+		serialized, err = nil, nil
+	}
+
 	if err != nil {
 		return nil, c.rxErr, E(err)
 	}
@@ -188,7 +141,19 @@ func (c *connImpl[TX, RX]) call(
 		return nil, c.rxErr, err
 	}
 
-	return resp.Header, u, nil
+	headers := make(map[string]string, len(resp.Header))
+	for k, v := range resp.Header {
+		if len(v) > 0 {
+			panic(EF("todo multivalued headers"))
+		}
+		if len(v) == 0 {
+			panic(EF("todo: empty headers"))
+		}
+
+		headers[k] = v[0]
+	}
+
+	return headers, u, nil
 }
 
 func (c *connImpl[TX, RX]) callRaw(

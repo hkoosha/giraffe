@@ -17,6 +17,7 @@ import (
 	"github.com/hkoosha/giraffe/contrib/gtesting"
 	"github.com/hkoosha/giraffe/contrib/gtestinghippo"
 	"github.com/hkoosha/giraffe/hippo"
+	"github.com/hkoosha/giraffe/hippo/remote"
 	. "github.com/hkoosha/giraffe/internal/dot1"
 )
 
@@ -197,6 +198,8 @@ func TestRunner_Http(t *testing.T) {
 
 		fn := hippo.MkHttpFn(
 			conn.MakeCfg(gtesting.Zap(t)).
+				WithTxSerde(remote.RequestSerde()).
+				WithRxSerde(giraffe.DatumSerde()).
 				AndEndpoint("local", "http://localhost:8000").
 				Datum(),
 		)

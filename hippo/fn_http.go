@@ -135,12 +135,22 @@ func (e *HttpFn) getHeaders(
 
 func (e *HttpFn) getBody(
 	dat giraffe.Datum,
-) (giraffe.Datum, error) {
+) (giraffe.Datum, int, error) {
 	if !dat.Has(Q(HttpInputBody)) {
-		return OfErr(), nil
+		return OfErr(), 0, nil
 	}
 
-	return dat.Query(HttpInputBody)
+	q, err := dat.Query(HttpInputBody)
+	if err != nil {
+		return OfErr(), 0, err
+	}
+
+	l, err := q.Len()
+	if err != nil {
+		return OfErr(), 0, err
+	}
+
+	return q, l, nil
 }
 
 func (e *HttpFn) getMethod(
@@ -181,12 +191,7 @@ func (e *HttpFn) exe(
 		return OfErr(), err
 	}
 
-	body, err := e.getBody(dat)
-	if err != nil {
-		return OfErr(), err
-	}
-
-	l, err := body.Len()
+	body, l, err := e.getBody(dat)
 	if err != nil {
 		return OfErr(), err
 	}
@@ -210,14 +215,20 @@ func (e *HttpFn) exe(
 	if err != nil {
 		return OfErr(), err
 	}
-	resp, headers, err := cfg.Datum().Headered(ctx, body, path...)
+
+	bodyR := &body
+	if l == 0 {
+		bodyR = nil
+	}
+
+	headers, rx, err := cfg.Datum().Call(ctx, bodyR, path...)
 	if err != nil {
 		return OfErr(), err
 	}
 
 	ret := map[string]any{
 		HttpOutputHeaders: headers,
-		HttpOutputBody:    resp,
+		HttpOutputBody:    rx,
 	}
 
 	return giraffe.FromJsonable(ret)

@@ -38,9 +38,10 @@ func (m *remoteFn) Ekran(
 	ctx hippo.Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
-	return m.cnx.Call(ctx, Request{
+	_, rx, err := m.cnx.Call(ctx, &Request{
 		Init:          dat,
 		Plan:          m.plan,
 		Compensations: nil,
 	})
+	return rx, err
 }
