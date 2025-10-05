@@ -394,8 +394,6 @@ func (d Datum) Int() (*big.Int, error) {
 		return nil, newNilError()
 
 	case !d.typ.IsInt():
-		xx := M(d.Flt()).String()
-		fmt.Println(xx)
 		return nil, newTypeCastError(d.typ, Int)
 
 	default:
