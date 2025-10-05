@@ -29,6 +29,9 @@ func E(err ...error) error {
 	case len(err) == 0:
 		return t11y.Traced(nil)
 
+	case len(err) == 1 && err[0] == nil:
+		return nil
+
 	case len(err) == 1:
 		return t11y.Traced(err[0])
 
