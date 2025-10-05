@@ -12,6 +12,29 @@ import (
 	"github.com/hkoosha/giraffe/hippo/remote"
 )
 
+func EkranFn(
+	t *testing.T,
+	dat giraffe.Datum,
+	fn Fn,
+) giraffe.Datum {
+	plan := hippo.
+		MkPlan().
+		MustWithNext(
+			"my_exe",
+			fn,
+		)
+
+	return Ekran(t, plan, dat)
+}
+
+func EkranExe(
+	t *testing.T,
+	dat giraffe.Datum,
+	exe hippo.Exe,
+) giraffe.Datum {
+	return EkranFn(t, dat, FnOf(exe))
+}
+
 func Ekran(
 	t *testing.T,
 	plan *hippo.Plan,

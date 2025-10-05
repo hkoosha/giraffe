@@ -79,10 +79,10 @@ func OfEmpty() giraffe.Datum {
 
 type Fn = *hippo.Fn
 
-func OfFn(
+func FnOf(
 	exe hippo.Exe,
 ) Fn {
-	return hippo.MustFnOf(exe)
+	return hippo.FnOf(exe)
 }
 
 // ======================================================================== PTR.

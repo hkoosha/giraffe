@@ -26,13 +26,13 @@ type Exe = func(
 
 // =============================================================================.
 
-func MustFnOf(
+func FnOf(
 	exe Exe,
 ) *Fn {
-	return M(FnOf(exe))
+	return M(TryFnOf(exe))
 }
 
-func FnOf(
+func TryFnOf(
 	exe Exe,
 ) (*Fn, error) {
 	t := typing.OfVirtual()
@@ -75,7 +75,7 @@ func FnCtxOf(
 		return exeCtx(ctx, dat)
 	}
 
-	return FnOf(exe)
+	return TryFnOf(exe)
 }
 
 type Fn struct {

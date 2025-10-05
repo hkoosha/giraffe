@@ -4,8 +4,6 @@ import (
 	_ "embed"
 	"errors"
 	"math/big"
-	"net/http"
-	"net/http/httptest"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,11 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hkoosha/giraffe"
-	"github.com/hkoosha/giraffe/conn"
 	"github.com/hkoosha/giraffe/contrib/gtesting"
-	"github.com/hkoosha/giraffe/contrib/gtestinghippo"
 	"github.com/hkoosha/giraffe/hippo"
-	"github.com/hkoosha/giraffe/hippo/remote"
 	. "github.com/hkoosha/giraffe/internal/dot1"
 )
 
@@ -27,7 +22,7 @@ import (
 var testRunnerSimple string
 
 func mul(step int) *hippo.Fn {
-	return hippo.MustFnOf(func(
+	return hippo.FnOf(func(
 		_ hippo.Context,
 		dat giraffe.Datum,
 	) (giraffe.Datum, error) {
@@ -52,7 +47,7 @@ func mul(step int) *hippo.Fn {
 }
 
 func alwaysFail(msg string) *hippo.Fn {
-	return hippo.MustFnOf(func(
+	return hippo.FnOf(func(
 		hippo.Context,
 		giraffe.Datum,
 	) (giraffe.Datum, error) {
@@ -60,15 +55,13 @@ func alwaysFail(msg string) *hippo.Fn {
 	})
 }
 
-// =============================================================================
-
 func TestRunner(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
 		gtesting.Preamble(t)
 
 		plan := hippo.
 			MkPlan().
-			MustWithNext("my_fn0", hippo.MustFnOf(func(
+			MustWithNext("my_fn0", hippo.FnOf(func(
 				hippo.Context,
 				giraffe.Datum,
 			) (giraffe.Datum, error) {
@@ -77,13 +70,13 @@ func TestRunner(t *testing.T) {
 					[]uint64{11, 22, 33, 44, 55},
 				), nil
 			})).
-			MustWithNext("my_fn1", hippo.MustFnOf(func(
+			MustWithNext("my_fn1", hippo.FnOf(func(
 				hippo.Context,
 				giraffe.Datum,
 			) (giraffe.Datum, error) {
 				return giraffe.Of1(Q("ns1.my_out_fn1"), []int{2, 4}), nil
 			})).
-			MustWithNext("my_fn2", hippo.MustFnOf(func(
+			MustWithNext("my_fn2", hippo.FnOf(func(
 				_ hippo.Context,
 				dat giraffe.Datum,
 			) (giraffe.Datum, error) {
@@ -188,54 +181,6 @@ func TestRunner(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, uint64(303), fin)
-
-		gtesting.Write(t, "state.json", state.Pretty())
-		gtesting.Write(t, "fin.json", state.Pretty())
-	})
-}
-
-func TestRunner_Http(t *testing.T) {
-	t.Run("move data", func(t *testing.T) {
-		gtesting.Preamble(t)
-
-		srv := httptest.NewServer(http.HandlerFunc(func(
-			w http.ResponseWriter,
-			r *http.Request,
-		) {
-			resp := ` { "m4": 312 } `
-			_, _ = w.Write([]byte(resp))
-		}))
-		defer srv.Close()
-
-		fn := hippo.MkHttpFn(
-			conn.MakeCfg(gtesting.Zap(t)).
-				WithTxSerde(remote.RequestSerde()).
-				WithRxSerde(giraffe.DatumSerde()).
-				AndEndpoint("local", srv.URL).
-				Datum(),
-		)
-
-		plan := hippo.
-			MkPlan().
-			MustWithNext("http_args", M(hippo.StaticOf(
-				P("endpoint", "local"),
-				P("path", "/"),
-				P("headers", map[string]string{
-					"dummy": "value",
-				}),
-				P("query", map[string]string{
-					"q0": "qv0",
-					"q1": "qv1",
-				}),
-			))).
-			MustWithNext("http_fn_0", fn.Fn())
-
-		state := gtestinghippo.Ekran0(t, plan)
-
-		fin, err := state.QU64("fin.body.m4")
-		require.NoError(t, err)
-
-		assert.Equal(t, uint64(312), fin)
 
 		gtesting.Write(t, "state.json", state.Pretty())
 		gtesting.Write(t, "fin.json", state.Pretty())

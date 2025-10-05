@@ -1,7 +1,6 @@
 package gtesting
 
 import (
-	"errors"
 	"os"
 	"path"
 	"regexp"
@@ -18,8 +17,9 @@ const (
 )
 
 func IsExtraTestDebug() bool {
-	en := strings.ToLower(strings.TrimSpace(os.Getenv(TestWriteDebug)))
-	return en == "1" || en == "true"
+	return true
+	// en := strings.ToLower(strings.TrimSpace(os.Getenv(TestWriteDebug)))
+	// return en == "1" || en == "true"
 }
 
 func EnsureDir() error {
@@ -27,16 +27,22 @@ func EnsureDir() error {
 }
 
 func write(
+	t *testing.T,
 	out string,
 	content string,
 ) error {
+	t.Helper()
+
 	if !IsExtraTestDebug() {
 		return nil
 	}
 
+	t.Logf(out, content)
+
 	_, err := os.Stat(out)
 	if !os.IsNotExist(err) || err == nil {
-		return errors.New("output exists: " + out)
+		// return errors.New("output exists: " + out)
+		t.Log("output exists", out)
 	}
 
 	file, err := os.OpenFile(out, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
@@ -78,5 +84,5 @@ func Write(
 		return
 	}
 
-	NoError(t, write(out, content))
+	NoError(t, write(t, out, content))
 }

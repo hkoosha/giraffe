@@ -24,7 +24,7 @@ func ekran(
 	mkStep := func(
 		step int,
 	) *hippo.Fn {
-		fn := hippo.MustFnOf(func(
+		fn := hippo.FnOf(func(
 			_ hippo.Context,
 			dat giraffe.Datum,
 		) (giraffe.Datum, error) {

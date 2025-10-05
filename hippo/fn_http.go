@@ -44,7 +44,7 @@ func (e *HttpFn) WithConn(
 }
 
 func (e *HttpFn) Fn() *Fn {
-	return MustFnOf(e.exe).
+	return FnOf(e.exe).
 		WithInput(
 			Q(HttpInputEndpoint),
 			Q(HttpInputPath),

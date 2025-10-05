@@ -8,7 +8,7 @@ import (
 func Static(
 	dat giraffe.Datum,
 ) *Fn {
-	return M(FnOf(func(
+	return M(TryFnOf(func(
 		Context,
 		giraffe.Datum,
 	) (giraffe.Datum, error) {

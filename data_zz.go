@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/hkoosha/giraffe/cmd"
+	"github.com/hkoosha/giraffe/gson"
 	"github.com/hkoosha/giraffe/internal/queryimpl"
 	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/zebra/z"
@@ -90,6 +91,15 @@ func (d Datum) shallowStr() string {
 	default:
 		return d.string0()
 	}
+}
+
+func (d Datum) plain() (any, error) {
+	j, err := gson.Marshal(d)
+	if err != nil {
+		return nil, err
+	}
+
+	return gson.Unmarshal[any](j)
 }
 
 func (d Datum) raw() (any, error) {

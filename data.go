@@ -181,6 +181,10 @@ func (d Datum) Raw() (any, error) {
 	return d.raw()
 }
 
+func (d Datum) Plain() (any, error) {
+	return d.plain()
+}
+
 func (d Datum) MarshalJSON() ([]byte, error) {
 	n, err := d.raw()
 	if err != nil {

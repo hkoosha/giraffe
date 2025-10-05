@@ -111,6 +111,7 @@ type Formatted interface {
 	fmt.Stringer
 	String() string
 	Pretty() string
+	Plain() (any, error)
 	MarshalJSON() ([]byte, error)
 	MarshalJSONTo(w io.Writer) error
 }

@@ -39,7 +39,7 @@ func MakeTestServer(
 	t *testing.T,
 	exe hippo.Exe,
 ) *httptest.Server {
-	srv := MakeServer(t, OfFn(exe))
+	srv := MakeServer(t, FnOf(exe))
 	return httptest.NewServer(srv)
 }
 
@@ -52,7 +52,7 @@ func Call(
 
 	plan := hippo.
 		MkPlan().
-		MustWithNext("local", hippo.MustFnOf(func(
+		MustWithNext("local", hippo.FnOf(func(
 			hippo.Context,
 			giraffe.Datum,
 		) (giraffe.Datum, error) {
