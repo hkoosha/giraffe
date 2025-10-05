@@ -40,7 +40,7 @@ func Ekran0(
 func EkranRemote(
 	t *testing.T,
 	reg hippo.FnRegistry,
-	dat any,
+	dat giraffe.Datum,
 	planFns ...string,
 ) giraffe.Datum {
 	t.Helper()

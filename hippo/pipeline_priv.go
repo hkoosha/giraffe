@@ -53,9 +53,9 @@ func (n *PipelineFn) ekran(
 		))
 	}
 
-	return Of0(giraffe.Implode{
+	return Of(giraffe.Implode{
 		qFin:   dat,
-		qSteps: Of0(hist),
+		qSteps: Of(hist),
 	}), nil
 }
 
@@ -117,7 +117,7 @@ func history(
 		return dErr, err
 	}
 
-	return Of0([]giraffe.Datum{ini}), err
+	return Of([]giraffe.Datum{ini}), err
 }
 
 func (n *PipelineFn) clone() *PipelineFn {

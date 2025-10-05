@@ -93,7 +93,7 @@ func (f *Fn) select_(
 		selected[k] = v
 	}
 
-	return Of0(selected), nil
+	return Of(selected), nil
 }
 
 func (f *Fn) swap(
@@ -122,7 +122,7 @@ func (f *Fn) swap(
 		ret[k] = v
 	}
 
-	return Of0(ret), nil
+	return Of(ret), nil
 }
 
 // =====================================

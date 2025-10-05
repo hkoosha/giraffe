@@ -8,15 +8,14 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hkoosha/giraffe/conn"
 	"github.com/hkoosha/giraffe/contrib/gtesting"
 
 	"github.com/hkoosha/giraffe"
-	"github.com/hkoosha/giraffe/conn"
 	"github.com/hkoosha/giraffe/contrib/gtestinghippo"
 	"github.com/hkoosha/giraffe/hippo"
 	. "github.com/hkoosha/giraffe/internal/dot1"
@@ -198,10 +197,9 @@ func TestRunner_Http(t *testing.T) {
 		gtesting.Preamble(t)
 
 		fn := hippo.MkHttpFn(
-			conn.Make(gtesting.Zap(t), 5*time.Second),
-			map[string]string{
-				"local": "http://localhost:8000",
-			},
+			conn.MakeCfg(gtesting.Zap(t)).
+				AndEndpoint("local", "http://localhost:8000").
+				Datum(),
 		)
 
 		plan := hippo.

@@ -602,6 +602,22 @@ func (c *config) Endpoints() map[string]string {
 	return maps.Clone(c.ensure().http.endpointsByName)
 }
 
+func (c *config) AndEndpoint(
+	name string,
+	addr string,
+) Config {
+	return c.andEndpoints(name, addr)
+}
+
+func (c *config) andEndpoints(
+	name string,
+	addr string,
+) *config {
+	e := maps.Clone(c.http.endpointsByName)
+	e[name] = addr
+	return c.withEndpoints(e)
+}
+
 func (c *config) WithEndpoints(
 	e map[string]string,
 ) Config {

@@ -3,7 +3,6 @@ package conn
 import (
 	"context"
 	"net/http"
-	"strconv"
 	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -14,25 +13,7 @@ import (
 )
 
 const UserAgent = "Giraffe/1.0"
-
-//goland:noinspection GoUnusedConst
-const (
-	ReasonUnexpectedStatusCode FailureReason = 2
-	ReasonEmptyResponse        FailureReason = 3
-)
-
-type FailureReason uint
-
-// ============================================================================.
-
-type FailedResponseError struct {
-	Resp   any
-	Reason FailureReason
-}
-
-func (e *FailedResponseError) Error() string {
-	return "http request failed: " + strconv.FormatUint(uint64(e.Reason), 10)
-}
+const DefaultTimeout = 5 * time.Second
 
 // ============================================================================.
 
@@ -43,10 +24,7 @@ type HeaderFilter = func(
 	value string,
 ) bool
 
-type HeaderProvider = func(
-	context.Context,
-	Config,
-) string
+type HeaderProvider = func(context.Context, Config) string
 
 type RetryIfFn = func(
 	_ context.Context,
@@ -172,6 +150,7 @@ type ConfigWrite interface {
 	WithExpectingStatusCode(int) Config
 	WithoutExpectingStatusCode() Config
 
+	AndEndpoint(name, addr string) Config
 	WithEndpoints(map[string]string) Config
 	WithoutEndpoints() Config
 	WithEndpoint(string) Config
@@ -282,6 +261,12 @@ type Raw = Conn[[]byte, []byte]
 type Datum = Conn[giraffe.Datum, giraffe.Datum]
 
 // ============================================================================.
+
+func MakeCfg(
+	lg glog.Lg,
+) Config {
+	return newConfig(lg, DefaultTimeout)
+}
 
 func Make[TX, RX any](
 	cfg Config,

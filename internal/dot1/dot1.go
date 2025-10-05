@@ -14,7 +14,7 @@ func OfEmpty() giraffe.Datum {
 	return giraffe.OfEmpty()
 }
 
-func Of0[V giraffe.Safe](v V) giraffe.Datum {
+func Of[V giraffe.Safe](v V) giraffe.Datum {
 	return giraffe.Of(v)
 }
 

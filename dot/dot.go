@@ -50,7 +50,7 @@ func P[V giraffe.Safe](
 	return giraffe.TupleOf(q, v)
 }
 
-func Of0[V giraffe.Safe](v V) giraffe.Datum {
+func Of[V giraffe.Safe](v V) giraffe.Datum {
 	return giraffe.Of(v)
 }
 
