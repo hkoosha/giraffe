@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"errors"
 	"math/big"
+	"net/http"
+	"net/http/httptest"
 	"regexp"
 	"strconv"
 	"strings"
@@ -196,11 +198,20 @@ func TestRunner_Http(t *testing.T) {
 	t.Run("move data", func(t *testing.T) {
 		gtesting.Preamble(t)
 
+		srv := httptest.NewServer(http.HandlerFunc(func(
+			w http.ResponseWriter,
+			r *http.Request,
+		) {
+			resp := ` { "m4": 312 } `
+			_, _ = w.Write([]byte(resp))
+		}))
+		defer srv.Close()
+
 		fn := hippo.MkHttpFn(
 			conn.MakeCfg(gtesting.Zap(t)).
 				WithTxSerde(remote.RequestSerde()).
 				WithRxSerde(giraffe.DatumSerde()).
-				AndEndpoint("local", "http://localhost:8000").
+				AndEndpoint("local", srv.URL).
 				Datum(),
 		)
 
@@ -221,10 +232,10 @@ func TestRunner_Http(t *testing.T) {
 
 		state := gtestinghippo.Ekran0(t, plan)
 
-		fin, err := state.QU64("fin.m4")
+		fin, err := state.QU64("fin.body.m4")
 		require.NoError(t, err)
 
-		assert.Equal(t, uint64(303), fin)
+		assert.Equal(t, uint64(312), fin)
 
 		gtesting.Write(t, "state.json", state.Pretty())
 		gtesting.Write(t, "fin.json", state.Pretty())

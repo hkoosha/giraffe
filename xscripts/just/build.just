@@ -3,6 +3,10 @@ build:
 
 test:
   GIRRAFE_TESTS=unit \
+    ./xscripts/shell/exe_test_dev.sh
+
+btest:
+  GIRRAFE_TESTS=unit \
     ./xscripts/shell/exe_test_dev.sh \
     | grep -Ev '^\?' \
     | grep -Ev 'ok'

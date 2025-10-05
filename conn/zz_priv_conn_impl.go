@@ -178,11 +178,11 @@ func (c *connImpl[TX, RX]) call(
 
 	headers = make(map[string]string, len(resp.Header))
 	for k, v := range resp.Header {
-		if len(v) > 0 {
-			panic(EF("todo multivalued headers"))
+		if len(v) > 1 {
+			panic(EF("todo multivalued headers: %v", resp.Header))
 		}
 		if len(v) == 0 {
-			panic(EF("todo: empty headers"))
+			panic(EF("todo: empty headers: %v", resp.Header))
 		}
 
 		headers[k] = v[0]

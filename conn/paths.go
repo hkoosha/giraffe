@@ -107,9 +107,6 @@ func ensureParts(
 	orig []string,
 	parts []string,
 ) {
-	if len(parts) == 0 {
-		panic(EF("no parts to join"))
-	}
 	if slices.Contains(parts, "") {
 		panic(EF("empty path parts: %v", orig))
 	}
@@ -160,5 +157,5 @@ func splitQuery(parts []string) (
 		return parts, nil
 	}
 
-	return parts[0:i], parts[i:]
+	return parts[0:i], parts[i+1:]
 }
