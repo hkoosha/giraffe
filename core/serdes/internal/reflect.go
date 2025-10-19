@@ -5,9 +5,15 @@ import (
 	"maps"
 	"reflect"
 	"slices"
+	"time"
 
 	"github.com/hkoosha/giraffe/core/inmem"
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
+)
+
+var cache = inmem.Make[bool](
+	"github.com/hkoosha/giraffe|serdes|type_reflect",
+	24*time.Hour,
 )
 
 var tErr = reflect.TypeOf((*error)(nil)).Elem()
@@ -84,8 +90,7 @@ func ImplementsGenericErased(
 	t reflect.Type,
 	iface reflect.Type,
 ) (bool, error) {
-	cached, err := inmem.GetOr[bool](
-		inmem.BucketReflectImplements,
+	cached, err := cache.GetOr(
 		t.String()+"|"+iface.String(),
 		func() (bool, error) {
 			return implementsGenericErased(t, iface)

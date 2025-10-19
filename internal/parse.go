@@ -1,10 +1,17 @@
 package internal
 
 import (
+	"time"
+
 	"github.com/hkoosha/giraffe/core/inmem"
 	"github.com/hkoosha/giraffe/dialects"
 	"github.com/hkoosha/giraffe/internal/queryimpl"
 	"github.com/hkoosha/giraffe/internal/queryimpl/gquery"
+)
+
+var cache = inmem.Make[gquery.GiraffeQuery](
+	"github.com/hkoosha/giraffe|parse_query",
+	7*24*time.Hour,
 )
 
 func parse(
@@ -30,11 +37,11 @@ func parse(
 func Parse(
 	spec string,
 ) (gquery.GiraffeQuery, error) {
-	cached, ok := inmem.Get[gquery.GiraffeQuery](inmem.BucketParseQuery, spec)
+	cached, ok := cache.Get(spec)
 
 	if !ok {
 		query, err := parse(spec)
-		inmem.Set(inmem.BucketParseQuery, spec, query, err)
+		cache.Set(spec, query, err)
 		return query, err
 	}
 

@@ -10,6 +10,7 @@ import (
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/conn/internal"
 	"github.com/hkoosha/giraffe/core/serdes"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/core/t11y/glog"
 )
 
@@ -320,5 +321,37 @@ func Make[TX, RX any](
 	rxSered serdes.Serde[RX],
 ) Conn[TX, RX] {
 	withSerde := cfgOf(cfg).withSerdes(txSered, rxSered)
+	return newConn[TX, RX](withSerde)
+}
+
+func MakeJson[TX, RX any](
+	cfg Config,
+) Conn[TX, RX] {
+	nonRaw := false
+
+	var txSerde any
+	var txSample TX
+	if _, ok := any(txSample).([]byte); ok {
+		txSerde = serdes.Bytes()
+	} else {
+		txSerde = serdes.Json[TX]
+		nonRaw = true
+	}
+
+	var rxSerde any
+	var rxSample RX
+	if _, ok := any(rxSample).([]byte); ok {
+		rxSerde = serdes.Bytes()
+	} else {
+		rxSerde = serdes.Json[RX]
+		nonRaw = true
+	}
+
+	if !nonRaw {
+		panic(EF("use Raw connection type instead of Json when both RX and TX are byte slices"))
+	}
+
+	withSerde := cfgOf(cfg).withSerdes(txSerde, rxSerde)
+
 	return newConn[TX, RX](withSerde)
 }
