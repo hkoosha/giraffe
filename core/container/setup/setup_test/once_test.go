@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/hkoosha/giraffe/g11y/setup"
+	"github.com/hkoosha/giraffe/core/container/setup"
 )
 
 func TestOnce(t *testing.T) {

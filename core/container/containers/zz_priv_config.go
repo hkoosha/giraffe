@@ -5,10 +5,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/hkoosha/giraffe/core/container/containers/internal"
 	"github.com/hkoosha/giraffe/core/t11y"
 	"github.com/hkoosha/giraffe/core/t11y/glog"
 	"github.com/hkoosha/giraffe/core/t11y/gtx"
-	"github.com/hkoosha/giraffe/g11y/containers/internal"
 )
 
 var (

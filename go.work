@@ -5,6 +5,7 @@ use (
 	core/inmem
 	core/serdes
 	core/gtesting
+	core/container
 	contrib/proto
 	contrib/redis
 	contrib/zap

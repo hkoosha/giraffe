@@ -7,11 +7,11 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 
+	"github.com/hkoosha/giraffe/core/container/finalizers"
+	"github.com/hkoosha/giraffe/core/container/otel/internal"
+	"github.com/hkoosha/giraffe/core/container/setup"
 	"github.com/hkoosha/giraffe/core/t11y"
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
-	"github.com/hkoosha/giraffe/g11y/finalizers"
-	"github.com/hkoosha/giraffe/g11y/otel/internal/metrics"
-	"github.com/hkoosha/giraffe/g11y/setup"
 )
 
 func NewMetricBuilder(
@@ -54,7 +54,7 @@ func (m *MetricBuilder) getMeter() metric.Meter {
 	if m.meter == nil {
 		switch {
 		case m.isNoop:
-			m.meter = metrics.NoopProvider().Meter(m.name)
+			m.meter = internal.NoopProvider().Meter(m.name)
 
 		default:
 			m.meter = otel.GetMeterProvider().Meter(m.name)
@@ -81,7 +81,7 @@ func (m *MetricBuilder) Counter(
 	name string,
 	description string,
 ) Int64Counter {
-	cnt := metrics.NewCounter(
+	cnt := internal.NewCounter(
 		m.getMeter(),
 		m.domain,
 		m.service,
@@ -98,7 +98,7 @@ func (m *MetricBuilder) OkCounter(
 	name string,
 	description string,
 ) OkCounter {
-	cnt := metrics.NewOkCounter(
+	cnt := internal.NewOkCounter(
 		m.getMeter(),
 		m.domain,
 		m.service,
@@ -117,7 +117,7 @@ func (m *MetricBuilder) HitOrMissCounter(
 	description string,
 	label string,
 ) HitOrMissCounter {
-	cnt := metrics.NewHitOrMissCounter(
+	cnt := internal.NewHitOrMissCounter(
 		m.getMeter(),
 		m.domain,
 		m.service,
@@ -135,7 +135,7 @@ func (m *MetricBuilder) HTTPCounter(
 	name string,
 	description string,
 ) HTTPCounter {
-	cnt := metrics.NewHTTPCounter(
+	cnt := internal.NewHTTPCounter(
 		m.getMeter(),
 		m.domain,
 		m.service,

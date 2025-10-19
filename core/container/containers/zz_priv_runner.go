@@ -7,11 +7,11 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hkoosha/giraffe/contrib/zap/gzapadapter"
+	"github.com/hkoosha/giraffe/core/container/containers/internal"
 	"github.com/hkoosha/giraffe/core/t11y"
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/core/t11y/glog"
 	"github.com/hkoosha/giraffe/core/t11y/gtx"
-	"github.com/hkoosha/giraffe/g11y/containers/internal"
 )
 
 const (
@@ -22,7 +22,7 @@ const (
 	stateTryingRunning   = "trying_running"
 	stateRunning         = "running"
 	stateStopping        = "stopping"
-	stateStopped         = "stoped"
+	stateStopped         = "stopped"
 	stateClosing         = "closing"
 	stateClosed          = "closed"
 	stateErr             = "err"
@@ -48,7 +48,7 @@ func (r *runner) gotoFrom(
 	defer r.mu.Unlock()
 
 	if slices.Contains(from, to) {
-		panic(EF("cannot go from an state to itself, current=%v, "+
+		panic(EF("cannot go from a state to itself, current=%v, "+
 			"from%v, to=%v",
 			r.state,
 			from,

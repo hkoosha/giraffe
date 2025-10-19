@@ -6,7 +6,7 @@ import (
 	"github.com/hkoosha/giraffe/internal/queryimpl"
 )
 
-// Uncomment, anc change return types in  query.go from Query to
+// Uncomment, anc change return types in query.go from Query to
 // queryimpl.QueryImpl to do a manual check.
 // var _ queryimpl.QueryImpl = (*Query)(nil)
 

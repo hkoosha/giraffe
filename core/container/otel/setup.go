@@ -5,11 +5,11 @@ import (
 
 	"go.opentelemetry.io/otel/metric"
 
+	"github.com/hkoosha/giraffe/core/container/finalizers"
+	"github.com/hkoosha/giraffe/core/container/otel/internal"
+	"github.com/hkoosha/giraffe/core/container/setup"
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/core/t11y/glog"
-	"github.com/hkoosha/giraffe/g11y/finalizers"
-	"github.com/hkoosha/giraffe/g11y/otel/internal/metrics"
-	"github.com/hkoosha/giraffe/g11y/setup"
 )
 
 var (
@@ -30,21 +30,21 @@ var (
 func SetupOtel(namespace string) {
 	setup.Finish("giraffe", "o11y", "setup")
 
-	metrics.Setup(namespace)
+	internal.Setup(namespace)
 
 	invalidMetricOpCnt = M(
-		metrics.DefaultProvider().
+		internal.DefaultProvider().
 			Meter("giraffe").
 			Int64Counter("invalid_op"),
 	)
 }
 
 func SetupOtelNoop() {
-	metrics.SetupNoop()
+	internal.SetupNoop()
 }
 
 func Shutdown(ctx context.Context) {
-	metrics.Shutdown(ctx)
+	internal.Shutdown(ctx)
 }
 
 func Finalize(

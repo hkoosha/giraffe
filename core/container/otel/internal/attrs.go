@@ -1,4 +1,4 @@
-package metrics
+package internal
 
 import "go.opentelemetry.io/otel/attribute"
 
