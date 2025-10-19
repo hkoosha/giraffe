@@ -23,8 +23,8 @@ type Serde[T any] interface {
 
 func New[T proto.Message]() Serde[T] {
 	return Of[T](
-		protojson.UnmarshalOptions{},
-		protojson.MarshalOptions{},
+		protojson.UnmarshalOptions{}, //nolint:exhaustruct // defaults are good
+		protojson.MarshalOptions{},   //nolint:exhaustruct // defaults are good
 	)
 }
 
@@ -41,8 +41,8 @@ func Of[T proto.Message](
 // ============================================================================.
 
 type serde[T proto.Message] struct {
-	unmarshal protojson.UnmarshalOptions
 	marshal   protojson.MarshalOptions
+	unmarshal protojson.UnmarshalOptions
 }
 
 func (s serde[T]) Write(t T) ([]byte, error) {

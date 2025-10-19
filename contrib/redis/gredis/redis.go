@@ -6,12 +6,11 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/hkoosha/giraffe/core/serdes/converters"
+	"github.com/hkoosha/giraffe/core/t11y"
+	"github.com/hkoosha/giraffe/zebra/zcache"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/protobuf/proto"
-
-	"github.com/hkoosha/giraffe/core/t11y"
-	"github.com/hkoosha/giraffe/core/t11y/glog"
-	"github.com/hkoosha/giraffe/zebra/zcache"
 )
 
 type Conv[T any, U any] interface {
@@ -31,6 +30,7 @@ func New[K comparable, V any](
 		cfg:      cfg,
 		keySerde: keySerde,
 		valSerde: valSerde,
+		rds:      nil,
 	}
 }
 
@@ -40,7 +40,7 @@ func NewForStringK[V any](
 ) zcache.Adapter[string, V] {
 	return New(
 		cfg,
-		convertors.String(),
+		converters.String(),
 		valSerde,
 	)
 }
@@ -50,8 +50,8 @@ func NewForString(
 ) zcache.Adapter[string, string] {
 	return New(
 		cfg,
-		convertors.String(),
-		convertors.String(),
+		converters.String(),
+		converters.String(),
 	)
 }
 
@@ -67,8 +67,8 @@ func NewForJson[V any](
 
 	return New(
 		cfg,
-		convertors.String(),
-		convertors.JsonStr[V](),
+		converters.String(),
+		converters.JsonStr[V](),
 	)
 }
 
@@ -77,10 +77,9 @@ func NewForJson[V any](
 var _ zcache.Adapter[string, any] = (*adapter[string, any])(nil)
 
 type adapter[K comparable, V any] struct {
-	lg       glog.Lg
 	cfg      *Config
-	keySerde convertors.Conv[K, string]
-	valSerde convertors.Conv[V, string]
+	keySerde converters.Conv[K, string]
+	valSerde converters.Conv[V, string]
 	rds      *redis.Client
 }
 

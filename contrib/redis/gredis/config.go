@@ -4,8 +4,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/redis/go-redis/v9"
-
 	"github.com/hkoosha/giraffe/core/t11y"
 )
 
@@ -41,7 +39,6 @@ type Config struct {
 	nsParts   []string
 	ttl       time.Duration
 	timeout   time.Duration
-	rds       *redis.Client
 }
 
 func (c *Config) Ensure() *Config {

@@ -38,7 +38,7 @@ func (c impl) Value(key any) any {
 	return c.ctx.Value(key)
 }
 
-func (c impl) With(k any, v any) Context {
+func (c impl) With(k, v any) Context {
 	return &impl{
 		ctx: context.WithValue(c.ctx, k, v),
 	}

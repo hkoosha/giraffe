@@ -6,8 +6,9 @@ import (
 	"sync"
 	"time"
 
-	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/internal/vendored/tlru"
+
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 var (

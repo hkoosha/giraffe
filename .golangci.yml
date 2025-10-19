@@ -232,6 +232,8 @@ linters:
       dot-import-whitelist:
         - github.com/hkoosha/giraffe/internal/dot1
         - github.com/hkoosha/giraffe/core/t11y/dot
+        # TODO must be allowed only in contrib
+        - github.com/hkoosha/giraffe/dot
     tagalign:
       order:
         - json

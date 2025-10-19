@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/hkoosha/giraffe/core/t11y"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
 	oprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
 
-	"github.com/hkoosha/giraffe/core/t11y"
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 

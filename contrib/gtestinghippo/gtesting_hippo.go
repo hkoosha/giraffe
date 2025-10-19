@@ -7,9 +7,10 @@ import (
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/core/gtesting"
 	"github.com/hkoosha/giraffe/core/serdes/gson"
-	. "github.com/hkoosha/giraffe/dot"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/remote"
+
+	. "github.com/hkoosha/giraffe/dot"
 )
 
 func EkranFn(
@@ -17,6 +18,8 @@ func EkranFn(
 	dat giraffe.Datum,
 	fn Fn,
 ) giraffe.Datum {
+	t.Helper()
+
 	plan := hippo.
 		MkPlan().
 		MustWithNext(
@@ -32,6 +35,8 @@ func EkranExe(
 	dat giraffe.Datum,
 	exe hippo.Exe,
 ) giraffe.Datum {
+	t.Helper()
+
 	return EkranFn(t, dat, FnOf(exe))
 }
 

@@ -5,8 +5,10 @@ import (
 	"sync/atomic"
 )
 
-var once = atomic.Bool{}
-var errAlreadySet = errors.New("global logger already set")
+var (
+	once          = atomic.Bool{}
+	errAlreadySet = errors.New("global logger already set")
+)
 
 func Global() Lg {
 	return global

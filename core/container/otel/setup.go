@@ -3,13 +3,14 @@ package otel
 import (
 	"context"
 
+	"github.com/hkoosha/giraffe/core/t11y/glog"
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/hkoosha/giraffe/core/container/finalizers"
 	"github.com/hkoosha/giraffe/core/container/otel/internal"
 	"github.com/hkoosha/giraffe/core/container/setup"
+
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
-	"github.com/hkoosha/giraffe/core/t11y/glog"
 )
 
 var (

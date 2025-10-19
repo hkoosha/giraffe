@@ -4,13 +4,14 @@ import (
 	"context"
 	"sync"
 
+	"github.com/hkoosha/giraffe/core/t11y"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/hkoosha/giraffe/core/container/finalizers"
 	"github.com/hkoosha/giraffe/core/container/otel/internal"
 	"github.com/hkoosha/giraffe/core/container/setup"
-	"github.com/hkoosha/giraffe/core/t11y"
+
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 

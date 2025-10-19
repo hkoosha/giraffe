@@ -4,14 +4,15 @@ import (
 	"slices"
 	"sync"
 
-	"golang.org/x/sync/errgroup"
-
 	"github.com/hkoosha/giraffe/contrib/zap/gzapadapter"
-	"github.com/hkoosha/giraffe/core/container/containers/internal"
 	"github.com/hkoosha/giraffe/core/t11y"
-	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/core/t11y/glog"
 	"github.com/hkoosha/giraffe/core/t11y/gtx"
+	"golang.org/x/sync/errgroup"
+
+	"github.com/hkoosha/giraffe/core/container/containers/internal"
+
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 const (

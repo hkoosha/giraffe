@@ -3,10 +3,11 @@ package containers
 import (
 	"sync"
 
-	"github.com/hkoosha/giraffe/core/container/containers/internal"
 	"github.com/hkoosha/giraffe/core/t11y"
 	"github.com/hkoosha/giraffe/core/t11y/glog"
 	"github.com/hkoosha/giraffe/core/t11y/gtx"
+
+	"github.com/hkoosha/giraffe/core/container/containers/internal"
 )
 
 const ListenO11y = "127.0.0.1:8081"

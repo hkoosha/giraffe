@@ -70,6 +70,7 @@ func (p *provider) Close() error {
 
 	err := p.lg.Sync()
 	if err != nil {
+		//nolint:forbidigo // is a last effort, ok to print directly as logger is failing anyway
 		fmt.Println("failed to sync logger:", err)
 	}
 
@@ -91,6 +92,7 @@ func (p *provider) Open() (*zap.Logger, error) {
 		return p.lg, nil
 	}
 
+	//nolint:exhaustruct // defaults are good enough
 	cfg := zapcore.EncoderConfig{
 		MessageKey:     "what",
 		NameKey:        "who",
@@ -160,6 +162,7 @@ func MkProvider() Provider[*zap.Logger] {
 		local:              false,
 		initialized:        false,
 		adjustGlobalLogger: false,
+		ready:              false,
 	}
 }
 

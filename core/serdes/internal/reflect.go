@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hkoosha/giraffe/core/inmem"
+
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
@@ -16,8 +17,10 @@ var cache = inmem.Make[bool](
 	24*time.Hour,
 )
 
-var tErr = reflect.TypeOf((*error)(nil)).Elem()
-var errContainsNoMethods = errors.New("type does not have methods")
+var (
+	tErr                 = reflect.TypeOf((*error)(nil)).Elem()
+	errContainsNoMethods = errors.New("type does not have methods")
+)
 
 // TODO while exact generic type is erased, same generic among methods of same
 // implementor can still be checked.

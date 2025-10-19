@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hkoosha/giraffe/core/container/finalizers"
-	"github.com/hkoosha/giraffe/g11y/setup"
+	"github.com/hkoosha/giraffe/core/container/setup"
 )
 
 func run(

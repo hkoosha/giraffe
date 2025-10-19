@@ -5,8 +5,10 @@ import (
 	"sync"
 
 	"github.com/hkoosha/giraffe/core/t11y"
+
+	"github.com/hkoosha/giraffe/core/container/setup"
+
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
-	"github.com/hkoosha/giraffe/g11y/setup"
 )
 
 type (

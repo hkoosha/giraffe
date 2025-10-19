@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/hkoosha/giraffe/core/serdes/internal"
+
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 

@@ -9,9 +9,10 @@ import (
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/conn"
 	"github.com/hkoosha/giraffe/core/gtesting"
-	. "github.com/hkoosha/giraffe/dot"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/remote"
+
+	. "github.com/hkoosha/giraffe/dot"
 )
 
 func MakeServer(
@@ -39,6 +40,8 @@ func MakeTestServer(
 	t *testing.T,
 	exe hippo.Exe,
 ) *httptest.Server {
+	t.Helper()
+
 	srv := MakeServer(t, FnOf(exe))
 	return httptest.NewServer(srv)
 }

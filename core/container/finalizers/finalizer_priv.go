@@ -1,8 +1,9 @@
 package finalizers
 
 import (
+	"github.com/hkoosha/giraffe/core/container/setup"
+
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
-	"github.com/hkoosha/giraffe/g11y/setup"
 )
 
 var globalFin = NewFinalizer(setup.Global())

@@ -3,9 +3,8 @@ package gzapadapter
 import (
 	"strconv"
 
-	"go.uber.org/zap"
-
 	"github.com/hkoosha/giraffe/core/t11y/glog"
+	"go.uber.org/zap"
 )
 
 func Of(lg *zap.Logger) glog.Lg {

@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
+	"github.com/hkoosha/giraffe/core/t11y"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 
-	"github.com/hkoosha/giraffe/core/t11y"
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 

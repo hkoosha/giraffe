@@ -10,12 +10,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hkoosha/giraffe/core/t11y/glog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/hkoosha/giraffe/core/container/setup"
+
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
-	"github.com/hkoosha/giraffe/core/t11y/glog"
 )
 
 type Flag struct {
