@@ -57,89 +57,18 @@ func (c *connImpl[TX, RX]) Cfg() Config {
 	return c.cfg
 }
 
-//nolint:nonamedreturns
-func (c *connImpl[TX, RX]) Patch(
-	ctx context.Context,
-	body TX,
-	path ...string,
-) (
-	headers map[string]string,
-	_ RX,
-	_ error,
-) {
-	const m = http.MethodPatch
-	return c.call(ctx, m, &body, path)
-}
-
-//nolint:nonamedreturns
-func (c *connImpl[TX, RX]) Put(
-	ctx context.Context,
-	body TX,
-	path ...string,
-) (
-	headers map[string]string,
-	_ RX,
-	_ error,
-) {
-	const m = http.MethodPut
-	return c.call(ctx, m, &body, path)
-}
-
-//nolint:nonamedreturns
-func (c *connImpl[TX, RX]) Post(
-	ctx context.Context,
-	body TX,
-	path ...string,
-) (
-	headers map[string]string,
-	_ RX,
-	_ error,
-) {
-	const m = http.MethodPost
-	return c.call(ctx, m, &body, path)
-}
-
-//nolint:nonamedreturns
-func (c *connImpl[TX, RX]) Get(
-	ctx context.Context,
-	path ...string,
-) (
-	headers map[string]string,
-	_ RX,
-	_ error,
-) {
-	const m = http.MethodGet
-	return c.call(ctx, m, nil, path)
-}
-
-//nolint:nonamedreturns
-func (c *connImpl[TX, RX]) Delete(
-	ctx context.Context,
-	path ...string,
-) (
-	headers map[string]string,
-	_ RX,
-	_ error,
-) {
-	const m = http.MethodDelete
-	return c.call(ctx, m, nil, path)
-}
-
-//nolint:nonamedreturns
-func (c *connImpl[TX, RX]) Call(
-	ctx context.Context,
-	body *TX,
-	path ...string,
-) (
-	headers map[string]string,
-	_ RX,
-	_ error,
-) {
-	return c.call(ctx, c.cfg.http.defaultMethod, body, path)
-}
-
-//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) call(
+	ctx context.Context,
+	method string,
+	reqBody *TX,
+	path []string,
+) (RX, error) {
+	_, rx, err := c.hCall(ctx, method, reqBody, path)
+	return rx, err
+}
+
+//nolint:nonamedreturns
+func (c *connImpl[TX, RX]) hCall(
 	ctx context.Context,
 	method string,
 	reqBody *TX,
@@ -169,6 +98,7 @@ func (c *connImpl[TX, RX]) call(
 		return nil, c.rxErr, err
 	}
 
+	//goland:noinspection GoMaybeNil - false positive
 	defer resp.Body.Close()
 
 	u, err := c.rxSerde.StreamFrom(resp.Body)

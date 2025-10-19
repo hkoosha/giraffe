@@ -221,7 +221,7 @@ func (e *HttpFn) exe(
 		bodyR = nil
 	}
 
-	headers, rx, err := cfg.Datum().Call(ctx, bodyR, path...)
+	headers, rx, err := cfg.Datum().HCall(ctx, bodyR, path...)
 	if err != nil {
 		return OfErr(), err
 	}

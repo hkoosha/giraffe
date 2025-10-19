@@ -203,46 +203,98 @@ type Config interface {
 	ConfigWrite
 }
 
-type Conn[TX, RX any] interface {
+type Configured interface {
 	internal.Sealed
 
 	Std() *http.Client
 	Cfg() Config
-	Raw() Raw
+}
 
+type ToRaw interface {
+	internal.Sealed
+
+	Raw() Raw
+}
+
+type Headered[TX, RX any] interface {
+	HCall(
+		_ context.Context,
+		_ *TX,
+		path ...string,
+	) (headers map[string]string, _ RX, _ error)
+
+	HPatch(
+		_ context.Context,
+		_ TX,
+		path ...string,
+	) (headers map[string]string, _ RX, _ error)
+
+	HPut(
+		_ context.Context,
+		_ TX,
+		path ...string,
+	) (headers map[string]string, _ RX, _ error)
+
+	HPost(
+		_ context.Context,
+		_ TX,
+		path ...string,
+	) (headers map[string]string, _ RX, _ error)
+
+	HGet(
+		_ context.Context,
+		path ...string,
+	) (headers map[string]string, _ RX, _ error)
+
+	HDelete(
+		_ context.Context,
+		path ...string,
+	) (headers map[string]string, _ RX, _ error)
+}
+
+type Headerless[TX, RX any] interface {
 	Call(
 		_ context.Context,
 		_ *TX,
 		path ...string,
-	) (map[string]string, RX, error)
+	) (RX, error)
 
 	Patch(
 		_ context.Context,
 		_ TX,
 		path ...string,
-	) (map[string]string, RX, error)
+	) (RX, error)
 
 	Put(
 		_ context.Context,
 		_ TX,
 		path ...string,
-	) (map[string]string, RX, error)
+	) (RX, error)
 
 	Post(
 		_ context.Context,
 		_ TX,
 		path ...string,
-	) (map[string]string, RX, error)
+	) (RX, error)
 
 	Get(
 		_ context.Context,
 		path ...string,
-	) (map[string]string, RX, error)
+	) (RX, error)
 
 	Delete(
 		_ context.Context,
 		path ...string,
-	) (map[string]string, RX, error)
+	) (RX, error)
+}
+
+type Conn[TX, RX any] interface {
+	internal.Sealed
+
+	Configured
+	ToRaw
+	Headered[TX, RX]
+	Headerless[TX, RX]
 }
 
 type (
