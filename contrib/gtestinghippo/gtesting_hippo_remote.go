@@ -8,8 +8,8 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/conn"
-	. "github.com/hkoosha/giraffe/dot"
 	"github.com/hkoosha/giraffe/core/gtesting"
+	. "github.com/hkoosha/giraffe/dot"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/remote"
 )
@@ -60,7 +60,7 @@ func Call(
 		})).
 		MustWithNext("remote", remote.Remote(
 			"thingy",
-			conn.MakeCfg(gtesting.Zap(t)).
+			conn.MakeRawCfg(gtesting.Zap(t)).
 				WithTransport(srv.Client().Transport).
 				AndEndpoint("thingy", srv.URL).
 				WithMustEndpointNamed("thingy").

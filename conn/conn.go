@@ -36,6 +36,8 @@ type RetryIfFn = func(
 	_ Config,
 ) (bool, error)
 
+// ============================================================================.
+
 type ConfigLgRead interface {
 	internal.Sealed
 
@@ -203,6 +205,8 @@ type Config interface {
 	ConfigWrite
 }
 
+// ============================================================================.
+
 type Configured interface {
 	internal.Sealed
 
@@ -303,7 +307,7 @@ type Datum = Conn[giraffe.Datum, giraffe.Datum]
 
 // ============================================================================.
 
-func MakeCfg(
+func MakeRawCfg(
 	lg glog.Lg,
 ) Config {
 	return newConfig(lg, DefaultTimeout)
