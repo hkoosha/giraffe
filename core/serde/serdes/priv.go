@@ -6,7 +6,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/hkoosha/giraffe/gson"
+	"github.com/hkoosha/giraffe/internalled/gson"
 )
 
 var errTruncatedStream = errors.New("truncated stream")

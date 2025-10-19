@@ -3,9 +3,9 @@ package hippo
 import (
 	"testing"
 
-	"github.com/hkoosha/giraffe/contrib/gtesting"
 	"github.com/hkoosha/giraffe/contrib/gtestinghippo"
 	. "github.com/hkoosha/giraffe/dot"
+	"github.com/hkoosha/giraffe/gtesting"
 	"github.com/hkoosha/giraffe/hippo"
 )
 

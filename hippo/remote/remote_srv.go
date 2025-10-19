@@ -9,9 +9,9 @@ import (
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/internal"
+	"github.com/hkoosha/giraffe/internalled/serdes"
 	"github.com/hkoosha/giraffe/t11y"
 	. "github.com/hkoosha/giraffe/t11y/dot"
-	"github.com/hkoosha/giraffe/zebra/serdes"
 )
 
 type Server func(

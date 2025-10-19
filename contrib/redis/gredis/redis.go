@@ -11,14 +11,18 @@ import (
 
 	"github.com/hkoosha/giraffe/t11y"
 	"github.com/hkoosha/giraffe/t11y/glog"
-	"github.com/hkoosha/giraffe/zebra/conv"
 	"github.com/hkoosha/giraffe/zebra/zcache"
 )
 
+type Conv[T any, U any] interface {
+	Write(T) (U, error)
+	Read(U) (T, error)
+}
+
 func New[K comparable, V any](
 	cfg *Config,
-	keySerde convertors.Conv[K, string],
-	valSerde convertors.Conv[V, string],
+	keySerde Conv[K, string],
+	valSerde Conv[V, string],
 ) zcache.Adapter[K, V] {
 	t11y.NonNil(cfg, keySerde, valSerde)
 	cfg.Ensure()
@@ -32,7 +36,7 @@ func New[K comparable, V any](
 
 func NewForStringK[V any](
 	cfg *Config,
-	valSerde convertors.Conv[V, string],
+	valSerde Conv[V, string],
 ) zcache.Adapter[string, V] {
 	return New(
 		cfg,

@@ -1,3 +1,5 @@
 module github.com/hkoosha/giraffe/t11y
 
-go 1.25.1
+go 1.25.3
+
+require golang.org/x/sync v0.17.0

@@ -1,10 +1,10 @@
 module github.com/hkoosha/giraffe/contrib/redis
 
-go 1.25.1
+go 1.25.3
 
 require (
-	github.com/redis/go-redis/v9 v9.14.0
-	google.golang.org/protobuf v1.36.9
+	github.com/redis/go-redis/v9 v9.14.1
+	google.golang.org/protobuf v1.36.10
 )
 
 require (

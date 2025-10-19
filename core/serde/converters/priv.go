@@ -1,7 +1,7 @@
 package converters
 
 import (
-	"github.com/hkoosha/giraffe/gson"
+	"github.com/hkoosha/giraffe/internalled/gson"
 )
 
 type bytesConv struct{}

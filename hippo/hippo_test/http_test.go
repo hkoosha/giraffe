@@ -10,9 +10,9 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/conn"
-	"github.com/hkoosha/giraffe/contrib/gtesting"
 	"github.com/hkoosha/giraffe/contrib/gtestinghippo"
 	. "github.com/hkoosha/giraffe/dot"
+	"github.com/hkoosha/giraffe/gtesting"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/remote"
 )

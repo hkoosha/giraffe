@@ -1,12 +1,12 @@
-go 1.25.1
+go 1.25.3
 
 use (
 	core/t11y
-	core/gson
-	.
+	core/serde
+	core/gtesting
 	contrib/proto
 	contrib/redis
 	contrib/zap
-	contrib/gtesting
 	contrib/gtestinghippo
+	.
 )

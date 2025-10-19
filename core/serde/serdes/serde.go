@@ -3,7 +3,7 @@ package serdes
 import (
 	"io"
 
-	"github.com/hkoosha/giraffe/zebra/converters"
+	"github.com/hkoosha/giraffe/internalled/converters"
 )
 
 type Serde[T any] interface {

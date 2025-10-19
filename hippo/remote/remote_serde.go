@@ -2,7 +2,7 @@ package remote
 
 import (
 	"github.com/hkoosha/giraffe"
-	"github.com/hkoosha/giraffe/zebra/serdes"
+	"github.com/hkoosha/giraffe/internalled/serdes"
 )
 
 type requestCompensations struct {
