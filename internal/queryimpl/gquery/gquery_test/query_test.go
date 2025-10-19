@@ -16,7 +16,7 @@ func TestParse(t *testing.T) {
 
 		spec := "k0"
 
-		first, err := gquery.Parse(100, spec)
+		first, err := gquery.Parse(spec)
 		gtesting.NoError(t, err)
 
 		path := first.VisibleForTestingPath()
@@ -42,7 +42,7 @@ func TestParse(t *testing.T) {
 
 		spec := "k0.k1"
 
-		first, err := gquery.Parse(100, spec)
+		first, err := gquery.Parse(spec)
 		gtesting.NoError(t, err)
 
 		path := first.VisibleForTestingPath()
@@ -85,7 +85,7 @@ func TestNext(t *testing.T) {
 
 		spec := "dynamic.static.thingy.foo"
 
-		q, err := gquery.Parse(100, spec)
+		q, err := gquery.Parse(spec)
 		gtesting.NoError(t, err)
 
 		assert.Equal(t, "dynamic", q.Attr())
@@ -101,7 +101,7 @@ func TestQuery_ToString(t *testing.T) {
 	t.Run("to string", func(t *testing.T) {
 		gtesting.Preamble(t)
 
-		q, err := gquery.Parse(100, "k0.k1.k2")
+		q, err := gquery.Parse("k0.k1.k2")
 		gtesting.NoError(t, err)
 
 		str := q.Next().String()

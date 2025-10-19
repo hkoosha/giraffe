@@ -273,9 +273,14 @@ func (d Datum) nest(
 }
 
 func (d Datum) set(
-	q queryT,
+	qq queryT,
 	value any,
 ) (Datum, error) {
+	q, err := qq.Resolved(d.resolver)
+	if err != nil {
+		return OfErr(), err
+	}
+
 	if !d.typ.IsArr() && !d.typ.IsObj() {
 		panic(EF("TODO unimplemented, set for non-container types: %s", d.typ.String()))
 	}
@@ -289,27 +294,45 @@ func (d Datum) set(
 }
 
 func (d Datum) has(
-	q queryT,
-) bool {
+	qq queryT,
+) (bool, error) {
+	q, err := qq.Resolved(d.resolver)
+	if err != nil {
+		return false, err
+	}
+
 	switch {
 	case q.Flags().IsObj() && d.typ.IsObj():
 		v, ok := d.obj()[q.Attr()]
 		if !ok {
-			return false
+			return false, nil
 		}
-
-		return q.Flags().IsLeaf() || v.has(q.Next())
+		if q.Flags().IsLeaf() {
+			return true, nil
+		}
+		ok, err := v.has(q.Next())
+		if err != nil {
+			return false, err
+		}
+		return ok, nil
 
 	case q.Flags().IsArr() && d.typ.IsArr():
 		arr := d.arr()
 		if q.Index() >= len(arr) {
-			return false
+			return false, nil
 		}
 
-		return q.Flags().IsLeaf() || arr[q.Index()].has(q.Next())
+		if q.Flags().IsLeaf() {
+			return true, nil
+		}
+		ok, err := arr[q.Index()].has(q.Next())
+		if err != nil {
+			return false, err
+		}
+		return ok, nil
 
 	default:
-		return false
+		return false, nil
 	}
 }
 

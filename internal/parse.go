@@ -5,7 +5,6 @@ import (
 
 	"github.com/hkoosha/giraffe/core/inmem"
 	"github.com/hkoosha/giraffe/dialects"
-	"github.com/hkoosha/giraffe/internal/queryimpl"
 	"github.com/hkoosha/giraffe/internal/queryimpl/gquery"
 )
 
@@ -24,7 +23,7 @@ func parse(
 
 	switch dialect {
 	case dialects.Giraffe1v1:
-		return gquery.Parse(queryimpl.MaxDepth, spec)
+		return gquery.Parse(spec)
 
 	case dialects.Unknown:
 		return gquery.GiraffeQuery{}, dialects.ErrUnknown()

@@ -89,6 +89,32 @@ func (q GiraffeQuery) Next() queryimpl.QueryImpl {
 	panic(EF("unreachable: no next"))
 }
 
+func (q GiraffeQuery) Resolved(
+	resolver func(string) (string, error),
+) (queryimpl.QueryImpl, error) {
+	sb := strings.Builder{}
+	sb.Grow(63)
+
+	for j, p := range *q.path {
+		if j > 0 {
+			sb.WriteByte(cmd.Sep.Byte())
+		}
+
+		if p.flags.IsSubQuery() {
+			v, err := resolver(p.ref)
+			if err != nil {
+				return nil, err
+			}
+			sb.WriteString(v)
+		} else {
+			sb.WriteString(p.flags.ReconstructPreMod())
+			sb.WriteString(p.ref)
+		}
+	}
+
+	return Parse(sb.String())
+}
+
 func (q GiraffeQuery) String() string {
 	return q.string0()
 }
@@ -166,10 +192,7 @@ func (q GiraffeQuery) reconstructedAs(
 	q.reconstructInAs(&sb, flags)
 	q.aft(&sb)
 
-	flagged := M(Parse(
-		queryimpl.MaxDepth,
-		sb.String(),
-	))
+	flagged := M(Parse(sb.String()))
 
 	return flagged.at(q.flags.Seq())
 }
@@ -204,10 +227,7 @@ func (q GiraffeQuery) UpTo(withSelf bool) GiraffeQuery {
 		q.reconstructedIn(&sb)
 	}
 
-	return M(Parse(
-		queryimpl.MaxDepth,
-		sb.String(),
-	))
+	return M(Parse(sb.String()))
 }
 
 // Originating TODO go through mem cache.
@@ -223,10 +243,7 @@ func (q GiraffeQuery) Originating(withSelf bool) GiraffeQuery {
 	}
 	q.aft(&sb)
 
-	return M(Parse(
-		queryimpl.MaxDepth,
-		sb.String(),
-	))
+	return M(Parse(sb.String()))
 }
 
 // =====================================.
@@ -258,10 +275,7 @@ func (q GiraffeQuery) PlusS(other string) queryimpl.QueryImpl {
 	sb.WriteByte(cmd.Sep.Byte())
 	sb.WriteString(other)
 
-	return M(Parse(
-		queryimpl.MaxDepth,
-		sb.String(),
-	)).at(q.flags.Seq())
+	return M(Parse(sb.String())).at(q.flags.Seq())
 }
 
 func (q GiraffeQuery) MustReadonly() error {

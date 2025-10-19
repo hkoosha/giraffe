@@ -13,6 +13,8 @@ const MaxDepth = 255
 type QueryImpl interface {
 	fmt.Stringer
 
+	Resolved(func(query string) (data string, _ error)) (QueryImpl, error)
+
 	Flags() cmd.QFlag
 	Dialect() dialects.Dialect
 	Escaped() string

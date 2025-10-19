@@ -105,8 +105,13 @@ func (d Datum) len() int {
 }
 
 func (d Datum) get(
-	q queryT,
+	qq queryT,
 ) (Datum, error) {
+	q, err := qq.Resolved(d.resolver)
+	if err != nil {
+		return OfErr(), err
+	}
+
 	qf := q.Flags()
 	dt := d.typ
 
@@ -156,6 +161,22 @@ func (d Datum) get(
 	default:
 		panic(EF("unreachable, cannot handler query for item get: %s", q.String()))
 	}
+}
+
+func (d Datum) resolver(
+	q string,
+) (string, error) {
+	qp, err := internal.Parse(q)
+	if err != nil {
+		return "", err
+	}
+
+	dd, err := d.get(qp)
+	if err != nil {
+		return "", err
+	}
+
+	return dd.Str()
 }
 
 func (d Datum) tree() []queryT {

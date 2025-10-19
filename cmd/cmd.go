@@ -16,6 +16,11 @@ const (
 	At     Cmd = '@'
 	Self   Cmd = '#'
 
+	// Index
+
+	BraceL Cmd = '['
+	BraceR Cmd = ']'
+
 	// Control
 
 	Dialect Cmd = '~'
@@ -45,4 +50,6 @@ var all = map[Cmd]struct{}{
 	Escape:    {},
 	At:        {},
 	Self:      {},
+	BraceL:    {},
+	BraceR:    {},
 }

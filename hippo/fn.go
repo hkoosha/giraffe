@@ -12,7 +12,7 @@ import (
 )
 
 // TODO check duplicates.
-// TODO check clashing
+// TODO check clashing.
 
 type ExeCtx = func(
 	Context,
@@ -242,7 +242,7 @@ func (f *Fn) Named(
 ) *Fn {
 	f.ensure()
 
-	if !internal.SimpleName.MatchString(name) {
+	if !internal.ScopedSimpleName.MatchString(name) {
 		panic(EF("invalid fn name: %s", name))
 	}
 

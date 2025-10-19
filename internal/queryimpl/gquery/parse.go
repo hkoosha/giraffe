@@ -10,6 +10,7 @@ import (
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/dialects"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
+	"github.com/hkoosha/giraffe/internal/queryimpl"
 )
 
 var uintRegex = regexp.MustCompile(`^\d+$`)
@@ -20,6 +21,7 @@ type state struct {
 	isFin   bool
 	noCmd   bool
 	escaped bool
+	inside  bool
 }
 
 type parser struct {
@@ -31,12 +33,7 @@ type parser struct {
 	i        int
 	maxDepth uint16
 	c        byte
-}
-
-func (p *parser) reset() {
-	//nolint:exhaustruct
-	p.state = state{}
-	p.state.ref.Grow(64)
+	level    int
 }
 
 func (p *parser) onEscape() error {
@@ -170,6 +167,12 @@ func (p *parser) onOverwrite() error {
 	return nil
 }
 
+func (p *parser) onRune() error {
+	p.state.ref.WriteByte(p.c)
+
+	return nil
+}
+
 func (p *parser) onSep() error {
 	str := p.state.ref.String()
 
@@ -203,9 +206,8 @@ func (p *parser) onSep() error {
 
 		value := cmd.QFlag(M(strconv.ParseUint(str, 10, 64)))
 		if value&cmd.ValueMask != value {
-			panic(EF("value too big: %v", value))
+			return EF("value too big: %s", str)
 		}
-
 		curr.flags |= value
 
 	case p.state.flags.IsAppend():
@@ -221,7 +223,8 @@ func (p *parser) onSep() error {
 
 	p.path = append(p.path, curr)
 
-	p.reset()
+	//nolint:exhaustruct // is made specifically for zero state.
+	p.state = state{}
 
 	seq := p.global.Seq()
 	p.global &= ^cmd.SequenceMask
@@ -230,8 +233,55 @@ func (p *parser) onSep() error {
 	return nil
 }
 
-func (p *parser) onRune() error {
-	p.state.ref.WriteByte(p.c)
+func (p *parser) onBraceR() error {
+	switch {
+	case !p.state.inside:
+		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
+
+	case p.state.ref.Len() == 0:
+		return queryerrors.EmptyError(p.i, p.spec)
+
+	case int64(p.global.Seq()) >= int64(p.maxDepth):
+		return queryerrors.NestingTooDeepError(p.i, p.spec)
+	}
+
+	p.state.inside = false
+
+	subQ, err := mkParser(p.level+1, p.state.ref.String()).parse()
+	if err != nil {
+		return err
+	}
+
+	curr := newQuery(
+		nil,
+		"["+subQ.String()+"]",
+		p.global|p.state.flags|cmd.QModSubQuery,
+	)
+
+	p.path = append(p.path, curr)
+
+	//nolint:exhaustruct // is made specifically for zero state.
+	p.state = state{}
+
+	seq := p.global.Seq()
+	p.global &= ^cmd.SequenceMask
+	p.global |= cmd.QFlag((seq + 1) << cmd.SeqShift) //nolint:gosec
+
+	return nil
+}
+
+func (p *parser) onBraceL() error {
+	switch {
+	case p.state.inside:
+		// Nested bracket not supported
+		return queryerrors.UnexpectedTokenError(p.i, p.spec, p.c)
+
+	case p.level > 0:
+		return queryerrors.NestingTooDeepError(p.i, p.spec)
+	}
+
+	p.global |= cmd.QModBraces | cmd.QModDyn
+	p.state.inside = true
 
 	return nil
 }
@@ -262,6 +312,10 @@ func (p *parser) doParse() error {
 			return err
 
 		case consumed:
+			continue
+
+		case p.state.inside && p.c != cmd.BraceR.Byte():
+			p.state.ref.WriteByte(p.c)
 			continue
 		}
 
@@ -303,6 +357,16 @@ func (p *parser) doParse() error {
 
 		case cmd.Sep.Byte():
 			if err := p.onSep(); err != nil {
+				return err
+			}
+
+		case cmd.BraceL.Byte():
+			if err := p.onBraceL(); err != nil {
+				return err
+			}
+
+		case cmd.BraceR.Byte():
+			if err := p.onBraceR(); err != nil {
 				return err
 			}
 
@@ -382,34 +446,36 @@ func (p *parser) parse() (GiraffeQuery, error) {
 	return p.path[0], nil
 }
 
-func newParser(
-	maxDepth uint16,
+func mkParser(
+	level int,
 	spec string,
 ) *parser {
-	//nolint:exhaustruct
-	zeroState := state{}
+	if !strings.HasSuffix(spec, cmd.Sep.String()) {
+		spec += cmd.Sep.String()
+	}
 
-	p := parser{
-		maxDepth: maxDepth,
+	return &parser{
+		maxDepth: queryimpl.MaxDepth,
 		spec:     spec,
-		state:    zeroState,
 		global:   cmd.QFlag(0),
 		path:     make([]GiraffeQuery, 0, 32),
 		segment:  0,
 		i:        0,
 		c:        0,
+		level:    level,
+		state: state{
+			ref:     strings.Builder{},
+			flags:   cmd.Zero,
+			isFin:   false,
+			noCmd:   false,
+			escaped: false,
+			inside:  false,
+		},
 	}
-	p.reset()
-
-	return &p
 }
 
 func Parse(
-	maxDepth uint16,
 	spec string,
 ) (GiraffeQuery, error) {
-	if !strings.HasSuffix(spec, cmd.Sep.String()) {
-		spec += cmd.Sep.String()
-	}
-	return newParser(maxDepth, spec).parse()
+	return mkParser(0, spec).parse()
 }

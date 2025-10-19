@@ -63,3 +63,13 @@ func (q Query) WithOverwrite() Query {
 func (q Query) WithoutOverwrite() Query {
 	return Query(q.impl().WithoutOverwrite().String())
 }
+
+func (q Query) Resolved(
+	resolver func(query string) (data string, _ error),
+) (Query, error) {
+	r, err := q.impl().Resolved(resolver)
+	if err != nil {
+		return "", err
+	}
+	return Query(r.String()), nil
+}

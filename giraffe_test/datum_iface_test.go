@@ -23,13 +23,51 @@ var (
 	_ Queried        = d
 	_ Modified       = d
 	_ DatumPub       = d
+	_ Dyn            = d
 )
 
 type (
-	QQQuery = giraffe.Query
-	Datum   = giraffe.Datum
-	Type    = giraffe.Type
+	Query = giraffe.Query
+	Datum = giraffe.Datum
+	Type  = giraffe.Type
 )
+
+// ====
+
+type Dyn interface {
+	Has(Query) (bool, error)
+	Query(string) (Datum, error)
+	Get(Query) (Datum, error)
+	Set(Query, any) (Datum, error)
+}
+
+type TypedQuery interface {
+	QInt(Query) (*big.Int, error)
+	QFlt(Query) (*big.Float, error)
+	QBln(Query) (bool, error)
+	QStr(Query) (string, error)
+}
+
+type CastQuery interface {
+	QISz(Query) (int, error)
+	QI08(Query) (int8, error)
+	QI16(Query) (int16, error)
+	QI32(Query) (int32, error)
+	QI64(Query) (int64, error)
+	QUSz(Query) (uint, error)
+	QU08(Query) (uint8, error)
+	QU16(Query) (uint16, error)
+	QU32(Query) (uint32, error)
+	QU64(Query) (uint64, error)
+}
+
+type CastArrayQuery interface {
+	QStrs(Query) ([]string, error)
+	QISzs(Query) ([]int, error)
+	QI64s(Query) ([]int64, error)
+	QUSzs(Query) ([]uint, error)
+	QU64s(Query) ([]uint64, error)
+}
 
 type Typed interface {
 	Type() Type
@@ -63,48 +101,16 @@ type CastArray interface {
 	U64s() ([]uint64, error)
 }
 
-type TypedQuery interface {
-	QInt(QQQuery) (*big.Int, error)
-	QFlt(QQQuery) (*big.Float, error)
-	QBln(QQQuery) (bool, error)
-	QStr(QQQuery) (string, error)
-}
-
-type CastQuery interface {
-	QISz(QQQuery) (int, error)
-	QI08(QQQuery) (int8, error)
-	QI16(QQQuery) (int16, error)
-	QI32(QQQuery) (int32, error)
-	QI64(QQQuery) (int64, error)
-	QUSz(QQQuery) (uint, error)
-	QU08(QQQuery) (uint8, error)
-	QU16(QQQuery) (uint16, error)
-	QU32(QQQuery) (uint32, error)
-	QU64(QQQuery) (uint64, error)
-}
-
-type CastArrayQuery interface {
-	QStrs(QQQuery) ([]string, error)
-	QISzs(QQQuery) ([]int, error)
-	QI64s(QQQuery) ([]int64, error)
-	QUSzs(QQQuery) ([]uint, error)
-	QU64s(QQQuery) ([]uint64, error)
-}
-
 type Queried interface {
-	Tree() []QQQuery
+	Tree() []Query
 	Keys() ([]string, error)
 	Len() (int, error)
 	At(int) (Datum, error)
-	Has(query QQQuery) bool
-	Get(QQQuery) (Datum, error)
-	Query(q string) (Datum, error)
 }
 
 type Modified interface {
-	Set(QQQuery, any) (Datum, error)
 	Merge(Datum) (Datum, error)
-	Append(value any) (Datum, error)
+	Append(any) (Datum, error)
 }
 
 type Formatted interface {
@@ -133,12 +139,14 @@ type Iter interface {
 }
 
 type DatumPub interface {
-	Typed
 	TypedQuery
-	Cast
 	CastQuery
-	CastArray
 	CastArrayQuery
+	Dyn
+
+	Typed
+	Cast
+	CastArray
 	Queried
 	Modified
 	Formatted

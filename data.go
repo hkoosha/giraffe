@@ -151,6 +151,31 @@ type Datum struct {
 	typ   Type
 }
 
+func (d Datum) SimpleString() (string, error) {
+	switch {
+	case d.typ.IsObj(), d.typ.IsArr():
+
+	case d.typ.IsBln():
+		switch {
+		case M(d.Bln()):
+			return "true", nil
+		default:
+			return "false", nil
+		}
+
+	case d.typ.IsFlt():
+		return M(d.Flt()).String(), nil
+
+	case d.typ.IsInt():
+		return M(d.Int()).String(), nil
+
+	case d.typ.IsStr():
+		return M(d.Str()), nil
+	}
+
+	return "", EF("type does not support simple string formatting: %s", d.typ.String())
+}
+
 func (d Datum) String() string {
 	if t11y.IsDebugToString() {
 		return fmt.Sprintf("Dat[%s]", d.typ.String())
@@ -335,7 +360,7 @@ func (d Datum) At(
 
 func (d Datum) Has(
 	query Query,
-) bool {
+) (bool, error) {
 	return d.has(query.impl())
 }
 

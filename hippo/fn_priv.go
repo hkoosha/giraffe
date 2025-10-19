@@ -23,7 +23,9 @@ func chkDatPresent(
 
 	var missing []giraffe.Query
 	for _, k := range keys {
-		if !dat.Has(k) {
+		if ok, err := dat.Has(k); err != nil {
+			return err
+		} else if !ok {
 			missing = append(missing, k)
 		}
 	}
@@ -45,7 +47,9 @@ func (f *Fn) replicate(
 	}
 
 	for from, into := range f.replicated {
-		if !dat.Has(from) {
+		if ok, err := dat.Has(from); err != nil {
+			return OfErr(), err
+		} else if !ok {
 			continue
 		}
 
@@ -82,7 +86,9 @@ func (f *Fn) select_(
 
 	selected := make(map[giraffe.Query]giraffe.Datum, len(f.selected))
 	for _, k := range f.selected {
-		if !dat.Has(k) {
+		if ok, err := dat.Has(k); err != nil {
+			return OfErr(), err
+		} else if !ok {
 			continue
 		}
 		v, err := dat.Get(k)
