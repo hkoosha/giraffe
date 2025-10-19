@@ -159,6 +159,12 @@ func (r *runner) Stop(
 	return nil
 }
 
+func (r *runner) MustStop(
+	ctx gtx.Context,
+) {
+	M(0, r.Stop(ctx))
+}
+
 // Close
 // TODO implement
 // TODO: o11y.Shutdown().
@@ -175,4 +181,36 @@ func (r *runner) Close(
 	t11y.DieIf(err)
 
 	r.gotoFrom(stateClosed, stateClosing)
+}
+
+func (r *runner) Cycle(
+	ctx gtx.Context,
+	c ...Container,
+) error {
+	if len(c) == 0 {
+		return EF("must provide at least one container")
+	}
+
+	r.Open(ctx)
+	r.Register(c...)
+	r.Finalize(ctx)
+
+	if err := r.Wait(ctx); err != nil {
+		return err
+	}
+
+	if err := r.Stop(ctx); err != nil {
+		return err
+	}
+
+	r.Close(ctx)
+
+	return nil
+}
+
+func (r *runner) MustCycle(
+	ctx gtx.Context,
+	c ...Container,
+) {
+	M(0, r.Cycle(ctx, c...))
 }

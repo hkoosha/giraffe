@@ -15,7 +15,12 @@ const ListenO11y = "127.0.0.1:8081"
 type Runner interface {
 	internal.Sealed
 
-	Open(ctx gtx.Context) glog.Lg
+	Cycle(gtx.Context, ...Container) error
+	MustCycle(gtx.Context, ...Container)
+
+	// =====================================
+
+	Open(gtx.Context) glog.Lg
 
 	Register(...Container)
 
@@ -25,7 +30,9 @@ type Runner interface {
 
 	MustWait(gtx.Context)
 
-	Stop(ctx gtx.Context) error
+	Stop(gtx.Context) error
+
+	MustStop(gtx.Context)
 
 	Close(ctx gtx.Context)
 }
@@ -60,4 +67,12 @@ func GiraffeRunner(
 		containers: make([]Container, 0),
 		cfg:        cfg,
 	}
+}
+
+func Configured(
+	ctx gtx.Context,
+	appRef string,
+) Runner {
+	cfg := Configure(appRef)
+	return GiraffeRunner(ctx, cfg)
 }
