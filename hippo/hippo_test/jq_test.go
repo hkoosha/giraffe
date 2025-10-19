@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/hkoosha/giraffe/contrib/gtestinghippo"
+	"github.com/hkoosha/giraffe/core/gtesting"
 	. "github.com/hkoosha/giraffe/dot"
-	"github.com/hkoosha/giraffe/gtesting"
 	"github.com/hkoosha/giraffe/hippo"
 )
 

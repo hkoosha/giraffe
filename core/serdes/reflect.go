@@ -3,8 +3,8 @@ package serdes
 import (
 	"reflect"
 
-	"github.com/hkoosha/giraffe/internal/reflected"
-	. "github.com/hkoosha/giraffe/t11y/dot"
+	"github.com/hkoosha/giraffe/core/serdes/internal"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 var tSerde = reflect.TypeOf(Bytes())
@@ -14,7 +14,7 @@ func IsSerde(v any) bool {
 		return false
 	}
 
-	ok, err := reflected.ImplementsGenericErased(
+	ok, err := internal.ImplementsGenericErased(
 		reflect.TypeOf(v),
 		tSerde,
 	)

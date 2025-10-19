@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hkoosha/giraffe/t11y"
+	"github.com/hkoosha/giraffe/core/t11y"
 )
 
 func NoError(

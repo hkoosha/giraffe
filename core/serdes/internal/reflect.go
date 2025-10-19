@@ -1,13 +1,17 @@
-package reflected
+package internal
 
 import (
+	"errors"
 	"maps"
 	"reflect"
 	"slices"
 
-	"github.com/hkoosha/giraffe/internal/inmem"
-	. "github.com/hkoosha/giraffe/t11y/dot"
+	"github.com/hkoosha/giraffe/core/inmem"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
+
+var tErr = reflect.TypeOf((*error)(nil)).Elem()
+var errContainsNoMethods = errors.New("type does not have methods")
 
 // TODO while exact generic type is erased, same generic among methods of same
 // implementor can still be checked.
@@ -31,7 +35,7 @@ func extractMethods(
 		methods[method.Name] = methodSig{
 			In:         method.Type.NumIn(),
 			Out:        out,
-			ReturnsErr: out > 0 && method.Type.Out(out-1).Implements(TErr),
+			ReturnsErr: out > 0 && method.Type.Out(out-1).Implements(tErr),
 		}
 	}
 

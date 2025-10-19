@@ -6,10 +6,10 @@ import (
 	"math/big"
 	"reflect"
 
+	"github.com/hkoosha/giraffe/core/serdes/gson"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/internal/gdatum"
 	"github.com/hkoosha/giraffe/internal/reflected"
-	"github.com/hkoosha/giraffe/internalled/gson"
-	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 

@@ -1,4 +1,4 @@
-module github.com/hkoosha/giraffe/gtesting
+module github.com/hkoosha/giraffe/core/gtesting
 
 go 1.25.3
 

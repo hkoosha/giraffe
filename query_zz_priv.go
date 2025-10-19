@@ -1,9 +1,9 @@
 package giraffe
 
 import (
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/internal"
 	"github.com/hkoosha/giraffe/internal/queryimpl"
-	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 // Uncomment, anc change return types in  query.go from Query to

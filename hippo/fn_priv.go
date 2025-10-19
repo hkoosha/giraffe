@@ -6,9 +6,9 @@ import (
 	"slices"
 
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/core/t11y"
 	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
 	. "github.com/hkoosha/giraffe/internal/dot1"
-	"github.com/hkoosha/giraffe/t11y"
 )
 
 var errInvalidFn = errors.New("invalid fn")

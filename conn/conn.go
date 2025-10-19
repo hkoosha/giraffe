@@ -9,7 +9,7 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/conn/internal"
-	"github.com/hkoosha/giraffe/t11y/glog"
+	"github.com/hkoosha/giraffe/core/t11y/glog"
 )
 
 const (

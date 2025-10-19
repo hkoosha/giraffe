@@ -6,10 +6,10 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	. "github.com/hkoosha/giraffe/dot"
-	"github.com/hkoosha/giraffe/gtesting"
+	"github.com/hkoosha/giraffe/core/gtesting"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/remote"
-	"github.com/hkoosha/giraffe/internalled/gson"
+	"github.com/hkoosha/giraffe/core/serdes/gson"
 )
 
 func EkranFn(

@@ -2,8 +2,8 @@ package dot1
 
 import (
 	"github.com/hkoosha/giraffe"
-	"github.com/hkoosha/giraffe/t11y"
-	"github.com/hkoosha/giraffe/t11y/dot"
+	"github.com/hkoosha/giraffe/core/t11y"
+	"github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 func OfErr() giraffe.Datum {

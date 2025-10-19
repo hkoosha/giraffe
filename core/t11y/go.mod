@@ -1,4 +1,4 @@
-module github.com/hkoosha/giraffe/t11y
+module github.com/hkoosha/giraffe/core/t11y
 
 go 1.25.3
 

@@ -5,7 +5,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/hkoosha/giraffe/t11y/glog"
+	"github.com/hkoosha/giraffe/core/t11y/glog"
 )
 
 func Of(lg *zap.Logger) glog.Lg {

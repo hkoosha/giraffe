@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"sync/atomic"
 
-	"github.com/hkoosha/giraffe/internalled/gson"
+	"github.com/hkoosha/giraffe/core/serdes/gson"
 )
 
 const debugNilId = "<nil>"

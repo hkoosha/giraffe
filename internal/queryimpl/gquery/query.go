@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/hkoosha/giraffe/cmd"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/dialects"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
 	"github.com/hkoosha/giraffe/internal/queryimpl"
-	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 func newQuery(

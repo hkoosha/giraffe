@@ -5,9 +5,9 @@ import (
 	"reflect"
 
 	"github.com/hkoosha/giraffe/cmd"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/internal/gstrings"
 	"github.com/hkoosha/giraffe/internal/queryerrors"
-	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 //goland:noinspection GoUnusedConst

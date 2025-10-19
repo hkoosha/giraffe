@@ -9,8 +9,8 @@ import (
 	oprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
 
-	"github.com/hkoosha/giraffe/t11y"
-	. "github.com/hkoosha/giraffe/t11y/dot"
+	"github.com/hkoosha/giraffe/core/t11y"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 var shutdown func(context.Context)

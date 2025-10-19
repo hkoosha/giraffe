@@ -8,9 +8,9 @@ import (
 	"slices"
 
 	"github.com/hkoosha/giraffe"
-	"github.com/hkoosha/giraffe/internalled/gson"
-	. "github.com/hkoosha/giraffe/t11y/dot"
-	"github.com/hkoosha/giraffe/t11y/gtx"
+	"github.com/hkoosha/giraffe/core/serdes/gson"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
+	"github.com/hkoosha/giraffe/core/t11y/gtx"
 	"github.com/hkoosha/giraffe/toggles/internal"
 )
 

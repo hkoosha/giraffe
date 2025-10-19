@@ -7,8 +7,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/hkoosha/giraffe/t11y"
-	. "github.com/hkoosha/giraffe/t11y/dot"
+	"github.com/hkoosha/giraffe/core/t11y"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 const minId = 11

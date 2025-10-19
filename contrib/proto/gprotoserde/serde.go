@@ -6,7 +6,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hkoosha/giraffe/t11y"
+	"github.com/hkoosha/giraffe/core/t11y"
 )
 
 type Conv[T any, U any] interface {

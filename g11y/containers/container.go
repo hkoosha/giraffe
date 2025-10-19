@@ -1,8 +1,8 @@
 package containers
 
 import (
-	"github.com/hkoosha/giraffe/t11y/glog"
-	"github.com/hkoosha/giraffe/t11y/gtx"
+	"github.com/hkoosha/giraffe/core/t11y/glog"
+	"github.com/hkoosha/giraffe/core/t11y/gtx"
 )
 
 type SimpleContainer interface {

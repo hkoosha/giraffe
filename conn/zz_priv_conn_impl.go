@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	"github.com/hkoosha/giraffe/conn/internal"
+	"github.com/hkoosha/giraffe/core/serdes"
+	"github.com/hkoosha/giraffe/core/t11y"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/internal/reflected"
-	"github.com/hkoosha/giraffe/internalled/serdes"
-	"github.com/hkoosha/giraffe/t11y"
-	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 func newConn[TX, RX any](

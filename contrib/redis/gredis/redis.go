@@ -9,8 +9,8 @@ import (
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hkoosha/giraffe/t11y"
-	"github.com/hkoosha/giraffe/t11y/glog"
+	"github.com/hkoosha/giraffe/core/t11y"
+	"github.com/hkoosha/giraffe/core/t11y/glog"
 	"github.com/hkoosha/giraffe/zebra/zcache"
 )
 

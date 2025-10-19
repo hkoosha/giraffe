@@ -3,7 +3,7 @@ package dot
 import (
 	"errors"
 
-	"github.com/hkoosha/giraffe/t11y"
+	"github.com/hkoosha/giraffe/core/t11y"
 )
 
 func M[A any](a A, err error) A {

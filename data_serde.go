@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/hkoosha/giraffe/internalled/gson"
-	"github.com/hkoosha/giraffe/internalled/serdes"
-	. "github.com/hkoosha/giraffe/t11y/dot"
+	"github.com/hkoosha/giraffe/core/serdes"
+	"github.com/hkoosha/giraffe/core/serdes/gson"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 type datumSerde struct{}

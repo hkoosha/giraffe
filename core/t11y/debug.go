@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hkoosha/giraffe/t11y/internal"
+	"github.com/hkoosha/giraffe/core/t11y/internal"
 )
 
 func GetSkippedLines() []*regexp.Regexp {

@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	. "github.com/hkoosha/giraffe/t11y/dot"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 // WalkFn is used when walking the tree. Takes a

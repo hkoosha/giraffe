@@ -3,7 +3,7 @@ package hippo
 import (
 	"context"
 
-	"github.com/hkoosha/giraffe/t11y/gtx"
+	"github.com/hkoosha/giraffe/core/t11y/gtx"
 )
 
 type Context = gtx.Context

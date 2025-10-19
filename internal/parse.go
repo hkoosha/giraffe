@@ -1,8 +1,8 @@
 package internal
 
 import (
+	"github.com/hkoosha/giraffe/core/inmem"
 	"github.com/hkoosha/giraffe/dialects"
-	"github.com/hkoosha/giraffe/internal/inmem"
 	"github.com/hkoosha/giraffe/internal/queryimpl"
 	"github.com/hkoosha/giraffe/internal/queryimpl/gquery"
 )

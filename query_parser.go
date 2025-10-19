@@ -4,8 +4,8 @@ import (
 	"reflect"
 
 	"github.com/hkoosha/giraffe/cmd"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/internal"
-	. "github.com/hkoosha/giraffe/t11y/dot"
 )
 
 func Q[T interface{ Query | string }](

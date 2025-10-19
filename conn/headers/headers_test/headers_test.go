@@ -8,7 +8,7 @@ import (
 	"golang.org/x/tools/go/packages"
 
 	_ "github.com/hkoosha/giraffe/conn/headers"
-	"github.com/hkoosha/giraffe/gtesting"
+	"github.com/hkoosha/giraffe/core/gtesting"
 )
 
 func TestHeaders(t *testing.T) {

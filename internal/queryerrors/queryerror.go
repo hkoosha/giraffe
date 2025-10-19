@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	. "github.com/hkoosha/giraffe/t11y/dot"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 // ErrStart Keep in sync with errors.go in giraffe.

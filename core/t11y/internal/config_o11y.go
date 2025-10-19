@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"sync/atomic"
 
-	"github.com/hkoosha/giraffe/t11y/env"
+	"github.com/hkoosha/giraffe/core/t11y/env"
 )
 
 var (

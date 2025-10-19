@@ -6,7 +6,7 @@ import (
 	"github.com/itchyny/gojq"
 
 	"github.com/hkoosha/giraffe"
-	. "github.com/hkoosha/giraffe/t11y/dot"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 func MkJqFn(

@@ -6,7 +6,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/hkoosha/giraffe/t11y"
+	"github.com/hkoosha/giraffe/core/t11y"
 )
 
 const (

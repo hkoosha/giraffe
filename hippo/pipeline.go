@@ -2,10 +2,10 @@ package hippo
 
 import (
 	"github.com/hkoosha/giraffe"
+	"github.com/hkoosha/giraffe/core/t11y"
+	"github.com/hkoosha/giraffe/core/t11y/gtx"
 	. "github.com/hkoosha/giraffe/internal/dot1"
 	"github.com/hkoosha/giraffe/internal/gstrings"
-	"github.com/hkoosha/giraffe/t11y"
-	"github.com/hkoosha/giraffe/t11y/gtx"
 )
 
 type ProbeBefore = func(

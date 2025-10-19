@@ -3,8 +3,8 @@ package hippo
 import (
 	"slices"
 
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/internal/gstrings"
-	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/typing"
 	"github.com/hkoosha/giraffe/zebra/z"
 )

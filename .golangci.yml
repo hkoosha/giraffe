@@ -231,7 +231,7 @@ linters:
         - ST1023
       dot-import-whitelist:
         - github.com/hkoosha/giraffe/internal/dot1
-        - github.com/hkoosha/giraffe/t11y/dot
+        - github.com/hkoosha/giraffe/core/t11y/dot
     tagalign:
       order:
         - json

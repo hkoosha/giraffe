@@ -3,9 +3,9 @@ package hippo
 import (
 	"regexp"
 
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/hippo/internal"
 	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
-	. "github.com/hkoosha/giraffe/t11y/dot"
 	"github.com/hkoosha/giraffe/typing"
 )
 

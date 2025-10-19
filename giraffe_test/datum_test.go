@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/hkoosha/giraffe"
-	"github.com/hkoosha/giraffe/gtesting"
+	"github.com/hkoosha/giraffe/core/gtesting"
 )
 
 func TestMerge(t *testing.T) {

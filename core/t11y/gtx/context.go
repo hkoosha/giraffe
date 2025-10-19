@@ -6,7 +6,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	. "github.com/hkoosha/giraffe/t11y/dot"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 type gtxKeyT int

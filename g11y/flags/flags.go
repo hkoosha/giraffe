@@ -13,9 +13,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
+	"github.com/hkoosha/giraffe/core/t11y/glog"
 	"github.com/hkoosha/giraffe/g11y/setup"
-	. "github.com/hkoosha/giraffe/t11y/dot"
-	"github.com/hkoosha/giraffe/t11y/glog"
 )
 
 type Flag struct {

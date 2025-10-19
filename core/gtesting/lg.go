@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"github.com/hkoosha/giraffe/contrib/zap/gzapadapter"
-	"github.com/hkoosha/giraffe/t11y/glog"
+	"github.com/hkoosha/giraffe/core/t11y/glog"
 )
 
 func Zap(t *testing.T) glog.Lg {

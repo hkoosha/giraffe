@@ -3,8 +3,8 @@ package converters
 import (
 	"reflect"
 
-	"github.com/hkoosha/giraffe/internal/reflected"
-	. "github.com/hkoosha/giraffe/t11y/dot"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
+	"github.com/hkoosha/giraffe/core/serdes/internal"
 )
 
 var tConv = reflect.TypeOf(Bytes())
@@ -14,7 +14,7 @@ func IsConv(v any) bool {
 		return false
 	}
 
-	ok, err := reflected.ImplementsGenericErased(
+	ok, err := internal.ImplementsGenericErased(
 		reflect.TypeOf(v),
 		tConv,
 	)

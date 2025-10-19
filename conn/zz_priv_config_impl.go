@@ -14,10 +14,10 @@ import (
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/conn/headers"
 	"github.com/hkoosha/giraffe/conn/internal"
-	"github.com/hkoosha/giraffe/internalled/serdes"
-	"github.com/hkoosha/giraffe/t11y"
-	. "github.com/hkoosha/giraffe/t11y/dot"
-	"github.com/hkoosha/giraffe/t11y/glog"
+	"github.com/hkoosha/giraffe/core/serdes"
+	"github.com/hkoosha/giraffe/core/t11y"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
+	"github.com/hkoosha/giraffe/core/t11y/glog"
 	"github.com/hkoosha/giraffe/zebra/z"
 )
 

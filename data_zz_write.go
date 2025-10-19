@@ -3,7 +3,7 @@ package giraffe
 import (
 	"strings"
 
-	. "github.com/hkoosha/giraffe/t11y/dot"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
 func modify(
