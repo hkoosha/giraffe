@@ -297,10 +297,9 @@ type Conn[TX, RX any] interface {
 	Headerless[TX, RX]
 }
 
-type (
-	Raw   = Conn[[]byte, []byte]
-	Datum = Conn[giraffe.Datum, giraffe.Datum]
-)
+type Raw = Conn[[]byte, []byte]
+
+type Datum = Conn[giraffe.Datum, giraffe.Datum]
 
 // ============================================================================.
 

@@ -5,7 +5,6 @@ import (
 	"net/http"
 )
 
-//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) Patch(
 	ctx context.Context,
 	body TX,
@@ -15,7 +14,6 @@ func (c *connImpl[TX, RX]) Patch(
 	return c.call(ctx, m, &body, path)
 }
 
-//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) Put(
 	ctx context.Context,
 	body TX,
@@ -25,7 +23,6 @@ func (c *connImpl[TX, RX]) Put(
 	return c.call(ctx, m, &body, path)
 }
 
-//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) Post(
 	ctx context.Context,
 	body TX,
@@ -35,7 +32,6 @@ func (c *connImpl[TX, RX]) Post(
 	return c.call(ctx, m, &body, path)
 }
 
-//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) Get(
 	ctx context.Context,
 	path ...string,
@@ -44,7 +40,6 @@ func (c *connImpl[TX, RX]) Get(
 	return c.call(ctx, m, nil, path)
 }
 
-//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) Delete(
 	ctx context.Context,
 	path ...string,
@@ -53,7 +48,6 @@ func (c *connImpl[TX, RX]) Delete(
 	return c.call(ctx, m, nil, path)
 }
 
-//nolint:nonamedreturns
 func (c *connImpl[TX, RX]) Call(
 	ctx context.Context,
 	body *TX,
