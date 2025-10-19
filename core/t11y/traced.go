@@ -11,8 +11,8 @@ import (
 
 func EnableDefaultTracer() {
 	EnableTracer()
-	SetSkippedLines(true)
-	SetCollapsedLines(true)
+	SetSkippedLines()
+	SetCollapsedLines()
 }
 
 func Traced(err error) error {

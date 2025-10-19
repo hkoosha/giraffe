@@ -35,17 +35,17 @@ func Preamble(t *testing.T) {
 
 	{
 		v := t11y.GetSkippedLines()
-		t11y.SetSkippedLines(true)
+		t11y.SetSkippedLines()
 		t.Cleanup(func() {
-			t11y.SetSkippedLines(false, v...)
+			t11y.SetSkippedLines0(false, v...)
 		})
 	}
 
 	{
 		v := t11y.GetCollapsedLines()
-		t11y.SetCollapsedLines(true)
+		t11y.SetCollapsedLines()
 		t.Cleanup(func() {
-			t11y.SetCollapsedLines(false, v...)
+			t11y.SetCollapsedLines0(false, v...)
 		})
 	}
 }

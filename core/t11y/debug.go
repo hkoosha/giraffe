@@ -19,6 +19,12 @@ func GetSkippedLines() []*regexp.Regexp {
 }
 
 func SetSkippedLines(
+	lines ...*regexp.Regexp,
+) {
+	SetSkippedLines0(true, lines...)
+}
+
+func SetSkippedLines0(
 	withDefaults bool,
 	lines ...*regexp.Regexp,
 ) {
@@ -36,6 +42,12 @@ func GetCollapsedLines() []*regexp.Regexp {
 }
 
 func SetCollapsedLines(
+	lines ...*regexp.Regexp,
+) {
+	SetCollapsedLines0(true, lines...)
+}
+
+func SetCollapsedLines0(
 	withDefaults bool,
 	lines ...*regexp.Regexp,
 ) {
