@@ -22,3 +22,9 @@ default:
 @path:
     echo "$PATH"
 
+
+fixall:
+   for i in $(cat go.work | grep -E $'^\t+(core|contrib)' | tr -d $'\t'); do echo "$i"; \
+       ( cd "./$i" && golangci-lint -c ./.golangci.yml run --fix; ); done
+   just fix
+

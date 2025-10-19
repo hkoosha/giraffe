@@ -4,13 +4,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/conn"
 	"github.com/hkoosha/giraffe/core/gtesting"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/remote"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/hkoosha/giraffe/dot"
 )

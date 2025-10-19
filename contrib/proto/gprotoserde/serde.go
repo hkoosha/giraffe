@@ -3,10 +3,9 @@ package gprotoserde
 import (
 	"io"
 
+	"github.com/hkoosha/giraffe/core/t11y"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
-
-	"github.com/hkoosha/giraffe/core/t11y"
 )
 
 type Conv[T any, U any] interface {
