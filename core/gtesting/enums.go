@@ -12,11 +12,6 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-var (
-	alphanum = regexp.MustCompile("[^a-zA-Z0-9]")
-	num      = regexp.MustCompile(`^\d.+`)
-)
-
 func ReadPkgCfg() *packages.Config {
 	//nolint:exhaustruct
 	//goland:noinspection GoUnusedGlobalVariable
@@ -149,6 +144,9 @@ func CheckWith(
 func DashedTitleCasing(
 	s string,
 ) string {
+	alphanum := regexp.MustCompile("[^a-zA-Z0-9]")
+	num := regexp.MustCompile(`^\d.+`)
+
 	sb := strings.Builder{}
 	sb.Grow(len(s) * 2)
 

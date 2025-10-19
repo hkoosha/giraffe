@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/hkoosha/giraffe"
-	. "github.com/hkoosha/giraffe/dot"
 	"github.com/hkoosha/giraffe/core/gtesting"
+	"github.com/hkoosha/giraffe/core/serdes/gson"
+	. "github.com/hkoosha/giraffe/dot"
 	"github.com/hkoosha/giraffe/hippo"
 	"github.com/hkoosha/giraffe/hippo/remote"
-	"github.com/hkoosha/giraffe/core/serdes/gson"
 )
 
 func EkranFn(
