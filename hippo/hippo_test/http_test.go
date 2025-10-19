@@ -32,7 +32,7 @@ func TestRunner_Http(t *testing.T) {
 		defer srv.Close()
 
 		fn := hippo.MkHttpFn(
-			conn.MakeRawCfg(gtesting.Zap(t)).
+			conn.MakeCfg(gtesting.Zap(t)).
 				WithTxSerde(remote.RequestSerde()).
 				WithRxSerde(giraffe.DatumSerde()).
 				AndEndpoint("local", srv.URL).

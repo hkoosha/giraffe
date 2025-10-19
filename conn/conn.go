@@ -9,6 +9,7 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/conn/internal"
+	"github.com/hkoosha/giraffe/core/serdes"
 	"github.com/hkoosha/giraffe/core/t11y/glog"
 )
 
@@ -307,7 +308,7 @@ type Datum = Conn[giraffe.Datum, giraffe.Datum]
 
 // ============================================================================.
 
-func MakeRawCfg(
+func MakeCfg(
 	lg glog.Lg,
 ) Config {
 	return newConfig(lg, DefaultTimeout)
@@ -315,6 +316,9 @@ func MakeRawCfg(
 
 func Make[TX, RX any](
 	cfg Config,
+	txSered serdes.Serde[TX],
+	rxSered serdes.Serde[RX],
 ) Conn[TX, RX] {
-	return newConn[TX, RX](cfgOf(cfg))
+	withSerde := cfgOf(cfg).withSerdes(txSered, rxSered)
+	return newConn[TX, RX](withSerde)
 }

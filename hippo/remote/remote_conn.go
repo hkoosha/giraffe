@@ -12,13 +12,14 @@ func Remote(
 	plan string,
 	cnx conn.Raw,
 ) *hippo.Fn {
-	cfg := cnx.
-		Cfg().
-		WithPathPrefix(EkranPath).
-		WithSerdes(RequestSerde(), giraffe.DatumSerde())
+	cfg := cnx.Cfg().WithPathPrefix(EkranPath)
 
 	fn := remoteFn{
-		cnx:  conn.Make[Request, giraffe.Datum](cfg),
+		cnx: conn.Make[Request, giraffe.Datum](
+			cfg,
+			RequestSerde(),
+			giraffe.DatumSerde(),
+		),
 		plan: plan,
 	}
 

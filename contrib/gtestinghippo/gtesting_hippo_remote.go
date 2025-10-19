@@ -60,7 +60,7 @@ func Call(
 		})).
 		MustWithNext("remote", remote.Remote(
 			"thingy",
-			conn.MakeRawCfg(gtesting.Zap(t)).
+			conn.MakeCfg(gtesting.Zap(t)).
 				WithTransport(srv.Client().Transport).
 				AndEndpoint("thingy", srv.URL).
 				WithMustEndpointNamed("thingy").
