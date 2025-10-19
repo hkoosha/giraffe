@@ -33,6 +33,11 @@ func OK(err error) {
 	dot.OK(err)
 }
 
+// T Traced
+func T[A any](a A, err error) (A, error) {
+	return dot.T[A](a, err)
+}
+
 // ======================================================= DATUM, QUERY, TUPLES.
 
 // Q query.
@@ -50,18 +55,18 @@ func P[V giraffe.Safe](
 	return giraffe.TupleOf(q, v)
 }
 
-func Of[V giraffe.Safe](v V) giraffe.Datum {
+func Dat[V giraffe.Safe](v V) giraffe.Datum {
 	return giraffe.Of(v)
 }
 
-func Of1[V giraffe.Safe](
+func Dat1[V giraffe.Safe](
 	q giraffe.Query,
 	v V,
 ) giraffe.Datum {
 	return giraffe.Of1(q, v)
 }
 
-func OfN(
+func DatN(
 	pairs ...giraffe.Tuple,
 ) (giraffe.Datum, error) {
 	return giraffe.OfN(pairs...)

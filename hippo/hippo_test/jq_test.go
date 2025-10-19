@@ -14,7 +14,7 @@ func TestJq(t *testing.T) {
 		gtesting.Preamble(t)
 
 		fin := gtestinghippo.EkranFn(t,
-			Of(map[string]string{
+			Dat(map[string]string{
 				"foo": "999",
 			}),
 			M(hippo.MkJqFn(".fooz = 123")).Fn(),

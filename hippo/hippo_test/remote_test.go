@@ -59,7 +59,7 @@ func TestServer_Ekran(t *testing.T) {
 	t.Run("ekran", func(t *testing.T) {
 		gtesting.Preamble(t)
 
-		fin := ekran(t, dot.Of(map[string]int{
+		fin := ekran(t, dot.Dat(map[string]int{
 			"m-1": 123,
 		}))
 
