@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 	"log"
 
 	"github.com/itchyny/gojq"
@@ -20,11 +20,12 @@ func main() {
 			break
 		}
 		if err, ok := v.(error); ok {
-			if err, ok := err.(*gojq.HaltError); ok && err.Value() == nil {
+			hErr := &gojq.HaltError{}
+			if errors.As(err, &hErr) {
 				break
 			}
-			log.Fatalln(err)
+			log.Fatalln(hErr)
 		}
-		fmt.Printf("%#v\n", v)
+		log.Printf("%#v\n", v)
 	}
 }

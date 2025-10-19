@@ -1,4 +1,4 @@
-module github.com/hkoosha/giraffe/gtestinghippo
+module github.com/hkoosha/giraffe/contrib/gtestinghippo
 
 go 1.25.3
 

@@ -1,4 +1,4 @@
-package hippo
+package hippo_test
 
 import (
 	"testing"
@@ -22,5 +22,4 @@ func TestJq(t *testing.T) {
 
 		gtesting.Write(t, "fin.json", fin.Pretty())
 	})
-
 }

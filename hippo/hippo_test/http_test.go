@@ -1,4 +1,4 @@
-package hippo
+package hippo_test
 
 import (
 	"net/http"
@@ -26,7 +26,8 @@ func TestRunner_Http(t *testing.T) {
 			r *http.Request,
 		) {
 			resp := ` { "m4": 312 } `
-			_, _ = w.Write([]byte(resp))
+			_, err := w.Write([]byte(resp))
+			assert.NoError(t, err)
 		}))
 		defer srv.Close()
 
