@@ -79,16 +79,17 @@ func FnCtxOf(
 }
 
 type Fn struct {
-	exe        Exe
-	replicated map[giraffe.Query]giraffe.Query
-	swapped    map[giraffe.Query]giraffe.Query
-	scoped     giraffe.Query
-	name       string
-	inputs     []giraffe.Query
-	outputs    []giraffe.Query
-	optionals  []giraffe.Query
-	selected   []giraffe.Query
-	typ        typing.Type
+	exe          Exe
+	replicated   map[giraffe.Query]giraffe.Query
+	swapped      map[giraffe.Query]giraffe.Query
+	scoped       giraffe.Query
+	name         string
+	inputs       []giraffe.Query
+	outputs      []giraffe.Query
+	optionals    []giraffe.Query
+	selected     []giraffe.Query
+	typ          typing.Type
+	skipOnExists bool
 }
 
 func (f *Fn) ensure() {
@@ -107,6 +108,22 @@ func (f *Fn) Type() typing.Type {
 
 func (f *Fn) IsValid() bool {
 	return f != nil && f.exe != nil && f.typ.IsValid()
+}
+
+func (f *Fn) WithoutSkipOnExists() *Fn {
+	return f.SetSkipOnExists(true)
+}
+
+func (f *Fn) WithSkipOnExists() *Fn {
+	return f.SetSkipOnExists(true)
+}
+
+func (f *Fn) SetSkipOnExists(b bool) *Fn {
+	f.ensure()
+
+	clone := f.clone()
+	clone.skipOnExists = b
+	return clone
 }
 
 func (f *Fn) AndReplicate(

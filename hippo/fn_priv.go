@@ -37,6 +37,19 @@ func chkDatPresent(
 	return nil
 }
 
+func allExists(
+	dat giraffe.Datum,
+	keys []giraffe.Query,
+) bool {
+	for _, k := range keys {
+		if ok, err := dat.Has(k); err != nil || !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
 // =====================================
 
 func (f *Fn) replicate(
@@ -141,16 +154,17 @@ func (f *Fn) clone() *Fn {
 	}
 
 	return &Fn{
-		exe:        f.exe,
-		scoped:     f.scoped,
-		inputs:     slices.Clone(f.inputs),
-		optionals:  slices.Clone(f.optionals),
-		outputs:    slices.Clone(f.outputs),
-		replicated: maps.Clone(f.replicated),
-		swapped:    maps.Clone(f.swapped),
-		selected:   slices.Clone(f.selected),
-		typ:        f.typ.Clone(),
-		name:       f.name,
+		exe:          f.exe,
+		scoped:       f.scoped,
+		inputs:       slices.Clone(f.inputs),
+		optionals:    slices.Clone(f.optionals),
+		outputs:      slices.Clone(f.outputs),
+		replicated:   maps.Clone(f.replicated),
+		swapped:      maps.Clone(f.swapped),
+		selected:     slices.Clone(f.selected),
+		skipOnExists: f.skipOnExists,
+		typ:          f.typ.Clone(),
+		name:         f.name,
 	}
 }
 
@@ -164,6 +178,10 @@ func (f *Fn) call(
 
 	if err := chkDatPresent(dat, f.inputs); err != nil {
 		return OfErr(), err
+	}
+
+	if allExists(dat, f.outputs) {
+		return dat, nil
 	}
 
 	ret0, err := f.exe(ctx, dat)
