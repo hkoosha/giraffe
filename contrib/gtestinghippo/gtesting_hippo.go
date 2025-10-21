@@ -67,7 +67,7 @@ func Ekran0(
 
 func EkranRemote(
 	t *testing.T,
-	reg hippo.FnRegistry,
+	reg *hippo.FnRegistry,
 	dat giraffe.Datum,
 	fns ...string,
 ) giraffe.Datum {

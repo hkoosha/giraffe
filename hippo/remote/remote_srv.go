@@ -38,7 +38,7 @@ func (s Server) ServeHTTP(
 }
 
 type server struct {
-	reg       hippo.FnRegistry
+	reg       *hippo.FnRegistry
 	templates map[string]*hippo.Plan
 	serde     serdes.Serde[Request]
 }
@@ -98,6 +98,7 @@ func (s server) ekran(
 			with = hippo.Static(withDatum)
 		}
 
+		// TODO msgRe & nameRe can be nil?
 		compensator = compensator.For(msgRe, nameRe, step, with)
 	}
 
@@ -130,7 +131,7 @@ func (s server) ekran(
 }
 
 func NewServer(
-	reg hippo.FnRegistry,
+	reg *hippo.FnRegistry,
 	templates map[string]*hippo.Plan,
 ) (Server, error) {
 	for name, plan := range templates {

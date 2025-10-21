@@ -6,9 +6,11 @@ import (
 
 type contextKeyT int
 
-var keyOnce = New()
-var keyMu = sync.Mutex{}
-var contextKey contextKeyT = 1111743090
+var (
+	keyOnce                = New()
+	keyMu                  = sync.Mutex{}
+	contextKey contextKeyT = 1111743090
+)
 
 func Key(
 	name string,
@@ -18,7 +20,7 @@ func Key(
 	keyMu.Lock()
 	defer keyMu.Unlock()
 
-	contextKey = contextKey + 1
+	contextKey++
 
 	return contextKey
 }

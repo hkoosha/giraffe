@@ -6,8 +6,8 @@ import (
 )
 
 type events struct {
-	store []any
 	mu    *sync.Mutex
+	store []any
 }
 
 func (e *events) get() []any {

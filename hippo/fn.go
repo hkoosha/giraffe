@@ -33,16 +33,17 @@ func TryFnOf(
 	t := typing.OfVirtual()
 
 	fn := &Fn{
-		exe:        exe,
-		scoped:     "",
-		inputs:     nil,
-		outputs:    nil,
-		optionals:  nil,
-		replicated: nil,
-		selected:   nil,
-		swapped:    nil,
-		typ:        t,
-		name:       "#" + t.String(),
+		exe:          exe,
+		scoped:       "",
+		inputs:       nil,
+		outputs:      nil,
+		optionals:    nil,
+		replicated:   nil,
+		selected:     nil,
+		swapped:      nil,
+		skipOnExists: false,
+		typ:          t,
+		name:         "#" + t.String(),
 	}
 
 	var err error = nil

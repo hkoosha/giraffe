@@ -3,11 +3,12 @@ package gtx
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
+	"github.com/hkoosha/giraffe/core/container/setup"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/hkoosha/giraffe/core/container/setup"
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
@@ -42,7 +43,7 @@ func (c impl) Value(key any) any {
 func (c impl) With(k, v any) Context {
 	return &impl{
 		ctx:    context.WithValue(c.ctx, k, v),
-		events: &events{store: make([]any, 0)},
+		events: c.events,
 	}
 }
 
@@ -50,7 +51,8 @@ func (c impl) WithTimeout(d time.Duration) (Context, context.CancelFunc) {
 	ctx, cancel := context.WithTimeout(c.ctx, d)
 
 	return &impl{
-		ctx: ctx,
+		ctx:    ctx,
+		events: c.events,
 	}, cancel
 }
 
@@ -71,7 +73,8 @@ func (c impl) Group() (Context, Group) {
 	group, ctx := errgroup.WithContext(c)
 
 	return &impl{
-		ctx: ctx,
+		ctx:    ctx,
+		events: c.events,
 	}, group
 }
 
@@ -104,7 +107,13 @@ func set(ctx context.Context) *impl {
 		panic(EF("gtx already set"))
 	}
 
-	gtx := &impl{ctx: nil}
+	gtx := &impl{
+		ctx: nil,
+		events: &events{
+			mu:    &sync.Mutex{},
+			store: []any{},
+		},
+	}
 	//nolint:fatcontext
 	gtx.ctx = context.WithValue(ctx, gtxKey, gtx)
 	return gtx
