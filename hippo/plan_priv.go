@@ -80,7 +80,7 @@ var zeroPlan = &Plan{
 	compensator: Compensator{
 		comp: make([]compCondition, 0),
 	},
-	registry: FnRegistry{
+	registry: &FnRegistry{
 		scope:  nil,
 		byType: nil,
 	},

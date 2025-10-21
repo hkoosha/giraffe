@@ -10,24 +10,32 @@ import (
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
-func MkDatumChannel(
-	cnx conn.Datum,
+func MustMkTunnel(
 	name string,
+	cnx conn.Datum,
 	path string,
-) (DatumChannel, error) {
+) *DatumTunnel {
+	return M(MkTunnel(name, cnx, path))
+}
+
+func MkTunnel(
+	name string,
+	cnx conn.Datum,
+	path string,
+) (*DatumTunnel, error) {
 	if cnx.Cfg().Endpoint() == "" {
-		panic(EF("http endpoint not set on channel connection"))
+		panic(EF("http endpoint not set on tunnel connection"))
 	}
 
 	// TODO validate name as simple machine name.
 
-	dc := DatumChannel{
+	dc := &DatumTunnel{
 		cnx:     cnx,
 		headers: make(map[string]struct{}),
 		hasBody: false,
 		name:    name,
 		path:    "",
-		dcPath: datumChannelPath{
+		dcPath: datumTunnelPath{
 			pathPartsStatic:  nil,
 			pathPartsVar:     nil,
 			queryPartsStatic: nil,
@@ -44,7 +52,7 @@ func MkDatumChannel(
 
 type simpleStr = func(giraffe.Query) (string, error)
 
-type datumChannelPath struct {
+type datumTunnelPath struct {
 	pathOnly         string
 	queryOnly        string
 	pathPartsStatic  []string
@@ -53,19 +61,19 @@ type datumChannelPath struct {
 	queryPartsVar    []giraffe.Query
 }
 
-func (d *datumChannelPath) isZero() bool {
+func (d *datumTunnelPath) isZero() bool {
 	return d.pathOnly == ""
 }
 
-func (d *datumChannelPath) hasDynPath() bool {
+func (d *datumTunnelPath) hasDynPath() bool {
 	return d.pathPartsVar != nil
 }
 
-func (d *datumChannelPath) hasDynQuery() bool {
+func (d *datumTunnelPath) hasDynQuery() bool {
 	return d.queryPartsVar != nil
 }
 
-func (d *datumChannelPath) mkPath(
+func (d *datumTunnelPath) mkPath(
 	get simpleStr,
 ) ([]string, error) {
 	parts := make(
@@ -124,46 +132,50 @@ func (d *datumChannelPath) mkPath(
 
 // =====================================
 
-type DatumChannel struct {
+type DatumTunnel struct {
 	cnx     conn.Datum
 	headers map[string]struct{}
 	name    string
 	path    string
-	dcPath  datumChannelPath
+	dcPath  datumTunnelPath
 	hasBody bool
 }
 
-func (h *DatumChannel) Id() string {
+func (h *DatumTunnel) Id() string {
 	return h.name
+}
+
+func (h *DatumTunnel) Fn() *Fn {
+	return mkHttpCallFn(h).Fn()
 }
 
 // =====================================
 
-func (h *DatumChannel) WithHeaders(
+func (h *DatumTunnel) WithHeaders(
 	name string,
 	headers map[string]struct{},
-) DatumChannel {
+) *DatumTunnel {
 	cp := h.shallow(name)
 	cp.headers = headers
 	return cp
 }
 
-func (h *DatumChannel) WithBody(
+func (h *DatumTunnel) WithBody(
 	name string,
-) DatumChannel {
+) *DatumTunnel {
 	return h.SetHasBody(name, true)
 }
 
-func (h *DatumChannel) WithoutBody(
+func (h *DatumTunnel) WithoutBody(
 	name string,
-) DatumChannel {
+) *DatumTunnel {
 	return h.SetHasBody(name, false)
 }
 
-func (h *DatumChannel) SetHasBody(
+func (h *DatumTunnel) SetHasBody(
 	name string,
 	b bool,
-) DatumChannel {
+) *DatumTunnel {
 	if b && !httpmethod.MustOf(h.cnx.Cfg().Method()).HasBody() {
 		panic(EF("http method does not take body: %s", h.cnx.Cfg().Method()))
 	}
@@ -173,25 +185,25 @@ func (h *DatumChannel) SetHasBody(
 	return cp
 }
 
-func (h *DatumChannel) WithPath(
+func (h *DatumTunnel) WithPath(
 	name string,
 	path string,
-) (DatumChannel, error) {
+) (*DatumTunnel, error) {
 	cp := h.shallow(name)
 	cp.path = path
 
 	// TODO use url.Parse or something.
 	pathOnly, queryOnly, _ := strings.Cut(path, "?")
 
-	if err := procPath(&cp, pathOnly); err != nil {
-		return datumChannelErr, err
+	if err := procPath(cp, pathOnly); err != nil {
+		return nil, err
 	}
-	if err := procQuery(&cp, queryOnly); err != nil {
-		return datumChannelErr, err
+	if err := procQuery(cp, queryOnly); err != nil {
+		return nil, err
 	}
 
 	if cp.dcPath.pathPartsStatic == nil && cp.dcPath.queryPartsStatic == nil {
-		cp.dcPath = datumChannelPathZero
+		cp.dcPath = datumTunnelPathZero
 	}
 
 	return cp, nil
@@ -200,9 +212,11 @@ func (h *DatumChannel) WithPath(
 // =====================================
 
 func procPath(
-	dc *DatumChannel,
+	dc *DatumTunnel,
 	pathOnly string,
 ) error {
+	pathOnly, _ = strings.CutPrefix(pathOnly, "/")
+
 	pathParts := strings.Split(pathOnly, "/")
 	pathPartsStatic := make([]string, len(pathParts))
 	pathPartsVar := make([]giraffe.Query, len(pathParts))
@@ -237,28 +251,31 @@ func procPath(
 }
 
 func procQuery(
-	dc *DatumChannel,
+	dc *DatumTunnel,
 	queryOnly string,
 ) error {
 	queryParts := strings.Split(queryOnly, "&")
 	queryPartsStatic := make([]string, len(queryParts))
 	queryPartsVar := make([]giraffe.Query, len(queryParts))
 	queryPartsAnyVar := false
-	for i, part := range queryParts {
-		switch {
-		case part == "":
-			return EF("empty query part: %s", dc.path)
 
-		case strings.HasPrefix(part, "."):
-			q, err := giraffe.GQParse(part)
-			if err != nil {
-				return err
+	if queryOnly != "" {
+		for i, part := range queryParts {
+			switch {
+			case part == "":
+				return EF("empty query part: %s", dc.path)
+
+			case strings.HasPrefix(part, "."):
+				q, err := giraffe.GQParse(part)
+				if err != nil {
+					return err
+				}
+				queryPartsVar[i] = q
+				queryPartsAnyVar = true
+
+			default:
+				queryPartsStatic[i] = part
 			}
-			queryPartsVar[i] = q
-			queryPartsAnyVar = true
-
-		default:
-			queryPartsStatic[i] = part
 		}
 	}
 	if !queryPartsAnyVar {
@@ -273,10 +290,10 @@ func procQuery(
 	return nil
 }
 
-func (h *DatumChannel) shallow(
+func (h *DatumTunnel) shallow(
 	name string,
-) DatumChannel {
-	return DatumChannel{
+) *DatumTunnel {
+	return &DatumTunnel{
 		cnx:     h.cnx,
 		headers: maps.Clone(h.headers),
 		hasBody: h.hasBody,
@@ -286,7 +303,7 @@ func (h *DatumChannel) shallow(
 	}
 }
 
-func (h *DatumChannel) mkHeaders(
+func (h *DatumTunnel) mkHeaders(
 	get simpleStr,
 ) (map[string]string, error) {
 	headers := make(map[string]string, len(h.headers))
@@ -309,7 +326,4 @@ func (h *DatumChannel) mkHeaders(
 }
 
 //nolint:exhaustruct
-var datumChannelErr = DatumChannel{}
-
-//nolint:exhaustruct
-var datumChannelPathZero = datumChannelPath{}
+var datumTunnelPathZero = datumTunnelPath{}

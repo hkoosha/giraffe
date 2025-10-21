@@ -14,14 +14,9 @@ import (
 // TODO check duplicates.
 // TODO check clashing.
 
-type ExeCtx = func(
-	Context,
-	giraffe.Datum,
-) (giraffe.Datum, error)
-
 type Exe = func(
-	Context,
-	giraffe.Datum,
+	ctx Context,
+	dat giraffe.Datum,
 ) (giraffe.Datum, error)
 
 // =============================================================================.
@@ -57,25 +52,6 @@ func TryFnOf(
 
 	//nolint:nilnil
 	return fn, err
-}
-
-func MustFnCtxOf(
-	exe ExeCtx,
-) *Fn {
-	return M(FnCtxOf(exe))
-}
-
-func FnCtxOf(
-	exeCtx ExeCtx,
-) (*Fn, error) {
-	exe := func(
-		ctx Context,
-		dat giraffe.Datum,
-	) (giraffe.Datum, error) {
-		return exeCtx(ctx, dat)
-	}
-
-	return TryFnOf(exe)
 }
 
 type Fn struct {

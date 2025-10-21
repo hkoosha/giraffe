@@ -23,7 +23,7 @@ type FnRegistry struct {
 	byType map[typing.Type]regEntry
 }
 
-func (r FnRegistry) String() string {
+func (r *FnRegistry) String() string {
 	const prefix = "FnRegistry["
 	const suffix = "]"
 
@@ -53,7 +53,7 @@ func (r FnRegistry) String() string {
 	return prefix + value.String() + suffix
 }
 
-func (r FnRegistry) clone() FnRegistry {
+func (r *FnRegistry) clone() *FnRegistry {
 	cp := FnRegistry{
 		scope:  r.scope,
 		byType: maps.Clone(r.byType),
@@ -63,25 +63,25 @@ func (r FnRegistry) clone() FnRegistry {
 		cp.byType = make(map[typing.Type]regEntry)
 	}
 
-	return cp
+	return &cp
 }
 
-func (r FnRegistry) WithNamed(
+func (r *FnRegistry) WithNamed(
 	name string,
 	fn *Fn,
-) (FnRegistry, error) {
+) (*FnRegistry, error) {
 	if !fn.IsValid() {
 		panic(EF("invalid fn"))
 	}
 
 	if !internal.SimpleName.MatchString(name) {
-		return fnRegistryErr, hippoerr.NewPlanInvalidFnName(name)
+		return nil, hippoerr.NewPlanInvalidFnName(name)
 	}
 
 	for _, f := range r.byType {
 		for _, a := range f.aliases {
 			if a == name {
-				return fnRegistryErr, hippoerr.NewRegDuplicateFnError(name)
+				return nil, hippoerr.NewRegDuplicateFnError(name)
 			}
 		}
 	}
@@ -105,7 +105,7 @@ func (r FnRegistry) WithNamed(
 	return cp, nil
 }
 
-func (r FnRegistry) hasNamed(
+func (r *FnRegistry) hasNamed(
 	alias string,
 ) bool {
 	for _, e := range r.byType {
@@ -117,7 +117,7 @@ func (r FnRegistry) hasNamed(
 	return false
 }
 
-func (r FnRegistry) has(
+func (r *FnRegistry) has(
 	fn *Fn,
 	alias string,
 ) (bool, error) {
@@ -142,16 +142,16 @@ func (r FnRegistry) has(
 	}
 }
 
-func (r FnRegistry) With(
+func (r *FnRegistry) With(
 	fn *Fn,
 	aliases ...string,
-) (FnRegistry, error) {
+) (*FnRegistry, error) {
 	if fn == nil {
 		panic(EF("nil fn"))
 	}
 
 	if _, ok := r.byType[fn.typ]; ok {
-		return fnRegistryErr, hippoerr.NewRegDuplicateFnError(fn.typ.String())
+		return nil, hippoerr.NewRegDuplicateFnError(fn.typ.String())
 	}
 
 	cp := r.clone()
@@ -163,21 +163,30 @@ func (r FnRegistry) With(
 	return cp, nil
 }
 
-func (r FnRegistry) MustWithNamed(
+func (r *FnRegistry) MustWithNamed(
 	name string,
 	fn *Fn,
-) FnRegistry {
+) *FnRegistry {
 	return M(r.WithNamed(name, fn))
 }
 
-func (r FnRegistry) MustWith(
+func (r *FnRegistry) MustWith(
 	fn *Fn,
 	aliases ...string,
-) FnRegistry {
+) *FnRegistry {
 	return M(r.With(fn, aliases...))
 }
 
-func (r FnRegistry) Named(
+func (r *FnRegistry) MustWithExe(
+	name string,
+	exe Exe,
+	aliases ...string,
+) *FnRegistry {
+	aliases = append(aliases, name)
+	return r.MustWith(FnOf(exe), aliases...)
+}
+
+func (r *FnRegistry) Named(
 	name string,
 ) (*Fn, error) {
 	for _, e := range r.byType {
@@ -189,7 +198,7 @@ func (r FnRegistry) Named(
 	return nil, hippoerr.NewRegMissingFnError(typing.OfErr(), name)
 }
 
-func (r FnRegistry) Typed(
+func (r *FnRegistry) Typed(
 	ty typing.Type,
 ) (*Fn, error) {
 	if r.byType == nil {
@@ -203,9 +212,9 @@ func (r FnRegistry) Typed(
 	return nil, hippoerr.NewRegMissingFnError(ty, "")
 }
 
-func (r FnRegistry) Merge(
-	other FnRegistry,
-) (FnRegistry, error) {
+func (r *FnRegistry) Merge(
+	other *FnRegistry,
+) (*FnRegistry, error) {
 	cp := r.clone()
 
 	for k, oFn := range other.byType {
@@ -213,7 +222,7 @@ func (r FnRegistry) Merge(
 
 		switch {
 		case ok && entry.fn.typ != oFn.fn.typ:
-			return fnRegistryErr, EF(
+			return nil, EF(
 				"cannot merge due to fn mismatch: %s != %s",
 				entry.String(),
 				oFn.String(),
@@ -233,6 +242,6 @@ func (r FnRegistry) Merge(
 	return cp, nil
 }
 
-func (r FnRegistry) Dump() FnRegistry {
+func (r *FnRegistry) Dump() *FnRegistry {
 	return r
 }

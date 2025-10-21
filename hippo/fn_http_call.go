@@ -28,19 +28,19 @@ func simple(dat giraffe.Datum) func(query giraffe.Query) (string, error) {
 	}
 }
 
-func MkHttpCallFn(
-	channel *DatumChannel,
-) HttpCallFn {
-	return HttpCallFn{
-		DatumChannel: channel,
+func mkHttpCallFn(
+	tun *DatumTunnel,
+) *httpCallFn {
+	return &httpCallFn{
+		DatumTunnel: tun,
 	}
 }
 
-type HttpCallFn struct {
-	*DatumChannel
+type httpCallFn struct {
+	*DatumTunnel
 }
 
-func (e *HttpCallFn) Fn() *Fn {
+func (e *httpCallFn) Fn() *Fn {
 	fn := FnOf(e.exe).
 		WithOutput(
 			Q(HttpOutputBody),
@@ -62,7 +62,7 @@ func (e *HttpCallFn) Fn() *Fn {
 	return fn
 }
 
-func (e *HttpCallFn) mkPath(
+func (e *httpCallFn) mkPath(
 	dat giraffe.Datum,
 ) ([]string, error) {
 	if e.dcPath.isZero() {
@@ -72,7 +72,7 @@ func (e *HttpCallFn) mkPath(
 	return e.dcPath.mkPath(simple(dat))
 }
 
-func (e *HttpCallFn) getBody(
+func (e *httpCallFn) getBody(
 	dat giraffe.Datum,
 ) (giraffe.Datum, int, error) {
 	if !e.hasBody {
@@ -92,7 +92,7 @@ func (e *HttpCallFn) getBody(
 	return body, l, nil
 }
 
-func (e *HttpCallFn) exe(
+func (e *httpCallFn) exe(
 	ctx Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {

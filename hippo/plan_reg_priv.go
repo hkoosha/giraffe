@@ -7,11 +7,6 @@ import (
 	"github.com/hkoosha/giraffe/internal/gstrings"
 )
 
-var fnRegistryErr = FnRegistry{
-	scope:  nil,
-	byType: nil,
-}
-
 type regEntry struct {
 	fn      *Fn
 	aliases []string

@@ -26,6 +26,9 @@ type Context interface {
 	WithTimeout(duration time.Duration) (Context, context.CancelFunc)
 
 	Group() (Context, Group)
+
+	Event(any)
+	Debug() []string
 }
 
 type Group interface {

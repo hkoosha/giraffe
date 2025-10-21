@@ -23,7 +23,7 @@ func Remote(
 		plan: plan,
 	}
 
-	return hippo.MustFnCtxOf(fn.Ekran)
+	return hippo.FnOf(fn.Ekran)
 }
 
 type remoteFn struct {

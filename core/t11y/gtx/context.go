@@ -2,16 +2,16 @@ package gtx
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"golang.org/x/sync/errgroup"
 
+	"github.com/hkoosha/giraffe/core/container/setup"
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
 )
 
-type gtxKeyT int
-
-var gtxKey gtxKeyT
+var gtxKey = setup.Key("giraffe_core_gtx")
 
 // =============================================================================
 
@@ -19,7 +19,8 @@ var _ context.Context = (*impl)(nil)
 
 //nolint:containedctx
 type impl struct {
-	ctx context.Context
+	ctx    context.Context
+	events *events
 }
 
 func (c impl) Deadline() (time.Time, bool) {
@@ -40,7 +41,8 @@ func (c impl) Value(key any) any {
 
 func (c impl) With(k, v any) Context {
 	return &impl{
-		ctx: context.WithValue(c.ctx, k, v),
+		ctx:    context.WithValue(c.ctx, k, v),
+		events: &events{store: make([]any, 0)},
 	}
 }
 
@@ -50,6 +52,19 @@ func (c impl) WithTimeout(d time.Duration) (Context, context.CancelFunc) {
 	return &impl{
 		ctx: ctx,
 	}, cancel
+}
+
+func (c impl) Event(v any) {
+	c.events.add(v)
+}
+
+func (c impl) Debug() []string {
+	store := c.events.get()
+	s := make([]string, len(store))
+	for i := range store {
+		s[i] = fmt.Sprintf("%v", store[i])
+	}
+	return s
 }
 
 func (c impl) Group() (Context, Group) {

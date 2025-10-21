@@ -15,7 +15,7 @@ func MkPlan() *Plan {
 
 type Plan struct {
 	compensator Compensator
-	registry    FnRegistry
+	registry    *FnRegistry
 	steps       []namedStep
 }
 
@@ -48,6 +48,20 @@ func (p *Plan) MustWithNext(
 	fn *Fn,
 ) *Plan {
 	return M(p.WithNext(name, fn))
+}
+
+func (p *Plan) MustWithNextExe(
+	name string,
+	exe Exe,
+) *Plan {
+	return M(p.WithNext(name, FnOf(exe)))
+}
+
+func (p *Plan) WithNextExe(
+	name string,
+	exe Exe,
+) (*Plan, error) {
+	return p.WithNext(name, FnOf(exe))
 }
 
 func (p *Plan) WithNext(
@@ -109,13 +123,13 @@ func (p *Plan) MustWithNextNamed(
 }
 
 func (p *Plan) MustAndRegistry(
-	reg FnRegistry,
+	reg *FnRegistry,
 ) *Plan {
 	return M(p.AndRegistry(reg))
 }
 
 func (p *Plan) AndRegistry(
-	reg FnRegistry,
+	reg *FnRegistry,
 ) (*Plan, error) {
 	merged, err := p.registry.Merge(reg)
 	if err != nil {
