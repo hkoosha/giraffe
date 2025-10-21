@@ -301,17 +301,6 @@ func (d Datum) Append(
 	)
 }
 
-func (d Datum) Query(
-	q string,
-) (Datum, error) {
-	query, err := GQParse(q)
-	if err != nil {
-		return errD, err
-	}
-
-	return d.get(query.impl())
-}
-
 func (d Datum) Nest(
 	q Query,
 ) (Datum, error) {
@@ -388,7 +377,7 @@ func (d Datum) Kv() (map[string]string, error) {
 	kv := make(map[string]string, len(keys))
 
 	for _, k := range keys {
-		str, err := d.Query(internal.Escaped(k))
+		str, err := d.Get(Q(internal.Escaped(k)))
 		if err != nil {
 			return nil, err
 		}

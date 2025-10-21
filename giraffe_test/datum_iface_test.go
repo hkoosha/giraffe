@@ -36,9 +36,8 @@ type (
 
 type Dyn interface {
 	Has(Query) (bool, error)
-	Query(string) (Datum, error)
-	Get(Query) (Datum, error)
 	Set(Query, any) (Datum, error)
+	Get(Query) (Datum, error)
 }
 
 type TypedQuery interface {

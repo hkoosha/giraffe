@@ -70,5 +70,5 @@ func (k selectKey) exe(
 		return OfErr(), err
 	}
 
-	return dat.Query(key)
+	return dat.Get(Q(key))
 }
