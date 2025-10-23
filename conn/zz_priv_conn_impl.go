@@ -136,6 +136,14 @@ func (c *connImpl[TX, RX]) callRaw(
 		return nil, E(err)
 	}
 
+	for k, v := range c.cfg.header.overwrite {
+		req.Header.Set(k, v)
+	}
+
+	for k, v := range c.cfg.header.overwriters {
+		req.Header.Set(k, v(ctx, c.cfg))
+	}
+
 	resp, err := c.std.Do(req)
 	if err != nil {
 		return nil, E(err)

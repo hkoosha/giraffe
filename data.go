@@ -63,6 +63,15 @@ func OfN(
 	return of(m)
 }
 
+func OfKV[V Safe](
+	k string,
+	v V,
+) Datum {
+	return OfJsonable(map[string]V{
+		k: v,
+	})
+}
+
 func OfEmpty() Datum {
 	return emptyObj
 }
@@ -280,9 +289,9 @@ func (d Datum) Lte(other Datum) (bool, error) {
 }
 
 func (d Datum) Merge(
-	right Datum,
+	right ...Datum,
 ) (Datum, error) {
-	return d.merge(right, []string{})
+	return d.merge(right)
 }
 
 func (d Datum) Set(

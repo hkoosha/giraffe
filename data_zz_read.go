@@ -107,7 +107,7 @@ func (d Datum) len() int {
 func (d Datum) get(
 	qq queryT,
 ) (Datum, error) {
-	q, err := qq.Resolved(d.resolver)
+	q, err := qq, error(nil) // qq.Resolved(d.resolver)
 	if err != nil {
 		return OfErr(), err
 	}

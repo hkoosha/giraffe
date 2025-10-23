@@ -203,6 +203,22 @@ func (d Datum) cmp(
 }
 
 func (d Datum) merge(
+	right []Datum,
+) (Datum, error) {
+	var err error
+
+	fin := d
+	for _, r := range right {
+		fin, err = fin.merge0(r, []string{})
+		if err != nil {
+			return OfErr(), err
+		}
+	}
+
+	return fin, nil
+}
+
+func (d Datum) merge0(
 	right Datum,
 	path []string,
 ) (Datum, error) {
@@ -219,7 +235,7 @@ func (d Datum) merge(
 			if existing, ok := obj[k]; ok {
 				nPath := append(slices.Clone(path), k)
 				var err error
-				if obj[k], err = existing.merge(v, nPath); err != nil {
+				if obj[k], err = existing.merge0(v, nPath); err != nil {
 					return OfErr(), err
 				}
 			} else {

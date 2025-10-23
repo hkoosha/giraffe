@@ -57,22 +57,18 @@ func (d *datumTunnelPath) clone() *datumTunnelPath {
 func (d *datumTunnelPath) withPath(
 	path string,
 ) (*datumTunnelPath, error) {
-	// TODO use url.Parse or something.
-	pathOnly, queryOnly, _ := strings.Cut(path, "?")
-
 	cp := d.clone()
+	cp.fullPath = path
 
-	cp, err := cp.withPathOnly(pathOnly)
-	if err != nil {
+	if err := adjustPath(cp); err != nil {
 		return nil, err
 	}
 
-	cp, err = cp.withQueryOnly(queryOnly)
-	if err != nil {
+	if err := adjustQuery(cp); err != nil {
 		return nil, err
 	}
 
-	cp, err = cp.optimized()
+	cp, err := cp.optimized()
 	if err != nil {
 		return nil, err
 	}
@@ -90,11 +86,15 @@ func (d *datumTunnelPath) optimized() (*datumTunnelPath, error) {
 	}
 }
 
-func (d *datumTunnelPath) withPathOnly(
-	pathOnly string,
-) (*datumTunnelPath, error) {
-	cp := d.clone()
+func adjustPath(
+	d *datumTunnelPath,
+) error {
+	if d.fullPath == "" {
+		panic("full path not set")
+	}
 
+	// TODO use url.Parse or something.
+	pathOnly, _, _ := strings.Cut(d.fullPath, "?")
 	pathOnly, _ = strings.CutPrefix(pathOnly, "/")
 
 	pathParts := strings.Split(pathOnly, "/")
@@ -104,12 +104,12 @@ func (d *datumTunnelPath) withPathOnly(
 	for i, part := range pathParts {
 		switch {
 		case part == "":
-			return nil, EF("empty path part: %s", cp.fullPath)
+			return EF("empty path part: %s", d.fullPath)
 
 		case strings.HasPrefix(part, "."):
 			q, err := giraffe.GQParse(part)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			pathPartsVar[i] = q
 			pathPartAnyVar = true
@@ -121,19 +121,25 @@ func (d *datumTunnelPath) withPathOnly(
 	if !pathPartAnyVar {
 		pathPartsStatic = nil
 		pathPartsVar = nil
+		pathOnly = ""
 	}
 
-	cp.pathPartsStatic = pathPartsStatic
-	cp.pathPartsVar = pathPartsVar
-	cp.pathOnly = pathOnly
+	d.pathPartsStatic = pathPartsStatic
+	d.pathPartsVar = pathPartsVar
+	d.pathOnly = pathOnly
 
-	return cp, nil
+	return nil
 }
 
-func (d *datumTunnelPath) withQueryOnly(
-	queryOnly string,
-) (*datumTunnelPath, error) {
-	cp := d.clone()
+func adjustQuery(
+	d *datumTunnelPath,
+) error {
+	if d.fullPath == "" {
+		panic("full path not set")
+	}
+
+	// TODO use url.Parse or something.
+	_, queryOnly, _ := strings.Cut(d.fullPath, "?")
 
 	queryParts := strings.Split(queryOnly, "&")
 	queryPartsStatic := make([]string, len(queryParts))
@@ -144,12 +150,12 @@ func (d *datumTunnelPath) withQueryOnly(
 		for i, part := range queryParts {
 			switch {
 			case part == "":
-				return nil, EF("empty query part: %s", cp.fullPath)
+				return EF("empty query part: %s", d.fullPath)
 
 			case strings.HasPrefix(part, "."):
 				q, err := giraffe.GQParse(part)
 				if err != nil {
-					return nil, err
+					return err
 				}
 				queryPartsVar[i] = q
 				queryPartsAnyVar = true
@@ -162,13 +168,14 @@ func (d *datumTunnelPath) withQueryOnly(
 	if !queryPartsAnyVar {
 		queryPartsStatic = nil
 		queryPartsVar = nil
+		queryOnly = ""
 	}
 
-	cp.queryPartsStatic = queryPartsStatic
-	cp.queryPartsVar = queryPartsVar
-	cp.queryOnly = queryOnly
+	d.queryPartsStatic = queryPartsStatic
+	d.queryPartsVar = queryPartsVar
+	d.queryOnly = queryOnly
 
-	return cp, nil
+	return nil
 }
 
 func (d *datumTunnelPath) mkPath(
