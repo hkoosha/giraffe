@@ -34,7 +34,8 @@ func TestRunner_Http(t *testing.T) {
 		}))
 		defer srv.Close()
 
-		fn := hippo.MkHttpFn(
+		fn := hippo.MkTunnel(
+			"foo",
 			conn.MakeCfg(gtesting.Zap(t)).
 				WithTxSerde(remote.RequestSerde()).
 				WithRxSerde(giraffe.DatumSerde()).

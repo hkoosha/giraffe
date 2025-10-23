@@ -14,11 +14,19 @@ var (
 	errMissingPlan    = errors.New("missing plan")
 )
 
-//goland:noinspection GoUnusedGlobalVariable
-var Selector_ = &Selector{
-	defaultPlan: "",
-	plans:       map[string]*Plan{},
-	pipelines:   map[string]*PipelineFn{},
+func MkSelector() *Selector {
+	return &Selector{
+		defaultPlan: "",
+		plans:       map[string]*Plan{},
+		pipelines:   map[string]*PipelineFn{},
+	}
+}
+
+func MkSelectorDefault(plan *Plan) *Selector {
+	const name = "default"
+
+	s := MkSelector()
+	return s.MustAndPlanDefault(name, plan)
 }
 
 type Selector struct {
@@ -115,6 +123,27 @@ func (p *Selector) Default() (*PipelineFn, error) {
 
 func (p *Selector) MustDefault() *PipelineFn {
 	return M(p.Default())
+}
+
+func (p *Selector) AndPlanDefault(
+	name string,
+	plan *Plan,
+) (*Selector, error) {
+	cp := p.clone()
+
+	cp, err := cp.AndPlan(name, plan)
+	if err != nil {
+		return nil, err
+	}
+
+	return cp.WithDefault(name)
+}
+
+func (p *Selector) MustAndPlanDefault(
+	name string,
+	plan *Plan,
+) *Selector {
+	return M(p.AndPlanDefault(name, plan))
 }
 
 func (p *Selector) Select(
