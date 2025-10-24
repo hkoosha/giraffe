@@ -68,7 +68,7 @@ type FnConfig struct {
 	Name         string                           `json:"name"                     yaml:"name"`
 }
 
-func (f *FnConfig) clone() *FnConfig {
+func (f *FnConfig) Clone() *FnConfig {
 	require := f.Require
 	if require != nil {
 		require = Ref(slices.Clone(*require))
