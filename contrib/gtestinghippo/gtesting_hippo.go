@@ -47,7 +47,7 @@ func Ekran(
 ) giraffe.Datum {
 	t.Helper()
 
-	pipeline, err := hippo.Pipeline(plan)
+	pipeline, err := hippo.MkPipeline(plan)
 	gtesting.NoError(t, err)
 
 	state, err := pipeline.Ekran(hippo.ContextOf(t.Context()), dat)

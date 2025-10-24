@@ -108,7 +108,7 @@ type Queried interface {
 }
 
 type Modified interface {
-	Merge(Datum) (Datum, error)
+	Merge(...Datum) (Datum, error)
 	Append(any) (Datum, error)
 }
 

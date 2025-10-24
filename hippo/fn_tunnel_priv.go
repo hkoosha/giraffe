@@ -78,6 +78,7 @@ func (d *datumTunnelPath) withPath(
 
 func (d *datumTunnelPath) optimized() (*datumTunnelPath, error) {
 	if d.pathPartsStatic == nil && d.queryPartsStatic == nil {
+		//nolint:exhaustruct
 		return &datumTunnelPath{
 			fullPath: d.fullPath,
 		}, nil
@@ -246,6 +247,7 @@ func (h *DatumTunnel) clone() *DatumTunnel {
 		hasBody:         h.hasBody,
 		name:            h.name,
 		template:        h.template.clone(),
+		globalHeaders:   maps.Clone(h.globalHeaders),
 	}
 }
 

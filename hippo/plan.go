@@ -10,7 +10,16 @@ import (
 )
 
 func MkPlan() *Plan {
-	return zeroPlan
+	return &Plan{
+		compensator: Compensator{
+			comp: make([]compCondition, 0),
+		},
+		registry: &FnRegistry{
+			scope:  nil,
+			byType: nil,
+		},
+		steps: make([]namedStep, 0),
+	}
 }
 
 type Plan struct {

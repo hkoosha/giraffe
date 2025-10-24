@@ -3,8 +3,7 @@ package hippo
 import (
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/core/t11y"
-	"github.com/hkoosha/giraffe/core/t11y/gtx"
-	. "github.com/hkoosha/giraffe/internal/dot1"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/internal/gstrings"
 )
 
@@ -31,13 +30,12 @@ type StepContext struct {
 
 func (s *StepContext) clone() *StepContext {
 	cp := *s
-
 	return &cp
 }
 
 // ====================================.
 
-func Pipeline(
+func MkPipeline(
 	plan *Plan,
 ) (*PipelineFn, error) {
 	t11y.NonNil(plan)
@@ -74,7 +72,7 @@ func (n *PipelineFn) String() string {
 func (n *PipelineFn) WithBefore(
 	probe ProbeBefore,
 ) *PipelineFn {
-	clone := n.clone()
+	clone := n.shallow()
 	clone.before = probe
 
 	return clone
@@ -83,7 +81,7 @@ func (n *PipelineFn) WithBefore(
 func (n *PipelineFn) WithAfter(
 	probe ProbeBefore,
 ) *PipelineFn {
-	clone := n.clone()
+	clone := n.shallow()
 	clone.after = probe
 
 	return clone
@@ -93,7 +91,5 @@ func (n *PipelineFn) Ekran(
 	ctx Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
-	htx := gtx.Of(ctx)
-
-	return n.ekran(htx, dat)
+	return n.ekran(ctx, dat)
 }

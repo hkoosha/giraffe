@@ -51,11 +51,11 @@ func MkTunnel(
 
 type DatumTunnel struct {
 	cnx             conn.Datum
-	name            string
-	hasBody         bool
 	enforcedHeaders map[string]string
 	globalHeaders   map[giraffe.Query]string
 	template        *datumTunnelPath
+	name            string
+	hasBody         bool
 }
 
 func (h *DatumTunnel) Id() string {

@@ -7,8 +7,8 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/core/t11y"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
-	. "github.com/hkoosha/giraffe/internal/dot1"
 )
 
 var errInvalidFn = errors.New("invalid fn")
@@ -61,19 +61,19 @@ func (f *Fn) replicate(
 
 	for from, into := range f.replicated {
 		if ok, err := dat.Has(from); err != nil {
-			return OfErr(), err
+			return giraffe.OfErr(), err
 		} else if !ok {
 			continue
 		}
 
 		val, err := dat.Get(from)
 		if err != nil {
-			return OfErr(), err
+			return giraffe.OfErr(), err
 		}
 
 		dat, err = dat.Set(into, val)
 		if err != nil {
-			return OfErr(), err
+			return giraffe.OfErr(), err
 		}
 	}
 
@@ -100,19 +100,19 @@ func (f *Fn) select_(
 	selected := make(map[giraffe.Query]giraffe.Datum, len(f.selected))
 	for _, k := range f.selected {
 		if ok, err := dat.Has(k); err != nil {
-			return OfErr(), err
+			return giraffe.OfErr(), err
 		} else if !ok {
 			continue
 		}
 		v, err := dat.Get(k)
 		if err != nil {
-			return OfErr(), err
+			return giraffe.OfErr(), err
 		}
 
 		selected[k] = v
 	}
 
-	return Of(selected), nil
+	return giraffe.Of(selected), nil
 }
 
 func (f *Fn) swap(
@@ -123,17 +123,17 @@ func (f *Fn) swap(
 	}
 
 	if !dat.Type().IsObj() {
-		return OfErr(), EF("expecting an object, got: %s", dat.Type())
+		return giraffe.OfErr(), EF("expecting an object, got: %s", dat.Type())
 	}
 
 	iter, err := dat.Iter2()
 	if err != nil {
-		return OfErr(), err
+		return giraffe.OfErr(), err
 	}
 
 	ret := make(map[giraffe.Query]giraffe.Datum, M(dat.Len()))
 	for k, v := range iter {
-		k := Q(k)
+		k := giraffe.Q(k)
 		if swapTo, ok := f.replicated[k]; ok {
 			k = swapTo
 		}
@@ -141,7 +141,7 @@ func (f *Fn) swap(
 		ret[k] = v
 	}
 
-	return Of(ret), nil
+	return giraffe.Of(ret), nil
 }
 
 // =====================================
@@ -155,6 +155,7 @@ func (f *Fn) clone() *Fn {
 
 	return &Fn{
 		exe:          f.exe,
+		args:         f.args,
 		scoped:       f.scoped,
 		inputs:       slices.Clone(f.inputs),
 		optionals:    slices.Clone(f.optionals),
@@ -177,40 +178,40 @@ func (f *Fn) call(
 	f.ensure()
 
 	if err := chkDatPresent(dat, f.inputs); err != nil {
-		return OfErr(), err
+		return giraffe.OfErr(), err
 	}
 
-	if allExists(dat, f.outputs) {
+	if f.skipOnExists && allExists(dat, f.outputs) {
 		return dat, nil
 	}
 
 	ret0, err := f.exe(ctx, dat)
 	if err != nil {
-		return OfErr(), err
+		return giraffe.OfErr(), err
 	}
 
 	ret1, err := f.replicate(ret0)
 	if err != nil {
-		return OfErr(), err
+		return giraffe.OfErr(), err
 	}
 
 	ret2, err := f.swap(ret1)
 	if err != nil {
-		return OfErr(), err
+		return giraffe.OfErr(), err
 	}
 
 	ret3, err := f.select_(ret2)
 	if err != nil {
-		return OfErr(), err
+		return giraffe.OfErr(), err
+	}
+
+	if cErr := chkDatPresent(ret3, f.outputs); cErr != nil {
+		return giraffe.OfErr(), cErr
 	}
 
 	ret4, err := f.scope(ret3)
 	if err != nil {
-		return OfErr(), err
-	}
-
-	if err := chkDatPresent(ret4, f.outputs); err != nil {
-		return OfErr(), err
+		return giraffe.OfErr(), err
 	}
 
 	return ret4, nil

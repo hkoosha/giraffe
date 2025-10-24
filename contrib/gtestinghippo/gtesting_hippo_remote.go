@@ -69,7 +69,7 @@ func Call(
 				Raw(),
 		))
 
-	cl, err := hippo.Pipeline(plan)
+	cl, err := hippo.MkPipeline(plan)
 	gtesting.NoError(t, err)
 
 	fin, err := cl.Ekran(

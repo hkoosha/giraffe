@@ -105,12 +105,9 @@ func (d Datum) len() int {
 }
 
 func (d Datum) get(
-	qq queryT,
+	q queryT,
 ) (Datum, error) {
-	q, err := qq, error(nil) // qq.Resolved(d.resolver)
-	if err != nil {
-		return OfErr(), err
-	}
+	// 	q, err := q.Resolved(d.resolver)
 
 	qf := q.Flags()
 	dt := d.typ

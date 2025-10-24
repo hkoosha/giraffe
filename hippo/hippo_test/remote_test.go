@@ -10,9 +10,8 @@ import (
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/contrib/gtestinghippo"
 	"github.com/hkoosha/giraffe/core/gtesting"
-	"github.com/hkoosha/giraffe/dot"
+	. "github.com/hkoosha/giraffe/dot"
 	"github.com/hkoosha/giraffe/hippo"
-	. "github.com/hkoosha/giraffe/internal/dot1"
 )
 
 func ekran(
@@ -59,7 +58,7 @@ func TestServer_Ekran(t *testing.T) {
 	t.Run("ekran", func(t *testing.T) {
 		gtesting.Preamble(t)
 
-		fin := ekran(t, dot.Dat(map[string]int{
+		fin := ekran(t, Dat(map[string]int{
 			"m-1": 123,
 		}))
 

@@ -14,8 +14,8 @@ import (
 
 	"github.com/hkoosha/giraffe"
 	"github.com/hkoosha/giraffe/core/gtesting"
+	. "github.com/hkoosha/giraffe/dot"
 	"github.com/hkoosha/giraffe/hippo"
-	. "github.com/hkoosha/giraffe/internal/dot1"
 )
 
 //go:embed test_runner.simple.json
@@ -104,7 +104,7 @@ func TestRunner(t *testing.T) {
 				), nil
 			}))
 
-		pipeline, err := hippo.Pipeline(plan)
+		pipeline, err := hippo.MkPipeline(plan)
 		require.NoError(t, err)
 
 		state, err := pipeline.Ekran(hippo.ContextOf(t.Context()), giraffe.OfEmpty())
@@ -141,7 +141,7 @@ func TestRunner(t *testing.T) {
 					),
 			)
 
-		pipeline, err := hippo.Pipeline(plan)
+		pipeline, err := hippo.MkPipeline(plan)
 		require.NoError(t, err)
 
 		state, err := pipeline.Ekran(hippo.ContextOf(t.Context()), giraffe.Of1("m", 33))
@@ -174,7 +174,7 @@ func TestRunner(t *testing.T) {
 					),
 			)
 
-		pipeline, err := hippo.Pipeline(plan)
+		pipeline, err := hippo.MkPipeline(plan)
 		require.NoError(t, err)
 
 		state, err := pipeline.Ekran(hippo.ContextOf(t.Context()), giraffe.Of1("m", 33))

@@ -2,15 +2,15 @@ package hippo
 
 import (
 	"github.com/hkoosha/giraffe"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
-	. "github.com/hkoosha/giraffe/internal/dot1"
 )
 
 var (
-	qFin   = Q("fin")
-	qSteps = Q("steps")
-	qName  = Q("name")
-	qState = Q("state")
+	qFin   = giraffe.Q("fin")
+	qSteps = giraffe.Q("steps")
+	qName  = giraffe.Q("name")
+	qState = giraffe.Q("state")
 
 	stepInit = "init"
 
@@ -18,7 +18,7 @@ var (
 )
 
 func (n *PipelineFn) ekran(
-	htx Context,
+	ctx Context,
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	hist, hErr := history(dat)
@@ -34,7 +34,7 @@ func (n *PipelineFn) ekran(
 			dat:      dat,
 		}
 
-		next, eErr := n.exe(htx, &sCtx)
+		next, eErr := n.exe(ctx, &sCtx)
 		if eErr != nil {
 			return dErr, onFnErr(&sCtx, hist, eErr)
 		}
@@ -46,37 +46,37 @@ func (n *PipelineFn) ekran(
 
 		dat = merged
 		hist = M(hist.Append(
-			M(OfN(
-				P(qName, sCtx.stepName),
-				P(qState, dat),
+			M(giraffe.OfN(
+				giraffe.TupleOf(qName, sCtx.stepName),
+				giraffe.TupleOf(qState, dat),
 			)),
 		))
 	}
 
-	return Of(giraffe.Implode{
+	return giraffe.Of(giraffe.Implode{
 		qFin:   dat,
-		qSteps: Of(hist),
+		qSteps: giraffe.Of(hist),
 	}), nil
 }
 
 func (n *PipelineFn) exe(
-	htx Context,
+	ctx Context,
 	sCtx *StepContext,
 ) (giraffe.Datum, error) {
 	if n.before != nil {
-		n.before(htx, sCtx.clone())
+		n.before(ctx, sCtx.clone())
 	}
 
-	next, err := sCtx.fn.call(htx, sCtx.dat)
+	next, err := sCtx.fn.call(ctx, sCtx.dat)
 	if err != nil {
-		if fix, ok := n.plan.compensator.compensate(htx, sCtx, err); ok {
+		if fix, ok := n.plan.compensator.compensate(ctx, sCtx, err); ok {
 			next = fix
 			err = nil
 		}
 	}
 
 	if n.after != nil {
-		n.after(htx, sCtx.clone())
+		n.after(ctx, sCtx.clone())
 	}
 
 	if err != nil {
@@ -84,6 +84,14 @@ func (n *PipelineFn) exe(
 	}
 
 	return next, nil
+}
+
+func (n *PipelineFn) shallow() *PipelineFn {
+	return &PipelineFn{
+		plan:   n.plan,
+		before: n.before,
+		after:  n.after,
+	}
 }
 
 func onFnErr(
@@ -110,20 +118,12 @@ func history(
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
 	ini, err := giraffe.OfN(
-		P(qName, stepInit),
-		P(qState, dat),
+		giraffe.TupleOf(qName, stepInit),
+		giraffe.TupleOf(qState, dat),
 	)
 	if err != nil {
 		return dErr, err
 	}
 
-	return Of([]giraffe.Datum{ini}), err
-}
-
-func (n *PipelineFn) clone() *PipelineFn {
-	return &PipelineFn{
-		plan:   n.plan,
-		before: n.before,
-		after:  n.after,
-	}
+	return giraffe.Of([]giraffe.Datum{ini}), err
 }

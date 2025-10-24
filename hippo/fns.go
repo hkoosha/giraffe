@@ -2,7 +2,6 @@ package hippo
 
 import (
 	"github.com/hkoosha/giraffe"
-	. "github.com/hkoosha/giraffe/internal/dot1"
 )
 
 func Static(
@@ -19,7 +18,7 @@ func Static(
 func StaticOf(
 	pairs ...giraffe.Tuple,
 ) (*Fn, error) {
-	dat, err := OfN(pairs...)
+	dat, err := giraffe.OfN(pairs...)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +38,7 @@ func selectRand(
 ) (giraffe.Datum, error) {
 	l, err := dat.Len()
 	if err != nil {
-		return OfErr(), err
+		return giraffe.OfErr(), err
 	}
 
 	// TODO how to sanely select obj keys? Probably never.
@@ -67,8 +66,8 @@ func (k selectKey) exe(
 ) (giraffe.Datum, error) {
 	key, err := dat.QStr(k.key)
 	if err != nil {
-		return OfErr(), err
+		return giraffe.OfErr(), err
 	}
 
-	return dat.Get(Q(key))
+	return dat.Get(giraffe.Q(key))
 }

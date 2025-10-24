@@ -95,7 +95,7 @@ func (p *Selector) AndPlan(
 		return nil, E(EF("duplicated plan: %s", name), errDuplicatedPlan)
 	}
 
-	n, err := Pipeline(plan)
+	n, err := MkPipeline(plan)
 	if err != nil {
 		return nil, err
 	}

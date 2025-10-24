@@ -15,7 +15,10 @@ import (
 )
 
 func MkFnRegistry() *FnRegistry {
-	return zeroRegistry
+	return &FnRegistry{
+		scope:  nil,
+		byType: make(map[typing.Type]regEntry),
+	}
 }
 
 type FnRegistry struct {

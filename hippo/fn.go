@@ -6,8 +6,8 @@ import (
 	"slices"
 
 	"github.com/hkoosha/giraffe"
+	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/hippo/internal"
-	. "github.com/hkoosha/giraffe/internal/dot1"
 	"github.com/hkoosha/giraffe/typing"
 )
 
@@ -34,8 +34,8 @@ func TryFnOf(
 
 	fn := &Fn{
 		exe:          exe,
-		scoped:       "",
 		inputs:       nil,
+		scoped:       "",
 		outputs:      nil,
 		optionals:    nil,
 		replicated:   nil,
@@ -44,6 +44,7 @@ func TryFnOf(
 		skipOnExists: false,
 		typ:          t,
 		name:         "#" + t.String(),
+		args:         nil,
 	}
 
 	var err error = nil
@@ -55,12 +56,107 @@ func TryFnOf(
 	return fn, err
 }
 
+//nolint:lll
+type FnConfig struct {
+	Require      *[]giraffe.Query                 `json:"require,omitempty"        yaml:"require,omitempty"`
+	Select       *[]giraffe.Query                 `json:"select,omitempty"         yaml:"select,omitempty"`
+	Replicate    *map[giraffe.Query]giraffe.Query `json:"replicate,omitempty"      yaml:"replicate,omitempty"`
+	Swap         *map[giraffe.Query]giraffe.Query `json:"swap,omitempty"           yaml:"swap,omitempty"`
+	Scoped       *giraffe.Query                   `json:"scoped,omitempty"         yaml:"scoped,omitempty"`
+	SkipOnExists *bool                            `json:"skip_on_exists,omitempty" yaml:"require,omitempty"`
+	Args         *giraffe.Datum                   `json:"args,omitempty"           yaml:"args,omitempty"`
+	Name         string                           `json:"name"                     yaml:"name"`
+}
+
+func (f *FnConfig) clone() *FnConfig {
+	require := f.Require
+	if require != nil {
+		require = Ref(slices.Clone(*require))
+	}
+
+	select_ := f.Select
+	if select_ != nil {
+		select_ = Ref(slices.Clone(*select_))
+	}
+
+	replicate := f.Replicate
+	if replicate != nil {
+		replicate = Ref(maps.Clone(*replicate))
+	}
+
+	swap := f.Swap
+	if swap != nil {
+		swap = Ref(maps.Clone(*swap))
+	}
+
+	scoped := f.Scoped
+	if scoped != nil {
+		scoped = Ref(*scoped)
+	}
+
+	skipOnExists := f.SkipOnExists
+	if skipOnExists != nil {
+		skipOnExists = Ref(*skipOnExists)
+	}
+
+	args := f.Args
+	if args != nil {
+		args = Ref(*args)
+	}
+
+	return &FnConfig{
+		Name:         f.Name,
+		Require:      require,
+		Select:       select_,
+		Replicate:    replicate,
+		Swap:         swap,
+		Scoped:       scoped,
+		SkipOnExists: skipOnExists,
+		Args:         args,
+	}
+}
+
+func (f *FnConfig) Configure(
+	fn *Fn,
+) (*Fn, error) {
+	if f.Require != nil {
+		fn = fn.WithInput(*f.Require...)
+	}
+
+	if f.Select != nil {
+		fn = fn.Select(*f.Select...)
+	}
+
+	if f.Replicate != nil {
+		fn = fn.WithReplicated(*f.Replicate)
+	}
+
+	if f.Swap != nil {
+		fn = fn.WithSwapping(*f.Swap)
+	}
+
+	if f.Scoped != nil {
+		fn = fn.WithScope(*f.Scoped)
+	}
+
+	if f.SkipOnExists != nil {
+		fn = fn.SetSkipOnExists(*f.SkipOnExists)
+	}
+
+	if f.Args != nil {
+		fn = fn.WithArgs(*f.Args)
+	}
+
+	return fn, nil
+}
+
 type Fn struct {
 	exe          Exe
+	args         *giraffe.Datum
 	replicated   map[giraffe.Query]giraffe.Query
 	swapped      map[giraffe.Query]giraffe.Query
-	scoped       giraffe.Query
 	name         string
+	scoped       giraffe.Query
 	inputs       []giraffe.Query
 	outputs      []giraffe.Query
 	optionals    []giraffe.Query
@@ -154,9 +250,46 @@ func (f *Fn) WithScope(
 ) *Fn {
 	f.ensure()
 
-	clone := f.clone()
-	clone.scoped = scope
-	return clone
+	cp := f.clone()
+	cp.scoped = scope
+	return cp
+}
+
+func (f *Fn) AndArgs(
+	args giraffe.Datum,
+) (*Fn, error) {
+	f.ensure()
+
+	cp := f.clone()
+
+	if cp.args == nil {
+		cp.args = &args
+	} else {
+		merged, err := cp.args.Merge(args)
+		if err != nil {
+			return nil, err
+		}
+		cp.args = &merged
+	}
+	return cp, nil
+}
+
+func (f *Fn) WithArgs(
+	args giraffe.Datum,
+) *Fn {
+	f.ensure()
+
+	cp := f.clone()
+	cp.args = &args
+	return cp
+}
+
+func (f *Fn) WithoutArgs() *Fn {
+	f.ensure()
+
+	cp := f.clone()
+	cp.args = nil
+	return cp
 }
 
 func (f *Fn) AndInputs(

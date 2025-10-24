@@ -113,7 +113,7 @@ func (s server) ekran(
 		return newErrorMissingPlan(req.Plan)
 	}
 
-	runner, err := hippo.Pipeline(plan)
+	runner, err := hippo.MkPipeline(plan)
 	if err != nil {
 		return newUnknownError(err)
 	}

@@ -6,7 +6,6 @@ import (
 	. "github.com/hkoosha/giraffe/core/t11y/dot"
 	"github.com/hkoosha/giraffe/hippo/internal"
 	"github.com/hkoosha/giraffe/hippo/internal/hippoerr"
-	"github.com/hkoosha/giraffe/typing"
 )
 
 func newNamedStep(
@@ -72,22 +71,4 @@ func (c compCondition) canCompensate(
 	}
 
 	return true
-}
-
-// =============================================================================
-
-var zeroPlan = &Plan{
-	compensator: Compensator{
-		comp: make([]compCondition, 0),
-	},
-	registry: &FnRegistry{
-		scope:  nil,
-		byType: nil,
-	},
-	steps: make([]namedStep, 0),
-}
-
-var zeroRegistry = &FnRegistry{
-	scope:  nil,
-	byType: make(map[typing.Type]regEntry),
 }
