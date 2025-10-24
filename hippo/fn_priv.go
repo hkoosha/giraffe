@@ -52,6 +52,16 @@ func allExists(
 
 // =====================================
 
+func (f *Fn) mergeArgs(
+	dat giraffe.Datum,
+) (giraffe.Datum, error) {
+	if f.args == nil {
+		return dat, nil
+	}
+
+	return dat.Merge(*f.args)
+}
+
 func (f *Fn) replicate(
 	dat giraffe.Datum,
 ) (giraffe.Datum, error) {
@@ -183,6 +193,11 @@ func (f *Fn) call(
 
 	if f.skipOnExists && allExists(dat, f.outputs) {
 		return dat, nil
+	}
+
+	dat, err := f.mergeArgs(dat)
+	if err != nil {
+		return giraffe.OfErr(), err
 	}
 
 	ret0, err := f.exe(ctx, dat)

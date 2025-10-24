@@ -56,6 +56,10 @@ func TryFnOf(
 	return fn, err
 }
 
+// FnConfig
+//
+// TODO mix as private field in Fn itself.
+//
 //nolint:lll
 type FnConfig struct {
 	Require      *[]giraffe.Query                 `json:"require,omitempty"        yaml:"require,omitempty"`
@@ -65,7 +69,7 @@ type FnConfig struct {
 	Scoped       *giraffe.Query                   `json:"scoped,omitempty"         yaml:"scoped,omitempty"`
 	SkipOnExists *bool                            `json:"skip_on_exists,omitempty" yaml:"require,omitempty"`
 	Args         *giraffe.Datum                   `json:"args,omitempty"           yaml:"args,omitempty"`
-	Name         string                           `json:"name"                     yaml:"name"`
+	Fn           string                           `json:"fn"                       yaml:"fn"`
 }
 
 func (f *FnConfig) Clone() *FnConfig {
@@ -105,7 +109,7 @@ func (f *FnConfig) Clone() *FnConfig {
 	}
 
 	return &FnConfig{
-		Name:         f.Name,
+		Fn:           f.Fn,
 		Require:      require,
 		Select:       select_,
 		Replicate:    replicate,
